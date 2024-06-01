@@ -296,7 +296,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
                     .withRepresentationProperty(CONFIG_IP_ADDRESS).withThingType(THING_TYPE_MIDEAAC)
                     .withProperties(collectProperties(ipAddress, m_version, m_id, m_port, m_sn, m_ssid, m_type))
                     .build();
-
         } else if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 6)).equals("3C3F786D6C20")) {
             logger.debug("Midea AC v1 device was detected, supported, but not implemented yet.");
             // TODO:

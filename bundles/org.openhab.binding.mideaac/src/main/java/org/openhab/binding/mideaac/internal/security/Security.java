@@ -57,7 +57,7 @@ public class Security {
     // private final static String hmackey = "PROD_VnoClJI9aikS8dyy";
 
     private SecretKeySpec encKey = null;
-    private static Logger logger = LoggerFactory.getLogger(Security.class);
+    private Logger logger = LoggerFactory.getLogger(Security.class);
     private IvParameterSpec iv = new IvParameterSpec(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 
     CloudProvider cloudProvider;

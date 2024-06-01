@@ -149,7 +149,7 @@ public class MideaACConfiguration {
         if (ipPort.isBlank()) {
             return false;
         }
-        if (deviceId.equalsIgnoreCase("0") || deviceId.isBlank()) {
+        if ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank()) {
             return false;
         }
         return true;
@@ -162,7 +162,7 @@ public class MideaACConfiguration {
         if (ipPort.isBlank()) {
             return true;
         }
-        if (deviceId.equalsIgnoreCase("0") || deviceId.isBlank()) {
+        if ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank()) {
             return true;
         }
         return true;

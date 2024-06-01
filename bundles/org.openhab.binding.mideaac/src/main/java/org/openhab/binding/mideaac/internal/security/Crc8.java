@@ -18,7 +18,7 @@ package org.openhab.binding.mideaac.internal.security;
  * @author Jacek Dobrowolski - Initial Contribution
  */
 public class Crc8 {
-    private static final byte[] crc8_854_table = { (byte) 0x00, (byte) 0x5E, (byte) 0xBC, (byte) 0xE2, (byte) 0x61,
+    private static final byte[] CRC8_854_TABLE = { (byte) 0x00, (byte) 0x5E, (byte) 0xBC, (byte) 0xE2, (byte) 0x61,
             (byte) 0x3F, (byte) 0xDD, (byte) 0x83, (byte) 0xC2, (byte) 0x9C, (byte) 0x7E, (byte) 0x20, (byte) 0xA3,
             (byte) 0xFD, (byte) 0x1F, (byte) 0x41, (byte) 0x9D, (byte) 0xC3, (byte) 0x21, (byte) 0x7F, (byte) 0xFC,
             (byte) 0xA2, (byte) 0x40, (byte) 0x1E, (byte) 0x5F, (byte) 0x01, (byte) 0xE3, (byte) 0xBD, (byte) 0x3E,
@@ -53,17 +53,17 @@ public class Crc8 {
             (byte) 0x89, (byte) 0x6B, (byte) 0x35 };
 
     public static int calculate(byte[] bytes) {
-        int crc_value = 0;
+        int crcValue = 0;
         for (byte m : bytes) {
-            int k = (byte) (crc_value ^ m);
+            int k = (byte) (crcValue ^ m);
             if (k > 256) {
                 k -= 256;
             }
             if (k < 0) {
                 k += 256;
             }
-            crc_value = crc8_854_table[k];
+            crcValue = CRC8_854_TABLE[k];
         }
-        return crc_value;
+        return crcValue;
     }
 }

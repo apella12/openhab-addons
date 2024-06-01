@@ -25,8 +25,6 @@ public class DataSmoother {
     private final HashMap<String, Float> history = new HashMap<String, Float>();
     private final ArrayList<String> managed = new ArrayList<String>();
 
-    private static final DecimalFormat df = new DecimalFormat("0.0");
-
     public void setManaged(String channelName) {
         if (!managed.contains(channelName)) {
             managed.add(channelName);
@@ -34,10 +32,7 @@ public class DataSmoother {
     }
 
     private boolean isManaged(String channelName) {
-        if (managed.contains(channelName)) {
-            return true;
-        }
-        return false;
+        return managed.contains(channelName);
     }
 
     public Float get(String channelName, Float value) {
@@ -55,7 +50,8 @@ public class DataSmoother {
     }
 
     public float average(float previousvalue, float value) {
-        return Float.parseFloat(df.format((previousvalue + value) / 2));
+        DecimalFormat decimalFormat = new DecimalFormat("0.0");
+        return Float.parseFloat(decimalFormat.format((previousvalue + value) / 2));
     }
 
     public DataSmoother() {

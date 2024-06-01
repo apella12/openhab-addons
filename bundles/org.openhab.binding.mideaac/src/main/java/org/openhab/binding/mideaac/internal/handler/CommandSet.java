@@ -38,8 +38,10 @@ public class CommandSet extends CommandBase {
         commandSet.setTargetTemperature(response.getTargetTemperature());
         commandSet.setOperationalMode(response.getOperationalMode());
         commandSet.setFanSpeed(response.getFanSpeed());
-        commandSet.setFahrenheit(response.getTempUnit());
+        commandSet.setFahrenheit(response.getFahrenheit());
         commandSet.setTurboMode(response.getTurboMode());
+        commandSet.setSwingMode(response.getSwingMode());
+        commandSet.setScreenDisplay(response.getNightLight());
 
         return commandSet;
     }
@@ -69,7 +71,7 @@ public class CommandSet extends CommandBase {
         // Clear the temperature bits.
         data[0x0c] &= ~0x0f;
         // Clear the temperature bits, except the 0.5 bit, which will be set properly in all cases
-        data[0x0c] |= (int) temperature & 0xf;
+        data[0x0c] |= (int) Math.round(temperature) & 0xf;
         // set the +0.5 bit
         setTemperatureDot5((Math.round(temperature * 2)) % 2 != 0);
     }
@@ -87,8 +89,8 @@ public class CommandSet extends CommandBase {
     }
 
     public void setSwingMode(SwingMode mode) {
-        data[0x11] = 0x30; // Clear the mode bit
-        data[0x11] |= mode.getId() & (byte) 0x3f;
+        data[0x11] &= ~0x0f; // Clear the mode bits
+        data[0x11] |= mode.getId() & 0x0f;
     }
 
     public void setTurboMode(boolean turboModeEnabled) {
@@ -119,7 +121,7 @@ public class CommandSet extends CommandBase {
     }
 
     public void setFahrenheit(boolean fahrenheitEnabled) {
-        // set the unit to Fahrenheit from Celsius
+        // set the display to Fahrenheit from Celsius
         if (fahrenheitEnabled) {
             data[0x14] |= 0x04;
         } else {

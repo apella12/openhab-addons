@@ -64,9 +64,9 @@ public class Utils {
     }
 
     public static boolean validateIP(final String ip) {
-        String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+        String pattern = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
 
-        return ip.matches(PATTERN);
+        return ip.matches(pattern);
     }
 
     public static byte[] hexStringToByteArray(String s) {
@@ -101,7 +101,7 @@ public class Utils {
         return result;
     }
 
-    public static String token_hex(int nbytes) {
+    public static String tokenHex(int nbytes) {
         Random r = new Random();
         StringBuffer sb = new StringBuffer();
         for (int n = 0; n < nbytes; n++) {
@@ -111,7 +111,7 @@ public class Utils {
         return sb.toString().substring(0, nbytes);
     }
 
-    public static String token_urlsafe(int nbytes) {
+    public static String tokenUrlsafe(int nbytes) {
         Random r = new Random();
         byte[] bytes = new byte[nbytes];
         r.nextBytes(bytes);

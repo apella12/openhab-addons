@@ -178,12 +178,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         if (command instanceof RefreshType) {
-            connectionManager.connect(doPoll);
+            connectionManager.connect();
             return;
         }
 
         doPoll = false;
-        connectionManager.connect(doPoll);
+        connectionManager.connect();
 
         if (channelUID.getId().equals(CHANNEL_POWER)) {
             handlePower(command);
@@ -213,8 +213,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             commandSet.setPowerState(false);
         } else if (command.equals(OnOffType.ON)) {
             commandSet.setPowerState(true);
-            // TODO:Figure out how to generalize
-            commandSet.setFahrenheit(true);
         } else {
             logger.debug("Unknown power state command: {}", command);
             return;
@@ -225,8 +223,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public void handleOperationalMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
-
-        commandSet.setPowerState(true);
 
         if (command instanceof StringType) {
             if (command.equals(OPERATIONAL_MODE_OFF)) {
@@ -275,15 +271,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     @SuppressWarnings("null")
     public void handleTargetTemperature(Command command) {
-
         Response lastResponse = getLastResponse();
         CommandSet commandSet = CommandSet.fromResponse(lastResponse);
 
         if (command instanceof DecimalType) {
             QuantityType<Temperature> quantity = new QuantityType<Temperature>(((DecimalType) command).doubleValue(),
-                    lastResponse.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS);
-            commandSet.setPowerState(true);
-            if (lastResponse.getTempUnit() == true) { // F
+                    lastResponse.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS);
+
+            if (lastResponse.getTempUnit()) { // Is this always false. My unit always uses Celsius
                 if (isImperial()) {
                     logger.debug("handleTargetTemperature: Set field of type Integer F > F");
                     commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(quantity.floatValue()));
@@ -302,27 +297,25 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     commandSet.setTargetTemperature(convertTargetCelsiusTemperatureToInRange(quantity.floatValue()));
                 }
             }
+
             getConnectionManager().sendCommandAndMonitor(commandSet);
         } else if (command instanceof QuantityType) {
-            commandSet.setPowerState(true);
-
             QuantityType<?> quantity = (QuantityType<?>) command;
             Unit<?> unit = quantity.getUnit();
             logger.debug(
                     "handleTargetTemperature: Set field of type Integer to value of item QuantityType with unit {}",
                     unit);
             if (unit.equals(ImperialUnits.FAHRENHEIT) || unit.equals(SIUnits.CELSIUS)) {
-                if (lastResponse.getTempUnit() == true && unit.equals(ImperialUnits.FAHRENHEIT)) {
+                if (lastResponse.getTempUnit() && unit.equals(ImperialUnits.FAHRENHEIT)) {
                     commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(quantity.floatValue()));
-                } else if (lastResponse.getTempUnit() == true && unit.equals(SIUnits.CELSIUS)) {
+                } else if (lastResponse.getTempUnit() && unit.equals(SIUnits.CELSIUS)) {
                     commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(
                             quantity.toUnit(ImperialUnits.FAHRENHEIT).floatValue()));
-                } else if (lastResponse.getTempUnit() == false && unit.equals(SIUnits.CELSIUS)) {
+                } else if (!lastResponse.getTempUnit() && unit.equals(SIUnits.CELSIUS)) {
                     commandSet.setTargetTemperature(convertTargetCelsiusTemperatureToInRange(quantity.floatValue()));
-                } else if (lastResponse.getTempUnit() == false && unit.equals(ImperialUnits.FAHRENHEIT)) {
+                } else if (!lastResponse.getTempUnit() && unit.equals(ImperialUnits.FAHRENHEIT)) {
                     commandSet.setTargetTemperature(
                             convertTargetCelsiusTemperatureToInRange(quantity.toUnit(SIUnits.CELSIUS).floatValue()));
-                    commandSet.setFahrenheit(true);
                 }
 
                 getConnectionManager().sendCommandAndMonitor(commandSet);
@@ -337,8 +330,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         if (command instanceof StringType) {
             commandSet.setPowerState(true);
-            // TODO:Figure out how to generalize
-            commandSet.setFahrenheit(true);
             if (command.equals(FAN_SPEED_OFF)) {
                 commandSet.setPowerState(false);
             } else if (command.equals(FAN_SPEED_SILENT)) {
@@ -404,7 +395,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     public void handleSwingMode(Command command) {
         if (this.getVersion() == 3) {
             logger.debug("Setting Swing Mode for version 3 is not supported by protocol (LAN and Cloud)");
-            return;
+            // return; if already set keep it. It can be erased, but not set
         }
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -446,6 +437,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     public void handleScreenDisplay(Command command) {
+        // this doesn't work for me. The bit is always off even with the LED on
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -525,7 +517,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         updateStatus(ThingStatus.UNKNOWN);
 
-        connectionManager.connect(true);
+        connectionManager.connect();
     }
 
     @SuppressWarnings("null")
@@ -585,14 +577,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         getConnectionManager().cancelConnectionMonitorJob();
         getConnectionManager().disconnect();
-
-        // Delay to let things settle
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            logger.warn("An interupted error has (msg) occured {}", e.getMessage());
-        }
-        getConnectionManager().connect(true);
+        getConnectionManager().connect();
     }
 
     private boolean isOnline() {
@@ -601,6 +586,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private boolean isOffline() {
         return thing.getStatus().equals(ThingStatus.OFFLINE);
+    }
+
+    public boolean getDoPoll() {
+        return doPoll;
+    }
+
+    public void resetDoPoll() {
+        doPoll = true;
     }
 
     private ThingStatus getStatus() {
@@ -625,7 +618,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     /*
      * The {@link ConnectionManager} class is responsible for managing the state of the TCP connection to the
-     * fan.
+     * indoor AC unit evaporator.
      *
      * @author Jacek Dobrowolski - Initial Contribution
      */
@@ -633,7 +626,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         private Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
         private boolean deviceIsConnected;
-        private boolean connectionIsAuthenticated;
 
         // private @Nullable InetAddress ifAddress;
         private @Nullable Socket socket;
@@ -653,7 +645,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         Runnable connectionMonitorRunnable = () -> {
             logger.debug("Connecting to {} at IP {} for Poll", thing.getUID(), ipAddress);
-            connect(true);
+            connect();
         };
 
         public ConnectionManager(String ipv4Address, MideaACHandler mideaACHandler) {
@@ -683,17 +675,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             tokenReqeustedAt.setTime(getTokenReqested());
             tokenReqeustedAt.add(Calendar.HOUR, reuth);
 
-            if (now.compareTo(tokenReqeustedAt) > 0) {
-                return true;
-            }
-            return false;
+            return now.compareTo(tokenReqeustedAt) > 0;
         }
 
         @SuppressWarnings("null")
-        protected synchronized void connect(Boolean doPoll) {
+        protected synchronized void connect() {
             if (reAuthenticationNeeded()) {
                 logger.info("Force re-authentication has initiated");
-                this.authenticate(true);
+                this.authenticate();
             }
             if (isConnected() && getVersion() == 2) {
                 return;
@@ -719,7 +708,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 } else {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
                 }
-                return;
             }
 
             // Create streams
@@ -735,30 +723,29 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 } else {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
                 }
-                return;
             }
             logger.info("Connected to {} at {}", thing.getUID(), ipAddress);
             deviceIsConnected = true;
             markOnline();
             if (getVersion() != 3) {
                 logger.debug("Device {}@{} not require authentication, getting status", thing.getUID(), ipAddress);
-                requestStatus(doPoll);
+                requestStatus(mideaACHandler.getDoPoll());
             } else {
                 logger.debug("Device {}@{} require authentication, going to authenticate", thing.getUID(), ipAddress);
-                authenticate(true);
+                authenticate();
             }
         }
 
         @SuppressWarnings("null")
-        public void authenticate(Boolean doPoll) {
+        public void authenticate() {
             logger.trace("Version: {}", getVersion());
             logger.trace("Key: {}", config.getKey());
             logger.trace("Token: {}", config.getToken());
 
             if (getVersion() == 3) {
-                if (StringUtils.isBlank(config.getToken()) == false && StringUtils.isBlank(config.getKey()) == false) {
+                if (!StringUtils.isBlank(config.getToken()) && !StringUtils.isBlank(config.getKey())) {
                     logger.debug("Device {}@{} authenticating", thing.getUID(), ipAddress);
-                    doAuthentication(doPoll);
+                    doAuthentication();
                 } else {
                     if (StringUtils.isBlank(config.getToken()) && StringUtils.isBlank(config.getKey())) {
                         if (StringUtils.isBlank(config.getEmail()) || StringUtils.isBlank(config.getPassword())) {
@@ -791,9 +778,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     }
                 }
             } else {
-                logger.warn("Device {}@{} with version {} does not require authentication, not going to authenticate",
+                logger.debug("Device {}@{} with version {} does not require authentication, not going to authenticate",
                         thing.getUID(), ipAddress, getVersion());
-                connectionIsAuthenticated = true; // try this to meet condtion for version 2 for checkconnection()
             }
         }
 
@@ -813,9 +799,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 logger.trace("Token: {}", tk.getToken());
                 logger.trace("Key: {}", tk.getKey());
-                logger.warn("Token and Key obtained from cloud, saving, initializing");
+                logger.info("Token and Key obtained from cloud, saving, initializing");
                 initialize();
-
             } else {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                         String.format("Can't retrieve Token and Key from Cloud (%s).", cloud.getErrMsg()));
@@ -824,7 +809,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         @SuppressWarnings("null")
-        private void doAuthentication(boolean doPoll) {
+        private void doAuthentication() {
             // byte[] request = Security.encode_8370(Utils.hexStringToByteArray(config.getToken()),
             // MsgType.MSGTYPE_HANDSHAKE_REQUEST);
             byte[] request = mideaACHandler.getSecurity().encode_8370(Utils.hexStringToByteArray(config.getToken()),
@@ -835,11 +820,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 write(request);
                 byte[] response = read();
-                logger.trace("Device {}@{} response for handshake_request length: {}", thing.getUID(), ipAddress,
-                        response.length);
+
                 if (response != null && response.length > 0) {
-                    logger.trace("Device {}@{} response for handshake_request: {}", thing.getUID(), ipAddress,
-                            Utils.bytesToHex(response));
+                    logger.trace("Device {}@{} response for handshake_request length: {}", thing.getUID(), ipAddress,
+                            response.length);
                     if (response.length == 72) {
                         // boolean success = Security.tcp_key(Arrays.copyOfRange(response, 8, 72),
                         // Utils.hexStringToByteArray(config.getKey()));
@@ -847,13 +831,13 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                 Utils.hexStringToByteArray(config.getKey()));
                         if (success) {
                             logger.debug("Authentication successful");
-                            connectionIsAuthenticated = true;
+                            // altering the sleep causes problems, needs to be at least 1000
                             try {
-                                Thread.sleep(1200);
+                                Thread.sleep(1000);
                             } catch (InterruptedException e) {
-                                logger.warn("An interupted error (success) has occured {}", e.getMessage());
+                                logger.info("An interupted error (success) has occured {}", e.getMessage());
                             }
-                            requestStatus(doPoll);
+                            requestStatus(mideaACHandler.getDoPoll());
                         } else {
                             logger.debug("Invalid Key. Correct Key in configuration");
                             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
@@ -868,23 +852,22 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                 "Invalid Token. Correct Token in configuration.");
                     }
-
                 }
             } catch (IOException e) {
                 logger.warn("An IO error in doAuthentication has occured {}", e.getMessage());
             }
         }
 
-        public void requestStatus(boolean doPoll) {
-            CommandBase requestStatusCommand = new CommandBase();
-            if (doPoll) {
+        public void requestStatus(boolean polling) {
+            if (polling) {
+                CommandBase requestStatusCommand = new CommandBase();
                 sendCommandAndMonitor(requestStatusCommand);
             }
         }
 
         public void sendCommandAndMonitor(CommandBase command) {
             sendCommand(command);
-            doPoll = true;
+            mideaACHandler.resetDoPoll();
             if (connectionMonitorJob == null) {
                 scheduleConnectionMonitorJob();
             }
@@ -917,8 +900,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 byte[] responseBytes = read();
 
                 if (responseBytes != null) {
-                    markOnline();
-
                     if (getVersion() == 3) {
                         Decryption8370Result result = mideaACHandler.getSecurity().decode_8370(responseBytes);
                         for (byte[] response : result.getResponses()) {
@@ -1020,10 +1001,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     }
                     return;
                 } else {
-                    logger.info("No response to write command {} unknown reason", command);
-                    markOfflineWithMessage(ThingStatusDetail.COMMUNICATION_ERROR, "No response to write");
+                    logger.info("Problem with reading response, skipping command {}", command);
+                    return;
                 }
-
             } catch (SocketException e) {
                 logger.info("SocketException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
@@ -1033,7 +1013,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
                 }
             } catch (IOException e) {
-                logger.info("IOException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
+                logger.info(" Send IOException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
                 if (message != null) {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
@@ -1082,40 +1062,37 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         @SuppressWarnings("null")
         private void processMessage(@Nullable Response response) {
-
-            updateChannel(CHANNEL_POWER, response.getPowerState() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_IMODE_RESUME, response.getImmodeResume() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_TIMER_MODE, response.getTimerMode() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_APPLIANCE_ERROR, response.getApplianceError() == true ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_POWER, response.getPowerState() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_IMODE_RESUME, response.getImmodeResume() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_TIMER_MODE, response.getTimerMode() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_APPLIANCE_ERROR, response.getApplianceError() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_TARGET_TEMPERATURE, new QuantityType<Temperature>(response.getTargetTemperature(),
-                    response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
-                                                                                                   // DecimalType(response.getTargetTemperature()));
+                    response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
+                                                                                           // DecimalType(response.getTargetTemperature()));
             updateChannel(CHANNEL_OPERATIONAL_MODE, new StringType(response.getOperationalMode().toString()));
             updateChannel(CHANNEL_FAN_SPEED, new StringType(response.getFanSpeed().toString()));
             updateChannel(CHANNEL_ON_TIMER, new StringType(response.getOnTimer().toChannel()));
             updateChannel(CHANNEL_OFF_TIMER, new StringType(response.getOffTimer().toChannel()));
             updateChannel(CHANNEL_SWING_MODE, new StringType(response.getSwingMode().toString()));
             updateChannel(CHANNEL_COZY_SLEEP, new DecimalType(response.getCozySleep()));
-            updateChannel(CHANNEL_SAVE, response.getSave() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_LOW_FREQUENCY_FAN,
-                    response.getLowFrequencyFan() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_SUPER_FAN, response.getSuperFan() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_FEEL_OWN, response.getFeelOwn() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_CHILD_SLEEP_MODE,
-                    response.getChildSleepMode() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_EXCHANGE_AIR, response.getExchangeAir() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_DRY_CLEAN, response.getDryClean() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_AUX_HEAT, response.getAuxHeat() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_ECO_MODE, response.getEcoMode() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_CLEAN_UP, response.getCleanUp() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_TEMP_UNIT, response.getTempUnit() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_SLEEP_FUNCTION, response.getSleepFunction() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_TURBO_MODE, response.getTurboMode() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_CATCH_COLD, response.getCatchCold() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_NIGHT_LIGHT, response.getNightLight() == true ? OnOffType.ON : OnOffType.OFF);
-            updateChannel(CHANNEL_PEAK_ELEC, response.getPeakElec() == true ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_SAVE, response.getSave() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_LOW_FREQUENCY_FAN, response.getLowFrequencyFan() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_SUPER_FAN, response.getSuperFan() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_FEEL_OWN, response.getFeelOwn() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_CHILD_SLEEP_MODE, response.getChildSleepMode() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_EXCHANGE_AIR, response.getExchangeAir() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_DRY_CLEAN, response.getDryClean() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_AUX_HEAT, response.getAuxHeat() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_ECO_MODE, response.getEcoMode() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_CLEAN_UP, response.getCleanUp() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_TEMP_UNIT, response.getFahrenheit() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_SLEEP_FUNCTION, response.getSleepFunction() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_TURBO_MODE, response.getTurboMode() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_CATCH_COLD, response.getCatchCold() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_NIGHT_LIGHT, response.getNightLight() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_PEAK_ELEC, response.getPeakElec() ? OnOffType.ON : OnOffType.OFF);
 
-            updateChannel(CHANNEL_NATURAL_FAN, response.getNaturalFan() == true ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_NATURAL_FAN, response.getNaturalFan() ? OnOffType.ON : OnOffType.OFF);
             float cit = 0;
             cit = dataHistory.get(CHANNEL_INDOOR_TEMPERATURE, response.getIndoorTemperature());
             // updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getIndoorTemperature(),
@@ -1129,7 +1106,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             // ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
             // DecimalType(response.getIndoorTemperature()));
             updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(cit,
-                    response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
+                    response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             // updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getIndoorTemperature(),
             // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             float cot = 0;
@@ -1143,7 +1120,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             // cot,
             // response.getOutdoorTemperature(), this, thing.getUID());
             updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new QuantityType<Temperature>(cot,
-                    response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
+                    response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             // updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new
             // QuantityType<Temperature>(response.getOutdoorTemperature(),
             // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
@@ -1152,6 +1129,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         public byte @Nullable [] read() {
             byte[] bytes = new byte[512];
+
+            if (inputStream == null) {
+                logger.info("No bytes to read");
+                return null;
+            }
             try {
                 if (inputStream != null) {
                     int len = inputStream.read(bytes);
@@ -1162,15 +1144,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     }
                 }
             } catch (IOException e) {
-                logger.info("No bytes to read");
-                String message = e.getMessage();
-                if (message != null) {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
-                } else {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
-                }
+                logger.info(" Byte read problem");
             }
-
             return null;
         }
 
@@ -1221,22 +1196,5 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 connectionMonitorJob = null;
             }
         }
-
-        // private void checkConnection() {
-        // logger.trace("Checking status of connection for {} at {}", thing.getUID(), ipAddress);
-        // if (!isConnected()) {
-        // logger.debug("Connection check FAILED for {} at {}", thing.getUID(), ipAddress);
-        // if (getVersion() == 2 || getVersion() == 3 && connectionIsAuthenticated == true) {
-        // connect();
-        // }
-        // } else {
-        // logger.debug("Connection check OK for {} at {}", thing.getUID(), ipAddress);
-        // logger.debug("Requesting status update from {} at {} after connect()", thing.getUID(), ipAddress);
-        // requestStatus(false);
-        // False means just run and leave existing timer
-        // At least my device will only respond to refreshType command after reconnection
-        // connect();
-        // }
-        // }
     }
 }

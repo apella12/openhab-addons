@@ -122,9 +122,9 @@ public class Cloud {
 
         // Add the login information to the payload
 
-        if (data.has("reqId") == false && !Objects.isNull(cloudProvider.getProxied())
+        if (!data.has("reqId") && !Objects.isNull(cloudProvider.getProxied())
                 && !cloudProvider.getProxied().isBlank()) {
-            data.addProperty("reqId", Utils.token_hex(16));
+            data.addProperty("reqId", Utils.tokenHex(16));
         }
 
         String url = cloudProvider.getApiUrl() + endpoint;
@@ -208,7 +208,7 @@ public class Cloud {
             String msg = result.get("msg").getAsString();
             if (code != 0) {
                 errMsg = msg;
-                handle_api_error(code, msg);
+                handleApiError(code, msg);
                 logger.warn("Error logging to Cloud: {}", msg);
                 return null;
             } else {
@@ -230,7 +230,7 @@ public class Cloud {
     @SuppressWarnings("null")
     public boolean login() {
         if (loginId == null) {
-            if (getLoginId() == false) {
+            if (!getLoginId()) {
                 return false;
             }
         }
@@ -255,8 +255,8 @@ public class Cloud {
             iotData.addProperty("iampwd", security.encrypt_iam_password(loginId, password));
             iotData.addProperty("loginAccount", loginAccount);
             iotData.addProperty("password", security.encryptPassword(loginId, password));
-            iotData.addProperty("pushToken", Utils.token_urlsafe(120));
-            iotData.addProperty("reqId", Utils.token_hex(16));
+            iotData.addProperty("pushToken", Utils.tokenUrlsafe(120));
+            iotData.addProperty("reqId", Utils.tokenHex(16));
             iotData.addProperty("src", cloudProvider.getSrc());
             iotData.addProperty("stamp", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
             _data.add("iotData", iotData);
@@ -343,7 +343,7 @@ public class Cloud {
         return true;
     }
 
-    private void handle_api_error(int asInt, @NonNull String asString) {
+    private void handleApiError(int asInt, @NonNull String asString) {
         // TODO Auto-generated method stub
     }
 }

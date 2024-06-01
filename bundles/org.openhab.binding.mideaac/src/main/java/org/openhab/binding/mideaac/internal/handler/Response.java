@@ -44,17 +44,17 @@ public class Response {
         if (version == 3) {
             logger.trace("Response and Body Type: {}, {}", responseType, bodyType);
             // https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/ac/message.py#L418
-            if (responseType.equals("notify2") && bodyType == -95) { // 0xA0 = -95
+            if ("notify2".equals(responseType) && bodyType == -95) { // 0xA0 = -95
                 logger.trace("Response Handler: XA0Message");
-            } else if (responseType.equals("notify1") && bodyType == -91) { // 0xA1 = -91
+            } else if ("notify1".equals(responseType) && bodyType == -91) { // 0xA1 = -91
                 logger.trace("Response Handler: XA1Message");
-            } else if ((responseType.equals("notify2") || responseType.equals("set") || responseType.equals("query"))
+            } else if (("notify2".equals(responseType) || "set".equals(responseType) || "query".equals(responseType))
                     && (bodyType == 0xB0 || bodyType == 0xB1 || bodyType == 0xB5)) {
                 logger.trace("Response Handler: XBXMessage");
-            } else if ((responseType.equals("set") || responseType.equals("query")) && bodyType == -64) { // 0xC0 = -64
+            } else if (("set".equals(responseType) || "query".equals(responseType)) && bodyType == -64) { // 0xC0 = -64
                                                                                                           // ??
                 logger.trace("Response Handler: XCOMessage");
-            } else if (responseType.equals("query") && bodyType == 0xC1) {
+            } else if ("query".equals(responseType) && bodyType == 0xC1) {
                 logger.trace("Response Handler: XC1Message");
             } else {
                 logger.trace("Response Handler: _general_");
@@ -160,17 +160,17 @@ public class Response {
     }
 
     public Timer getOnTimer() {
-        int on_timer_value = data[0x04];
-        int on_timer_minutes = data[0x06];
-        return new Timer(((on_timer_value & (byte) 0x80) >> 7) > 0, (on_timer_value & (byte) 0x7c) >> 2,
-                (on_timer_value & 0x3) | ((on_timer_minutes & (byte) 0xf0) >> 4));
+        int onTimerValue = data[0x04];
+        int onTimerMinutes = data[0x06];
+        return new Timer(((onTimerValue & (byte) 0x80) >> 7) > 0, (onTimerValue & (byte) 0x7c) >> 2,
+                (onTimerValue & 0x3) | ((onTimerMinutes & (byte) 0xf0) >> 4));
     }
 
     public Timer getOffTimer() {
-        int off_timer_value = data[0x05];
-        int off_timer_minutes = data[0x06];
-        return new Timer(((off_timer_value & (byte) 0x80) >> 7) > 0, (off_timer_value & (byte) 0x7c) >> 2,
-                (off_timer_value & 0x3) | (off_timer_minutes & (byte) 0xf));
+        int offTimerValue = data[0x05];
+        int offTimerMinutes = data[0x06];
+        return new Timer(((offTimerValue & (byte) 0x80) >> 7) > 0, (offTimerValue & (byte) 0x7c) >> 2,
+                (offTimerValue & 0x3) | (offTimerMinutes & (byte) 0xf));
     }
 
     public SwingMode getSwingMode() {
@@ -321,14 +321,14 @@ public class Response {
         // this confuses me. Does not appear to be used and duplicates getIndoorTemperature() Left in for now
         logger.debug("this.responseType:{} this.bodyType:{}", this.responseType, this.bodyType);
 
-        if ((this.responseType.equals("set") || this.responseType.equals("query")) && this.bodyType == -64) {
+        if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
             if (data[11] != 0xFF) {
-                int temp_integer = ((data[11]) - 50) / 2;
-                double temp_decimal = ((data[15] & 0x0F)) * 0.1;
+                int tempInteger = ((data[11]) - 50) / 2;
+                double tempDecimal = ((data[15] & 0x0F)) * 0.1;
                 if (data[11] > 49) {
-                    return (float) (temp_integer + temp_decimal);
+                    return (float) (tempInteger + tempDecimal);
                 } else {
-                    return (float) (temp_integer - temp_decimal);
+                    return (float) (tempInteger - tempDecimal);
                 }
             } else {
                 return null;
@@ -341,14 +341,14 @@ public class Response {
     public Float getOutdoorTemperature() {
         // My AC just uses byte[12] for 0.5 degrees; Validated with NetHome App reading
         // Changed int to float, left byte[15], but blank
-        if ((this.responseType.equals("set") || this.responseType.equals("query")) && this.bodyType == -64) {
+        if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
             if (data[12] != 0xFF) {
-                double temp_integer = (float) ((data[12] - 50f) / 2f);
-                double temp_decimal = ((data[15] & 0xF0) >> 4) * 0.1f;
+                double tempInteger = (float) ((data[12] - 50f) / 2f);
+                double tempDecimal = ((data[15] & 0xF0) >> 4) * 0.1f;
                 if (data[12] > 49) {
-                    return (float) (temp_integer + temp_decimal);
+                    return (float) (tempInteger + tempDecimal);
                 } else {
-                    return (float) (temp_integer - temp_decimal);
+                    return (float) (tempInteger - tempDecimal);
                 }
             } else {
                 return null;

@@ -77,7 +77,7 @@ public class Packet {
         command.finalize();
 
         // Append the command data(48 bytes) to the packet
-        byte[] cmdEncrypted = mideaACHandler.getSecurity().aes_encrypt(command.getBytes());
+        byte[] cmdEncrypted = mideaACHandler.getSecurity().aesEncrypt(command.getBytes());
         packet = ArrayUtils.addAll(packet, Arrays.copyOf(cmdEncrypted, 48));
 
         // PacketLenght
@@ -86,7 +86,7 @@ public class Packet {
         System.arraycopy(lenBytes, 0, packet, 4, 2);
 
         // Append a basic checksum data(16 bytes) to the packet
-        packet = ArrayUtils.addAll(packet, mideaACHandler.getSecurity().encode32_data(packet));
+        packet = ArrayUtils.addAll(packet, mideaACHandler.getSecurity().encode32Data(packet));
     }
 
     public byte[] getBytes() {

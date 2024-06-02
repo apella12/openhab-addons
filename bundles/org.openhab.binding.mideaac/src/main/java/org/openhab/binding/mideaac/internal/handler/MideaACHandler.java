@@ -31,7 +31,6 @@ import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
 import javax.measure.spi.SystemOfUnits;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -176,12 +175,15 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             markOfflineWithMessage(ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding with its status.");
             return;
         }
+        // this is to avoid collisions from this method thread
+        getConnectionManager().cancelConnectionMonitorJob();
 
         if (command instanceof RefreshType) {
             connectionManager.connect();
             return;
         }
 
+        // This is to go directly to the set command
         doPoll = false;
         connectionManager.connect();
 
@@ -278,7 +280,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             QuantityType<Temperature> quantity = new QuantityType<Temperature>(((DecimalType) command).doubleValue(),
                     lastResponse.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS);
 
-            if (lastResponse.getTempUnit()) { // Is this always false. My unit always uses Celsius
+            if (lastResponse.getTempUnit()) { // Is this always false? My unit always uses Celsius for calcs
                 if (isImperial()) {
                     logger.debug("handleTargetTemperature: Set field of type Integer F > F");
                     commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(quantity.floatValue()));
@@ -380,6 +382,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     public void handleEcoMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
+        commandSet.setPowerState(true);
+
         if (command.equals(OnOffType.OFF)) {
             commandSet.setEcoMode(false);
         } else if (command.equals(OnOffType.ON)) {
@@ -437,7 +441,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     public void handleScreenDisplay(Command command) {
-        // this doesn't work for me. The bit is always off even with the LED on
+        // this doesn't work for me. The bit is always off (false) even with the LED on
+        // It also seems like sending a command with no changes causes problems
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -453,6 +458,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     public void handleTempUnit(Command command) {
+        // At least with my unit this is only for the display, calcs always in Celsius
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -471,6 +477,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     @Override
     public void initialize() {
         connectionManager.disconnect();
+        getConnectionManager().cancelConnectionMonitorJob();
 
         setCloudProvider(CloudProvider.getCloudProvider("MSmartHome"));
         setSecurity(new Security(cloudProvider));
@@ -577,6 +584,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         getConnectionManager().cancelConnectionMonitorJob();
         getConnectionManager().disconnect();
+        // This to avoid write errors errors, needs to be at least 1000
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            logger.info("An interupted error (pause) has occured {}", e.getMessage());
+        }
         getConnectionManager().connect();
     }
 
@@ -653,6 +666,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             this.mideaACHandler = mideaACHandler;
         }
 
+        public static boolean isBlank(String str) {
+            return str == null || str.trim().isEmpty();
+        }
+
         /*
          * Connect to the command and serial port(s) on the device. The serial connections are established only for
          * devices that support serial.
@@ -724,7 +741,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
                 }
             }
-            logger.info("Connected to {} at {}", thing.getUID(), ipAddress);
+            if (!deviceIsConnected) {
+                logger.info("Connected to {} at {}", thing.getUID(), ipAddress);
+            }
+            logger.debug("Connected to {} at {}", thing.getUID(), ipAddress);
             deviceIsConnected = true;
             markOnline();
             if (getVersion() != 3) {
@@ -743,18 +763,18 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             logger.trace("Token: {}", config.getToken());
 
             if (getVersion() == 3) {
-                if (!StringUtils.isBlank(config.getToken()) && !StringUtils.isBlank(config.getKey())) {
+                if (!isBlank(config.getToken()) && !isBlank(config.getKey())) {
                     logger.debug("Device {}@{} authenticating", thing.getUID(), ipAddress);
                     doAuthentication();
                 } else {
-                    if (StringUtils.isBlank(config.getToken()) && StringUtils.isBlank(config.getKey())) {
-                        if (StringUtils.isBlank(config.getEmail()) || StringUtils.isBlank(config.getPassword())) {
+                    if (isBlank(config.getToken()) && isBlank(config.getKey())) {
+                        if (isBlank(config.getEmail()) || isBlank(config.getPassword())) {
                             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                     "Token and Key missing in configuration.");
                             logger.warn("Device {}@{} cannot authenticate, token and key missing", thing.getUID(),
                                     ipAddress);
                         } else {
-                            if (StringUtils.isBlank(config.getCloud())) {
+                            if (isBlank(config.getCloud())) {
                                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                         "Cloud Provider missing in configuration.");
                                 logger.warn("Device {}@{} cannot authenticate, Cloud Provider missing", thing.getUID(),
@@ -767,11 +787,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                 getTokenKeyCloud(cloudProvider);
                             }
                         }
-                    } else if (StringUtils.isBlank(config.getToken())) {
+                    } else if (isBlank(config.getToken())) {
                         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                 "Token missing in configuration.");
                         logger.warn("Device {}@{} cannot authenticate, token missing", thing.getUID(), ipAddress);
-                    } else if (StringUtils.isBlank(config.getKey())) {
+                    } else if (isBlank(config.getKey())) {
                         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                 "Key missing in configuration.");
                         logger.warn("Device {}@{} cannot authenticate, key missing", thing.getUID(), ipAddress);
@@ -810,9 +830,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         @SuppressWarnings("null")
         private void doAuthentication() {
-            // byte[] request = Security.encode_8370(Utils.hexStringToByteArray(config.getToken()),
+            // byte[] request = Security.encode8370(Utils.hexStringToByteArray(config.getToken()),
             // MsgType.MSGTYPE_HANDSHAKE_REQUEST);
-            byte[] request = mideaACHandler.getSecurity().encode_8370(Utils.hexStringToByteArray(config.getToken()),
+            byte[] request = mideaACHandler.getSecurity().encode8370(Utils.hexStringToByteArray(config.getToken()),
                     MsgType.MSGTYPE_HANDSHAKE_REQUEST);
             try {
                 logger.trace("Device {}@{} writing handshake_request: {}", thing.getUID(), ipAddress,
@@ -825,13 +845,13 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     logger.trace("Device {}@{} response for handshake_request length: {}", thing.getUID(), ipAddress,
                             response.length);
                     if (response.length == 72) {
-                        // boolean success = Security.tcp_key(Arrays.copyOfRange(response, 8, 72),
+                        // boolean success = Security.tcpKey(Arrays.copyOfRange(response, 8, 72),
                         // Utils.hexStringToByteArray(config.getKey()));
-                        boolean success = mideaACHandler.getSecurity().tcp_key(Arrays.copyOfRange(response, 8, 72),
+                        boolean success = mideaACHandler.getSecurity().tcpKey(Arrays.copyOfRange(response, 8, 72),
                                 Utils.hexStringToByteArray(config.getKey()));
                         if (success) {
                             logger.debug("Authentication successful");
-                            // altering the sleep causes problems, needs to be at least 1000
+                            // altering the sleep causes write errors problems, needs to be at least 1000
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
@@ -891,7 +911,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.debug("Writing to {} at {} bytes.length: {}", thing.getUID(), ipAddress, bytes.length);
 
                 if (getVersion() == 3) {
-                    bytes = mideaACHandler.getSecurity().encode_8370(bytes, MsgType.MSGTYPE_ENCRYPTED_REQUEST);
+                    bytes = mideaACHandler.getSecurity().encode8370(bytes, MsgType.MSGTYPE_ENCRYPTED_REQUEST);
                 }
 
                 write(bytes);
@@ -901,12 +921,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 if (responseBytes != null) {
                     if (getVersion() == 3) {
-                        Decryption8370Result result = mideaACHandler.getSecurity().decode_8370(responseBytes);
+                        Decryption8370Result result = mideaACHandler.getSecurity().decode8370(responseBytes);
                         for (byte[] response : result.getResponses()) {
                             logger.debug("Response length:{} thing:{} ", response.length, thing.getUID());
                             if (response.length > 40 + 16) {
                                 byte[] data = mideaACHandler.getSecurity()
-                                        .aes_decrypt(Arrays.copyOfRange(response, 40, response.length - 16)); // JO 16
+                                        .aesDecrypt(Arrays.copyOfRange(response, 40, response.length - 16)); // JO 16
 
                                 // data[1]: BodyType
                                 logger.trace("Bytes in HEX, decoded and with header: length: {}, data: {}", data.length,
@@ -985,7 +1005,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         }
                     } else {
                         byte[] data = security
-                                .aes_decrypt(Arrays.copyOfRange(responseBytes, 40, responseBytes.length - 16));
+                                .aesDecrypt(Arrays.copyOfRange(responseBytes, 40, responseBytes.length - 16));
                         // The response data from the appliance includes a packet header which we don't want
                         logger.trace("else leg Bytes decoded with header: length: {}, data: {}", data.length,
                                 Utils.bytesToHex(data));

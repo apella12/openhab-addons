@@ -150,7 +150,7 @@ public class Cloud {
         }
         request.header("secretVersion", "1");
         if (!Objects.isNull(cloudProvider.getProxied()) && !cloudProvider.getProxied().isBlank()) {
-            String sign = security.new_sign(json, random);
+            String sign = security.newSign(json, random);
             request.header("sign", sign);
         } else {
             if (!Objects.isNull(sessionId) && !sessionId.isBlank()) {
@@ -243,25 +243,25 @@ public class Cloud {
         logger.trace("Using password: {}", password);
 
         if (!Objects.isNull(cloudProvider.getProxied()) && !cloudProvider.getProxied().isBlank()) {
-            JsonObject _data = new JsonObject();
+            JsonObject newData = new JsonObject();
 
             JsonObject data = new JsonObject();
             data.addProperty("platform", FORMAT);
-            _data.add("data", data);
+            newData.add("data", data);
 
             JsonObject iotData = new JsonObject();
             iotData.addProperty("appId", cloudProvider.getAppId());
             iotData.addProperty("clientType", CLIENT_TYPE);
-            iotData.addProperty("iampwd", security.encrypt_iam_password(loginId, password));
+            iotData.addProperty("iampwd", security.encryptIamPassword(loginId, password));
             iotData.addProperty("loginAccount", loginAccount);
             iotData.addProperty("password", security.encryptPassword(loginId, password));
             iotData.addProperty("pushToken", Utils.tokenUrlsafe(120));
             iotData.addProperty("reqId", Utils.tokenHex(16));
             iotData.addProperty("src", cloudProvider.getSrc());
             iotData.addProperty("stamp", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
-            _data.add("iotData", iotData);
+            newData.add("iotData", iotData);
 
-            JsonObject response = apiRequest("/mj/user/login", null, _data);
+            JsonObject response = apiRequest("/mj/user/login", null, newData);
 
             if (response == null) {
                 return false;

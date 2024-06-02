@@ -54,7 +54,7 @@ public class SecurityUtil {
         return encKey;
     }
 
-    public byte[] aes_decrypt(byte[] encrypt_data) {
+    public byte[] aesDecrypt(byte[] encryptData) {
         byte[] plainText = {};
 
         try {
@@ -69,7 +69,7 @@ public class SecurityUtil {
             }
 
             try {
-                plainText = cipher.doFinal(encrypt_data);
+                plainText = cipher.doFinal(encryptData);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES decryption error: IllegalBlockSizeException: {}", e.getMessage());
                 return null;

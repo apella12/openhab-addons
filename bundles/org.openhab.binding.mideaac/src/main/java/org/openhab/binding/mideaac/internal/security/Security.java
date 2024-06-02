@@ -66,7 +66,7 @@ public class Security {
         this.cloudProvider = cloudProvider;
     }
 
-    public byte[] aes_decrypt(byte[] encrypt_data) {
+    public byte[] aesDecrypt(byte[] encryptData) {
         byte[] plainText = {};
 
         try {
@@ -81,7 +81,7 @@ public class Security {
             }
 
             try {
-                plainText = cipher.doFinal(encrypt_data);
+                plainText = cipher.doFinal(encryptData);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES decryption error: IllegalBlockSizeException: {}", e.getMessage());
                 return null;
@@ -101,7 +101,7 @@ public class Security {
         return plainText;
     }
 
-    public byte[] aes_encrypt(byte[] plainText) {
+    public byte[] aesEncrypt(byte[] plainText) {
         byte[] encryptData = {};
 
         try {
@@ -148,7 +148,7 @@ public class Security {
         return encKey;
     }
 
-    public byte[] encode32_data(byte[] raw) {
+    public byte[] encode32Data(byte[] raw) {
         byte[] combine = ByteBuffer
                 .allocate(raw.length + cloudProvider.getSignKey().getBytes(StandardCharsets.US_ASCII).length).put(raw)
                 .put(cloudProvider.getSignKey().getBytes(StandardCharsets.US_ASCII)).array();
@@ -189,11 +189,11 @@ public class Security {
         }
     }
 
-    private int request_count = 0;
-    private int response_count = 0;
-    private byte[] _tcp_key;
+    private int requestCount = 0;
+    private int responseCount = 0;
+    private byte[] tcpKey;
 
-    public byte[] encode_8370(byte[] data, MsgType msgtype) {
+    public byte[] encode8370(byte[] data, MsgType msgtype) {
         ByteBuffer headerBuffer = ByteBuffer.allocate(256);
         ByteBuffer dataBuffer = ByteBuffer.allocate(256);
 
@@ -209,20 +209,20 @@ public class Security {
                 padding = 16 - (size + 2 & 0xf);
                 size += padding + 32;
                 logger.trace("Padding size: {}, size: {}", padding, size);
-                paddingData = get_random_bytes(padding);
+                paddingData = getRandomBytes(padding);
             }
         }
         headerBuffer.put(Utils.toBytes((short) size));
 
         headerBuffer.put(new byte[] { 0x20, (byte) (padding << 4 | msgtype.value) });
 
-        if (request_count > 0xfff) {
-            logger.trace("request_count is too big to convert: {}, changing request_count to 0", request_count);
-            request_count = 0;
+        if (requestCount > 0xfff) {
+            logger.trace("requestCount is too big to convert: {}, changing requestCount to 0", requestCount);
+            requestCount = 0;
         }
 
-        dataBuffer.put(Utils.toBytes((short) request_count));
-        request_count += 1;
+        dataBuffer.put(Utils.toBytes((short) requestCount));
+        requestCount += 1;
 
         dataBuffer.put(data);
         if (paddingData != null) {
@@ -242,16 +242,16 @@ public class Security {
         if (msgtype == MsgType.MSGTYPE_ENCRYPTED_RESPONSE || msgtype == MsgType.MSGTYPE_ENCRYPTED_REQUEST) {
             byte[] sign = sha256(Utils.concatenateArrays(finalHeader, finalData));
             logger.trace("Sign:        {}", Utils.bytesToHex(sign));
-            logger.trace("TcpKey:      {}", Utils.bytesToHex(_tcp_key));
+            logger.trace("TcpKey:      {}", Utils.bytesToHex(tcpKey));
 
-            finalData = Utils.concatenateArrays(aes_cbc_encrypt(finalData, _tcp_key), sign);
+            finalData = Utils.concatenateArrays(aesCbcEncrypt(finalData, tcpKey), sign);
         }
 
         byte[] result = Utils.concatenateArrays(finalHeader, finalData);
         return result;
     }
 
-    public Decryption8370Result decode_8370(byte[] data) throws IOException {
+    public Decryption8370Result decode8370(byte[] data) throws IOException {
         if (data.length < 6) {
             return new Decryption8370Result(new ArrayList<byte[]>(), data);
         }
@@ -280,15 +280,15 @@ public class Security {
         if (msgtype == MsgType.MSGTYPE_ENCRYPTED_RESPONSE || msgtype == MsgType.MSGTYPE_ENCRYPTED_REQUEST) {
             byte[] sign = Arrays.copyOfRange(data, data.length - 32, data.length);
             data = Arrays.copyOfRange(data, 0, data.length - 32);
-            data = aes_cbc_decrypt(data, _tcp_key);
+            data = aesCbcDecrypt(data, tcpKey);
             byte[] signLocal = sha256(Utils.concatenateArrays(header, data));
 
             logger.trace("Sign:        {}", Utils.bytesToHex(sign));
             logger.trace("SignLocal:   {}", Utils.bytesToHex(signLocal));
-            logger.trace("TcpKey:      {}", Utils.bytesToHex(_tcp_key));
+            logger.trace("TcpKey:      {}", Utils.bytesToHex(tcpKey));
             logger.trace("Data:        {}", Utils.bytesToHex(data));
 
-            if (Arrays.equals(sign, signLocal) != true) {
+            if (!Arrays.equals(sign, signLocal)) {
                 logger.warn("Sign does not match");
                 return new Decryption8370Result(new ArrayList<byte[]>(), data);
             }
@@ -302,12 +302,12 @@ public class Security {
         }
 
         dataBuffer = ByteBuffer.wrap(data);
-        response_count = dataBuffer.getShort(0);
-        logger.trace("Response_count: {}", response_count);
-        logger.trace("Request_count: {}", request_count);
+        responseCount = dataBuffer.getShort(0);
+        logger.trace("responseCount: {}", responseCount);
+        logger.trace("requestCount: {}", requestCount);
         data = Arrays.copyOfRange(data, 2, data.length);
         if (leftover != null) {
-            Decryption8370Result r = decode_8370(leftover);
+            Decryption8370Result r = decode8370(leftover);
             ArrayList<byte[]> responses = r.getResponses();
             responses.add(0, data);
             return new Decryption8370Result(responses, r.buffer);
@@ -318,10 +318,10 @@ public class Security {
         return new Decryption8370Result(responses, new byte[] {});
     }
 
-    public boolean tcp_key(byte[] response, byte key[]) {
+    public boolean tcpKey(byte[] response, byte key[]) {
         byte[] payload = Arrays.copyOfRange(response, 0, 32);
         byte[] sign = Arrays.copyOfRange(response, 32, 64);
-        byte[] plain = aes_cbc_decrypt(payload, key);
+        byte[] plain = aesCbcDecrypt(payload, key);
         byte[] signLocal = sha256(plain);
 
         logger.trace("Payload:   {}", Utils.bytesToHex(payload));
@@ -329,16 +329,16 @@ public class Security {
         logger.trace("SignLocal: {}", Utils.bytesToHex(signLocal));
         logger.trace("Plain:     {}", Utils.bytesToHex(plain));
 
-        if (Arrays.equals(sign, signLocal) != true) {
+        if (!Arrays.equals(sign, signLocal)) {
             logger.warn("Sign does not match");
             return false;
         }
-        _tcp_key = Utils.strxor(plain, key);
-        logger.trace("TcpKey:    {}", Utils.bytesToHex(_tcp_key));
+        tcpKey = Utils.strxor(plain, key);
+        logger.trace("TcpKey:    {}", Utils.bytesToHex(tcpKey));
         return true;
     }
 
-    private byte[] aes_cbc_decrypt(byte[] encrypt_data, byte[] decrypt_key) {
+    private byte[] aesCbcDecrypt(byte[] encryptData, byte[] decrypt_key) {
         byte[] plainText = {};
 
         try {
@@ -356,7 +356,7 @@ public class Security {
             }
 
             try {
-                plainText = cipher.doFinal(encrypt_data);
+                plainText = cipher.doFinal(encryptData);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES decryption error: IllegalBlockSizeException: {}", e.getMessage());
                 return null;
@@ -376,7 +376,7 @@ public class Security {
         return plainText;
     }
 
-    private byte[] aes_cbc_encrypt(byte[] plainText, byte[] encrypt_key) {
+    private byte[] aesCbcEncrypt(byte[] plainText, byte[] encrypt_key) {
         byte[] encryptData = {};
 
         try {
@@ -421,7 +421,7 @@ public class Security {
         }
     }
 
-    private byte[] get_random_bytes(int size) {
+    private byte[] getRandomBytes(int size) {
         byte[] random = new byte[size];
         new Random().nextBytes(random);
         return random;
@@ -449,7 +449,7 @@ public class Security {
         return null;
     }
 
-    public String new_sign(String data, String random) {
+    public String newSign(String data, String random) {
         String msg = cloudProvider.getIotKey();
         if (data != null) {
             msg += data;
@@ -495,21 +495,21 @@ public class Security {
     }
 
     // Encrypts password for cloud API
-    public String encrypt_iam_password(@Nullable String loginId, String password) {
+    public String encryptIamPassword(@Nullable String loginId, String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(password.getBytes(StandardCharsets.US_ASCII));
 
-            MessageDigest md_second = MessageDigest.getInstance("MD5");
-            md_second.update(Utils.bytesToHexLowercase(md.digest()).getBytes(StandardCharsets.US_ASCII));
+            MessageDigest mdSecond = MessageDigest.getInstance("MD5");
+            mdSecond.update(Utils.bytesToHexLowercase(md.digest()).getBytes(StandardCharsets.US_ASCII));
 
             // if self._use_china_server:
-            // return md_second.hexdigest()
+            // return mdSecond.hexdigest()
 
-            String login_hash = loginId + Utils.bytesToHexLowercase(md_second.digest()) + cloudProvider.getLoginKey();
-            return Utils.bytesToHexLowercase(sha256(login_hash.getBytes(StandardCharsets.US_ASCII)));
+            String loginHash = loginId + Utils.bytesToHexLowercase(mdSecond.digest()) + cloudProvider.getLoginKey();
+            return Utils.bytesToHexLowercase(sha256(loginHash.getBytes(StandardCharsets.US_ASCII)));
         } catch (NoSuchAlgorithmException e) {
-            logger.warn("encrypt_iam_passwordt error: NoSuchAlgorithmException: {}", e.getMessage());
+            logger.warn("encryptIamPasswordt error: NoSuchAlgorithmException: {}", e.getMessage());
         }
         return null;
     }

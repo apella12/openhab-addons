@@ -52,10 +52,10 @@ import org.slf4j.LoggerFactory;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.mideaac")
 public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
-    private static int DISCOVERY_TIMEOUT_SECONDS = 5; // 5; //
-    private final int RECEIVE_JOB_TIMEOUT = 20000;
-    private final int UDP_PACKET_TIMEOUT = RECEIVE_JOB_TIMEOUT - 50;
-    private final String MIDEAAC_NAME_PREFIX = "MideaAC";
+    private static int discoveryTimeoutSeconds = 5; // 5; //
+    private final int receiveJobTimeout = 20000;
+    private final int udpPacketTimeout = receiveJobTimeout - 50;
+    private final String mideaacNamePrefix = "MideaAC";
 
     private final Logger logger = LoggerFactory.getLogger(MideaACDiscoveryService.class);
 
@@ -74,7 +74,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     private SecurityUtil securityUtil;
 
     public MideaACDiscoveryService() {
-        super(SUPPORTED_THING_TYPES_UIDS, DISCOVERY_TIMEOUT_SECONDS, false);
+        super(SUPPORTED_THING_TYPES_UIDS, discoveryTimeoutSeconds, false);
         this.securityUtil = new SecurityUtil(CloudProvider.getCloudProvider("MSmartHome"));
     }
 
@@ -182,7 +182,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         this.discoveryHandler = discoveryHandler;
         discoverSocket = new DatagramSocket(new InetSocketAddress(Connection.MIDEAAC_RECEIVE_PORT));
         discoverSocket.setBroadcast(true);
-        discoverSocket.setSoTimeout(UDP_PACKET_TIMEOUT);
+        discoverSocket.setSoTimeout(udpPacketTimeout);
         final InetAddress broadcast = InetAddress.getByName(ipAddress);
         {
             final DatagramPacket discoverPacket = new DatagramPacket(CommandBase.discover(),
@@ -239,78 +239,81 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         if (data.length >= 104 && (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 2)).equals("5A5A")
                 || Utils.bytesToHex(Arrays.copyOfRange(data, 8, 10)).equals("5A5A"))) {
             logger.trace("Device supported");
-            String m_id, m_version = "", m_ip = "", m_port = "", m_sn = "", m_ssid = "", m_type = "";
+            String mSmartId, mSmartVersion = "", mSmartip = "", mSmartPort = "", mSmartSN = "", mSmartSSID = "",
+                    mSmartType = "";
             if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 2)).equals("5A5A")) {
-                m_version = "2";
+                mSmartVersion = "2";
             }
             if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 2)).equals("8370")) {
-                m_version = "3";
+                mSmartVersion = "3";
             }
             if (Utils.bytesToHex(Arrays.copyOfRange(data, 8, 10)).equals("5A5A")) {
                 data = Arrays.copyOfRange(data, 8, data.length - 16);
             }
 
-            logger.trace("Version: {}", m_version);
+            logger.trace("Version: {}", mSmartVersion);
 
             byte[] id = Arrays.copyOfRange(data, 20, 26);
             logger.trace("Id Bytes: {}", Utils.bytesToHex(id));
 
             ArrayUtils.reverse(id);
-            BigInteger bi_id = new BigInteger(id);
-            m_id = bi_id.toString();
+            BigInteger bigId = new BigInteger(id);
+            mSmartId = bigId.toString();
 
-            logger.debug("Id: '{}'", m_id);
+            logger.debug("Id: '{}'", mSmartId);
 
-            byte[] encrypt_data = Arrays.copyOfRange(data, 40, data.length - 16);
-            logger.debug("Encrypt data: '{}'", Utils.bytesToHex(encrypt_data));
+            byte[] encryptData = Arrays.copyOfRange(data, 40, data.length - 16);
+            logger.debug("Encrypt data: '{}'", Utils.bytesToHex(encryptData));
 
-            // byte[] reply = mideaACHandler.getSecurity().aes_decrypt(encrypt_data);
-            byte[] reply = securityUtil.aes_decrypt(encrypt_data);
+            // byte[] reply = mideaACHandler.getSecurity().aesDecrypt(encryptData);
+            byte[] reply = securityUtil.aesDecrypt(encryptData);
             logger.debug("Length: {}, Reply: '{}'", reply.length, Utils.bytesToHex(reply));
 
-            m_ip = Byte.toUnsignedInt(reply[3]) + "." + Byte.toUnsignedInt(reply[2]) + "."
+            mSmartip = Byte.toUnsignedInt(reply[3]) + "." + Byte.toUnsignedInt(reply[2]) + "."
                     + Byte.toUnsignedInt(reply[1]) + "." + Byte.toUnsignedInt(reply[0]);
-            logger.debug("IP: '{}'", m_ip);
+            logger.debug("IP: '{}'", mSmartip);
 
-            m_port = String.valueOf(bytes2port(Arrays.copyOfRange(reply, 4, 8)));
-            logger.debug("Port: '{}'", m_port);
+            mSmartPort = String.valueOf(bytes2port(Arrays.copyOfRange(reply, 4, 8)));
+            logger.debug("Port: '{}'", mSmartPort);
 
-            m_sn = new String(reply, 8, 40 - 8, StandardCharsets.UTF_8);
-            logger.debug("SN: '{}'", m_sn);
+            mSmartSN = new String(reply, 8, 40 - 8, StandardCharsets.UTF_8);
+            logger.debug("SN: '{}'", mSmartSN);
 
             logger.trace("SSID length: '{}'", Byte.toUnsignedInt(reply[40]));
 
-            m_ssid = new String(reply, 41, reply[40], StandardCharsets.UTF_8);
-            logger.debug("SSID: '{}'", m_ssid);
+            mSmartSSID = new String(reply, 41, reply[40], StandardCharsets.UTF_8);
+            logger.debug("SSID: '{}'", mSmartSSID);
 
-            m_type = m_ssid.split("_")[1];
-            logger.debug("Type: '{}'", m_type);
+            mSmartType = mSmartSSID.split("_")[1];
+            logger.debug("Type: '{}'", mSmartType);
 
             // TODO:
-            // m_support = support_test(m_ip, int(m_id), int(m_port))
+            // mSmartsupport = support_test(mSmartip, int(mSmartId), int(mSmartPort))
 
-            String thingName = createThingName(packet.getAddress().getAddress(), m_id, m_ssid);
+            String thingName = createThingName(packet.getAddress().getAddress(), mSmartId, mSmartSSID);
             ThingUID thingUID = new ThingUID(THING_TYPE_MIDEAAC, thingName.toLowerCase());
 
             return DiscoveryResultBuilder.create(thingUID).withLabel(thingName)
                     .withRepresentationProperty(CONFIG_IP_ADDRESS).withThingType(THING_TYPE_MIDEAAC)
-                    .withProperties(collectProperties(ipAddress, m_version, m_id, m_port, m_sn, m_ssid, m_type))
+                    .withProperties(collectProperties(ipAddress, mSmartVersion, mSmartId, mSmartPort, mSmartSN,
+                            mSmartSSID, mSmartType))
                     .build();
         } else if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 6)).equals("3C3F786D6C20")) {
             logger.debug("Midea AC v1 device was detected, supported, but not implemented yet.");
             // TODO:
             // if data[:6].hex() == '3c3f786d6c20':
-            // m_version = 'V1'
+            // mSmartVersion = 'V1'
             // root=ET.fromstring(data.decode(encoding="utf-8", errors="replace"))
             // child = root.find('body/device')
             // m=child.attrib
-            // m_port, m_sn, m_type = m['port'], m['apc_sn'], str(hex(int(m['apc_type'])))[2:]
-            // response = get_device_info(m_ip, int(m_port))
-            // m_id = get_id_from_response(response)
+            // mSmartPort, mSmartSN, mSmartType = m['port'], m['apc_sn'], str(hex(int(m['apc_type'])))[2:]
+            // response = get_device_info(mSmartip, int(mSmartPort))
+            // mSmartId = get_id_fromSmartresponse(response)
             //
             // _LOGGER.info(
             // "*** Found a {} device - type: '0x{}' - version: {} - ip: {} - port: {} - id: {} - sn: {} - ssid:
-            // {}".format(m_support, m_type, m_version, m_ip, m_port, m_id, m_sn, m_ssid))
+            // {}".format(mSmartsupport, mSmartType, mSmartVersion, mSmartip, mSmartPort, mSmartId, mSmartSN,
+            // mSmartSSID))
             return null;
         } else {
             logger.debug(
@@ -343,7 +346,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * @return the name for the device
      */
     private String createThingName(final byte[] byteIP, String id, String ssid) {
-        return MIDEAAC_NAME_PREFIX + "__" + Byte.toUnsignedInt(byteIP[0]) + "_" + Byte.toUnsignedInt(byteIP[1]) + "_"
+        return mideaacNamePrefix + "__" + Byte.toUnsignedInt(byteIP[0]) + "_" + Byte.toUnsignedInt(byteIP[1]) + "_"
                 + Byte.toUnsignedInt(byteIP[2]) + "_" + Byte.toUnsignedInt(byteIP[3]) + "__" + id + "__" + ssid;
     }
 
@@ -360,7 +363,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         properties.put(CONFIG_IP_ADDRESS, ipAddress);
         properties.put(CONFIG_IP_PORT, port);
         properties.put(CONFIG_DEVICEID, id);
-        properties.put(CONFIG_POLLING_TIME, 10);
+        properties.put(CONFIG_POLLING_TIME, 30);
         properties.put(CONFIG_PROMPT_TONE, false);
         properties.put(PROPERTY_VERSION, version);
         properties.put(PROPERTY_SN, sn);

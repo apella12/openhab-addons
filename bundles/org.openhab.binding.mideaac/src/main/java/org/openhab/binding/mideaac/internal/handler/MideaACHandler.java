@@ -137,6 +137,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     private final HttpClient httpClient;
 
     public boolean doPoll = true;
+    public boolean retry = true;
 
     private ConnectionManager getConnectionManager() {
         return connectionManager;
@@ -563,7 +564,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private void markOffline() {
         if (isOnline()) {
-            logger.debug("Changing (no msg) status of {} from {}({}) to OFFLINE", thing.getUID(), getStatus(),
+            logger.debug("Changing (disconnect) status of {} from {}({}) to OFFLINE", thing.getUID(), getStatus(),
                     getDetail());
             updateStatus(ThingStatus.OFFLINE);
         }
@@ -582,15 +583,23 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateStatus(ThingStatus.OFFLINE, statusDetail, statusMessage);
         }
 
-        getConnectionManager().cancelConnectionMonitorJob();
-        getConnectionManager().disconnect();
-        // This to avoid write errors errors, needs to be at least 1000
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            logger.info("An interupted error (pause) has occured {}", e.getMessage());
+        // This is to space out the looping with a short then long pause
+        if (retry) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                logger.info("An interupted error (pause) has occured {}", e.getMessage());
+            }
+            getConnectionManager().cancelConnectionMonitorJob();
+            getConnectionManager().disconnect();
+            retry = false;
+            getConnectionManager().connect();
+        } else {
+            logger.info("Connection issue, resetting, please wait ...");
+            getConnectionManager().cancelConnectionMonitorJob();
+            getConnectionManager().disconnect();
+            getConnectionManager().scheduleConnectionMonitorJob();
         }
-        getConnectionManager().connect();
     }
 
     private boolean isOnline() {
@@ -607,6 +616,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public void resetDoPoll() {
         doPoll = true;
+    }
+
+    public void resetRetry() {
+        retry = true;
     }
 
     private ThingStatus getStatus() {
@@ -658,6 +671,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         Runnable connectionMonitorRunnable = () -> {
             logger.debug("Connecting to {} at IP {} for Poll", thing.getUID(), ipAddress);
+            mideaACHandler.resetRetry();
             connect();
         };
 
@@ -814,7 +828,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 configuration.put(CONFIG_TOKEN, tk.getToken());
                 configuration.put(CONFIG_KEY, tk.getKey());
-
+                // had a problem with this once because it keep looping with new keys and tokens
+                // never reached the info message below
                 updateConfiguration(configuration);
 
                 logger.trace("Token: {}", tk.getToken());
@@ -984,7 +999,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                 if (data.length > 0) {
                                     if (data.length < 21) {
                                         logger.error("Response data is {} long minimum is 21!", data.length);
-                                        // return;
+                                        // return; need to check, believe not fatal, longer bytes are not used
                                     }
                                     lastResponse = new Response(data, getVersion(), responseType, bodyType);
                                     try {
@@ -1044,9 +1059,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         protected synchronized void disconnect() {
-            if (!isConnected()) {
-                return;
-            }
+            /// if (!isConnected()) {
+            // return;
+            // }
             logger.debug("Disconnecting from {} at {}", thing.getUID(), ipAddress);
 
             try {
@@ -1151,7 +1166,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             byte[] bytes = new byte[512];
 
             if (inputStream == null) {
-                logger.info("No bytes to read");
+                logger.debug("No bytes to read");
                 return null;
             }
             try {
@@ -1164,7 +1179,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     }
                 }
             } catch (IOException e) {
-                logger.info(" Byte read problem");
+                logger.debug(" Byte read exception");
             }
             return null;
         }
@@ -1203,7 +1218,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.debug("Starting connection monitor job in {} seconds for {} at {}", config.getPollingTime(),
                         thing.getUID(), ipAddress);
                 long frequency = config.getPollingTime();
-                connectionMonitorJob = scheduler.scheduleWithFixedDelay(connectionMonitorRunnable, frequency, frequency,
+                long delay = 15L;
+                connectionMonitorJob = scheduler.scheduleWithFixedDelay(connectionMonitorRunnable, delay, frequency,
                         TimeUnit.SECONDS);
             }
         }

@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +143,7 @@ public class CommandBase {
         }
 
         @Override
-        public @NonNull String toString() {
+        public String toString() {
             // TODO Auto-generated method stub
             return super.toString().replace("2", "").replace("3", "");
         }

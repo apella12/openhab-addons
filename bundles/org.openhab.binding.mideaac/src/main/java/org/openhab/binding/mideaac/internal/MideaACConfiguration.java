@@ -17,7 +17,6 @@ package org.openhab.binding.mideaac.internal;
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
-
 public class MideaACConfiguration {
     /**
      * IP Address of the device.
@@ -143,28 +142,11 @@ public class MideaACConfiguration {
     }
 
     public boolean isValid() {
-        if (ipAddress.isBlank()) {
-            return false;
-        }
-        if (ipPort.isBlank()) {
-            return false;
-        }
-        if ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank()) {
-            return false;
-        }
-        return true;
+        return !("0".equalsIgnoreCase(deviceId) || deviceId.isBlank() || ipPort.isBlank() || ipAddress.isBlank());
     }
 
     public boolean isDiscoveryNeeded() {
-        if (ipAddress.isBlank() || !Utils.validateIP(ipAddress)) {
-            return false;
-        }
-        if (ipPort.isBlank()) {
-            return true;
-        }
-        if ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank()) {
-            return true;
-        }
-        return true;
+        return ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank() || ipPort.isBlank() || ipAddress.isBlank()
+                || !Utils.validateIP(ipAddress));
     }
 }

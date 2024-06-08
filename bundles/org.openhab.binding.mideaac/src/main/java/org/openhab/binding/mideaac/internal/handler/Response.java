@@ -324,7 +324,7 @@ public class Response {
         if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
             if (data[11] != 0xFF) {
                 int tempInteger = ((data[11]) - 50) / 2;
-                double tempDecimal = ((data[15] & 0x0F)) * 0.1;
+                double tempDecimal = ((data[15] & 0x0f)) * 0.1;
                 if (data[11] > 49) {
                     return (float) (tempInteger + tempDecimal);
                 } else {
@@ -344,7 +344,7 @@ public class Response {
         if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
             if (data[12] != 0xFF) {
                 double tempInteger = (float) ((data[12] - 50f) / 2f);
-                double tempDecimal = ((data[15] & 0xF0) >> 4) * 0.1f;
+                double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
                 if (data[12] > 49) {
                     return (float) (tempInteger + tempDecimal);
                 } else {

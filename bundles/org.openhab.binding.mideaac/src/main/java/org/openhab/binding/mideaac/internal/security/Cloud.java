@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -179,13 +178,10 @@ public class Cloud {
         try {
             cr = request.send();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             logger.warn("an interupted error has occurred{}", e.getMessage());
         } catch (TimeoutException e) {
-            // TODO Auto-generated catch block
             logger.warn("a timeout error has occurred{}", e.getMessage());
         } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
             logger.warn("an execution error has occurred{}", e.getMessage());
         }
 
@@ -343,7 +339,7 @@ public class Cloud {
         return true;
     }
 
-    private void handleApiError(int asInt, @NonNull String asString) {
+    private void handleApiError(int asInt, String asString) {
         // TODO Auto-generated method stub
     }
 }

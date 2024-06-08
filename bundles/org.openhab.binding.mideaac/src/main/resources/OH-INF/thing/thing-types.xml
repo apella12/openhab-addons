@@ -208,14 +208,14 @@
 	<channel-type id="indoorTemperature">
 		<item-type>Number:Temperature</item-type>
 		<label>Indoor temperature</label>
-		<description>Indoor temperature measured in the room, where internal unit is installed.</description>
+		<description>Indoor temperature measured by the internal unit. Not frequent when unit is off</description>
 		<category>Temperature</category>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
 	<channel-type id="outdoorTemperature">
 		<item-type>Number:Temperature</item-type>
 		<label>Outdoor temperature</label>
-		<description>Outdoor temperature measured outside, where external unit is installed.</description>
+		<description>Outdoor temperature from the external unit. Not frequent when unit is off</description>
 		<category>Temperature</category>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
@@ -371,7 +371,7 @@
 	<channel-type id="humidity" advanced="true">
 		<item-type>Number</item-type>
 		<label>Humidity</label>
-		<description>Humidity measured in the room.</description>
+		<description>Humidity measured in the room by the indoor unit.</description>
 		<category>Humidity</category>
 		<state readOnly="true" pattern="%d%%"/>
 	</channel-type>

@@ -88,7 +88,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     private @Nullable String deviceId = null;
     private int version = 0;
 
-    private final DataSmoother dataHistory = new DataSmoother();
+    // private final DataSmoother dataHistory = new DataSmoother();
 
     private @Nullable CloudProvider cloudProvider = null;
     private @Nullable Security security;
@@ -154,8 +154,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         this.systemOfUnits = unitProvider.getMeasurementSystem();
         this.httpClient = httpClient;
         this.clouds = clouds;
-        this.dataHistory.setManaged(CHANNEL_OUTDOOR_TEMPERATURE); // JO tried added this.
-        this.dataHistory.setManaged(CHANNEL_INDOOR_TEMPERATURE); // JO tried added this.
         connectionManager = new ConnectionManager(ipv4Address, this);
     }
 
@@ -176,7 +174,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             markOfflineWithMessage(ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding with its status.");
             return;
         }
-        // this is to avoid collisions from this method thread
+        // this is to avoid collisions from handleCommand with the Polling
         getConnectionManager().cancelConnectionMonitorJob();
 
         if (command instanceof RefreshType) {
@@ -184,7 +182,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return;
         }
 
-        // This is to go directly to the set command
+        // This is to go directly to the set command, skips a poll
         doPoll = false;
         connectionManager.connect();
 
@@ -443,7 +441,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public void handleScreenDisplay(Command command) {
         // this doesn't work for me. The bit is always off (false) even with the LED on
-        // It also seems like sending a command with no changes causes problems
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -496,7 +493,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         "Configuration missing, discovery needed. Discovering...");
                 MideaACDiscoveryService discoveryService = new MideaACDiscoveryService();
 
-                // discoveryService.setSecurity(this.getSecurity());
                 try {
                     discoveryService.discoverThing(config.getIpAddress(), this);
                 } catch (Exception e) {
@@ -653,11 +649,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         private boolean deviceIsConnected;
 
-        // private @Nullable InetAddress ifAddress;
         private @Nullable Socket socket;
         private @Nullable InputStream inputStream;
         private @Nullable DataOutputStream writer;
-        // private final int SOCKET_CONNECT_TIMEOUT = 4000;
 
         private @Nullable ScheduledFuture<?> connectionMonitorJob;
 
@@ -726,7 +720,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 socket.setSoTimeout(config.getTimeout() * 1000);
                 // socket.setKeepAlive(true); for 7200 seconds plus
                 // socket.setReuseAddress(true);
-                // socket.bind(new InetSocketAddress(0)); // TODO: allow choosing adapter? // new InetSocketAddress(0)
                 if (ipPort != null) {
                     socket.connect(new InetSocketAddress(ipAddress, NumberUtils.createInteger(ipPort)),
                             config.getTimeout() * 1000);
@@ -820,7 +813,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         @SuppressWarnings("null")
         private void getTokenKeyCloud(CloudProvider cloudProvider) {
             Cloud cloud = mideaACHandler.getClouds().get(config.getEmail(), config.getPassword(), cloudProvider);
-            // Cloud cloud = new Cloud(config.getEmail(), config.getPassword(), cloudProvider);
             cloud.setHttpClient(httpClient);
             if (cloud.login()) {
                 TokenKey tk = cloud.getToken(config.getDeviceId());
@@ -845,8 +837,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         @SuppressWarnings("null")
         private void doAuthentication() {
-            // byte[] request = Security.encode8370(Utils.hexStringToByteArray(config.getToken()),
-            // MsgType.MSGTYPE_HANDSHAKE_REQUEST);
             byte[] request = mideaACHandler.getSecurity().encode8370(Utils.hexStringToByteArray(config.getToken()),
                     MsgType.MSGTYPE_HANDSHAKE_REQUEST);
             try {
@@ -860,8 +850,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     logger.trace("Device {}@{} response for handshake_request length: {}", thing.getUID(), ipAddress,
                             response.length);
                     if (response.length == 72) {
-                        // boolean success = Security.tcpKey(Arrays.copyOfRange(response, 8, 72),
-                        // Utils.hexStringToByteArray(config.getKey()));
                         boolean success = mideaACHandler.getSecurity().tcpKey(Arrays.copyOfRange(response, 8, 72),
                                 Utils.hexStringToByteArray(config.getKey()));
                         if (success) {
@@ -1019,7 +1007,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                             }
                         }
                     } else {
-                        byte[] data = security
+                        byte[] data = mideaACHandler.getSecurity()
                                 .aesDecrypt(Arrays.copyOfRange(responseBytes, 40, responseBytes.length - 16));
                         // The response data from the appliance includes a packet header which we don't want
                         logger.trace("else leg Bytes decoded with header: length: {}, data: {}", data.length,
@@ -1059,9 +1047,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         protected synchronized void disconnect() {
-            /// if (!isConnected()) {
-            // return;
-            // }
+            // Make sure writer, inputStream and socket are closed
             logger.debug("Disconnecting from {} at {}", thing.getUID(), ipAddress);
 
             try {
@@ -1126,39 +1112,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_CATCH_COLD, response.getCatchCold() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_NIGHT_LIGHT, response.getNightLight() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_PEAK_ELEC, response.getPeakElec() ? OnOffType.ON : OnOffType.OFF);
-
             updateChannel(CHANNEL_NATURAL_FAN, response.getNaturalFan() ? OnOffType.ON : OnOffType.OFF);
-            float cit = 0;
-            cit = dataHistory.get(CHANNEL_INDOOR_TEMPERATURE, response.getIndoorTemperature());
-            // updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getIndoorTemperature(),
-            // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
-
-            // logger.debug("this is cit:{} this is indoor temp returned: {} this is temp unit value:{} the thing;{}",
-            // cit,
-            // response.getIndoorTemperature(), response.getTempUnit(), thing.getUID());
-            // updateChannel(CHANNEL_INDOOR_TEMPERATURE, new
-            // QuantityType<Temperature>(response.getIndoorTemperature(),response.getTempUnit() == true ?
-            // ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
-            // DecimalType(response.getIndoorTemperature()));
-            updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(cit,
+            updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getIndoorTemperature(),
                     response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
-            // updateChannel(CHANNEL_INDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getIndoorTemperature(),
-            // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
-            float cot = 0;
-            cot = dataHistory.get(CHANNEL_OUTDOOR_TEMPERATURE, response.getOutdoorTemperature());
-            // updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new
-            // QuantityType<Temperature>(response.getOutdoorTemperature(),
-            // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS)); // new
-            // DecimalType(response.getOutdoorTemperature()));
-
-            // logger.debug("this is cot:{} this is outdoor temp returned: {} this is what this is:{} the thing:{}",
-            // cot,
-            // response.getOutdoorTemperature(), this, thing.getUID());
-            updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new QuantityType<Temperature>(cot,
+            updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getOutdoorTemperature(),
                     response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
-            // updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new
-            // QuantityType<Temperature>(response.getOutdoorTemperature(),
-            // response.getTempUnit() == true ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
         }
 
@@ -1176,6 +1134,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         logger.debug("Response received length: {} Thing:{}", len, thing.getUID());
                         bytes = Arrays.copyOfRange(bytes, 0, len);
                         return bytes;
+                    } else {
+                        logger.info("zero bytes, not null");
+                        return null;
                     }
                 }
             } catch (IOException e) {
@@ -1210,7 +1171,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         /*
-         * Periodically validate the command connection to the device by executing a getversion command.
+         * Periodical polling.
          */
         @SuppressWarnings("null")
         private void scheduleConnectionMonitorJob() {

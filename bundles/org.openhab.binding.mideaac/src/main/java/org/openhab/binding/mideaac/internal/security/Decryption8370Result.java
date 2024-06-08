@@ -14,11 +14,14 @@ package org.openhab.binding.mideaac.internal.security;
 
 import java.util.ArrayList;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * Decryption.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class Decryption8370Result {
     public ArrayList<byte[]> getResponses() {
         return responses;

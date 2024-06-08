@@ -33,7 +33,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.handler.CommandBase;
 import org.openhab.binding.mideaac.internal.security.CloudProvider;
-import org.openhab.binding.mideaac.internal.security.SecurityUtil;
+import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -71,11 +71,11 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     @Nullable
     DiscoveryHandler discoveryHandler;
 
-    private SecurityUtil securityUtil;
+    private Security security;
 
     public MideaACDiscoveryService() {
         super(SUPPORTED_THING_TYPES_UIDS, discoveryTimeoutSeconds, false);
-        this.securityUtil = new SecurityUtil(CloudProvider.getCloudProvider("MSmartHome"));
+        this.security = new Security(CloudProvider.getCloudProvider("MSmartHome"));
     }
 
     /*
@@ -266,7 +266,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             logger.debug("Encrypt data: '{}'", Utils.bytesToHex(encryptData));
 
             // byte[] reply = mideaACHandler.getSecurity().aesDecrypt(encryptData);
-            byte[] reply = securityUtil.aesDecrypt(encryptData);
+            byte[] reply = security.aesDecrypt(encryptData);
             logger.debug("Length: {}, Reply: '{}'", reply.length, Utils.bytesToHex(reply));
 
             mSmartip = Byte.toUnsignedInt(reply[3]) + "." + Byte.toUnsignedInt(reply[2]) + "."
@@ -286,9 +286,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
             mSmartType = mSmartSSID.split("_")[1];
             logger.debug("Type: '{}'", mSmartType);
-
-            // TODO:
-            // mSmartsupport = support_test(mSmartip, int(mSmartId), int(mSmartPort))
 
             String thingName = createThingName(packet.getAddress().getAddress(), mSmartId, mSmartSSID);
             ThingUID thingUID = new ThingUID(THING_TYPE_MIDEAAC, thingName.toLowerCase());

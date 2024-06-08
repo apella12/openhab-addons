@@ -12,13 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.handler;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
  * Timer.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class Timer {
     private boolean status;
     private int hours;
@@ -43,7 +44,7 @@ public class Timer {
     }
 
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         if (status) {
             return String.format("enabled: %s, hours: %d, minutes: %d", status, hours, minutes);
         } else {
@@ -51,7 +52,7 @@ public class Timer {
         }
     }
 
-    public @NonNull String toChannel() {
+    public String toChannel() {
         if (status) {
             return String.format("%02d:%02d", hours, minutes);
         } else {

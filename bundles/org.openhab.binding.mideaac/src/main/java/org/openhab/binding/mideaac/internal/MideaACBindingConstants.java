@@ -76,6 +76,7 @@ public class MideaACBindingConstants {
 
     public static final Unit<Temperature> API_TEMPERATURE_UNIT = SIUnits.CELSIUS;
 
+    @SuppressWarnings("null")
     public static final Set<String> SUPPORTED_CHANNEL_IDS = Stream.of(CHANNEL_POWER, CHANNEL_OPERATIONAL_MODE,
             CHANNEL_TARGET_TEMPERATURE, CHANNEL_INDOOR_TEMPERATURE, CHANNEL_OUTDOOR_TEMPERATURE)
             .collect(Collectors.toSet());

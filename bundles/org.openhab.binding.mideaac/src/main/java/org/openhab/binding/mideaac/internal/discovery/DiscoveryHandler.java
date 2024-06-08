@@ -12,13 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.discovery;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.config.discovery.DiscoveryResult;
 
 /**
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public interface DiscoveryHandler {
-    public void discovered(@NonNull DiscoveryResult discoveryResult);
+    public void discovered(DiscoveryResult discoveryResult);
 }

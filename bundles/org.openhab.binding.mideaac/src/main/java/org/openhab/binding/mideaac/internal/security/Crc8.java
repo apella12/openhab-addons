@@ -12,11 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.security;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * CRC8 calculation.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class Crc8 {
     private static final byte[] CRC8_854_TABLE = { (byte) 0x00, (byte) 0x5E, (byte) 0xBC, (byte) 0xE2, (byte) 0x61,
             (byte) 0x3F, (byte) 0xDD, (byte) 0x83, (byte) 0xC2, (byte) 0x9C, (byte) 0x7E, (byte) 0x20, (byte) 0xA3,

@@ -12,11 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.security;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * Token Key.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class TokenKey {
     String token;
     String key;

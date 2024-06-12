@@ -45,6 +45,7 @@
 			<channel id="naturalFan" typeId="naturalFan"/>
 			<channel id="humidity" typeId="humidity"/>
 			<channel id="screenDisplay" typeId="screenDisplay"/>
+			<channel id="droppedCommands" typeId="droppedCommands"/>
 		</channels>
 
 		<representation-property>ipAddress</representation-property>
@@ -112,16 +113,16 @@
 					known, enter email and password for Cloud to retrieve it).</description>
 				<default></default>
 			</parameter>
-			<parameter name="pollingTime" type="decimal" required="true" min="10" unit="s">
+			<parameter name="pollingTime" type="decimal" required="true" min="30" unit="s">
 				<context>pollingTime</context>
 				<label>Polling time</label>
 				<description>Polling time in seconds to update status. Minimum time is 30 seconds.</description>
 				<default>60</default>
 			</parameter>
-			<parameter name="timeout" type="decimal" required="true" min="1" max="10" unit="s">
+			<parameter name="timeout" type="decimal" required="true" min="2" max="10" unit="s">
 				<context>timeout</context>
 				<label>Timeout</label>
-				<description>Connecting timeout. Minimum time is 1 second, maximum 10 seconds (4 seconds default).</description>
+				<description>Connecting timeout. Minimum time is 2 second, maximum 10 seconds (4 seconds default).</description>
 				<default>4</default>
 			</parameter>
 			<parameter name="promptTone" type="boolean" required="true">
@@ -373,6 +374,13 @@
 		<label>Humidity</label>
 		<description>Humidity measured in the room by the indoor unit.</description>
 		<category>Humidity</category>
+		<state readOnly="true" pattern="%d%%"/>
+	</channel-type>
+	<channel-type id="droppedCommands" advanced="true">
+		<item-type>Number</item-type>
+		<label>Dropped Commands</label>
+		<description>Commands dropped due to TCP read() issues.</description>
+		<category>Number</category>
 		<state readOnly="true" pattern="%d%%"/>
 	</channel-type>
 </thing:thing-descriptions>

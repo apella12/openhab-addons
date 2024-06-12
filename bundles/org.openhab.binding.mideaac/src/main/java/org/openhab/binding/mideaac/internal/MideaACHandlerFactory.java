@@ -56,17 +56,6 @@ public class MideaACHandlerFactory extends BaseThingHandlerFactory {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
-    // @Override
-    // protected @Nullable ThingHandler createHandler(Thing thing) {
-    // ThingTypeUID thingTypeUID = thing.getThingTypeUID();
-    //
-    // if (THING_TYPE_MIDEAAC.equals(thingTypeUID)) {
-    // return new MideaACHandler(thing);
-    // }
-    //
-    // return null;
-    // }
-
     @Activate
     public MideaACHandlerFactory(@Reference NetworkAddressService networkAddressService,
             @Reference UnitProvider unitProvider, @Reference HttpClientFactory httpClientFactory) {

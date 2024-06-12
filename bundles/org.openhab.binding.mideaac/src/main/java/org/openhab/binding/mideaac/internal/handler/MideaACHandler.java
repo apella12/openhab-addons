@@ -170,7 +170,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
 
         if (getLastResponse() == null) {
-            logger.info("Last Response not being picked up by set command {} starting over", command);
+            logger.debug("Last Response not being picked up by set command {} starting over", command);
             markOfflineWithMessage(ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding with its status.");
             return;
         }
@@ -476,6 +476,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     public void initialize() {
         connectionManager.disconnect();
         getConnectionManager().cancelConnectionMonitorJob();
+        connectionManager.resetDroppedCommands();
 
         setCloudProvider(CloudProvider.getCloudProvider("MSmartHome"));
         setSecurity(new Security(cloudProvider));
@@ -582,9 +583,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         // This is to space out the looping with a short then long pause
         if (retry) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
-                logger.info("An interupted error (pause) has occured {}", e.getMessage());
+                logger.debug("An interupted error (pause) has occured {}", e.getMessage());
             }
             getConnectionManager().cancelConnectionMonitorJob();
             getConnectionManager().disconnect();
@@ -608,6 +609,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public boolean getDoPoll() {
         return doPoll;
+    }
+
+    @Override
+    public void dispose() {
+        connectionManager.cancelConnectionMonitorJob();
     }
 
     public void resetDoPoll() {
@@ -648,6 +654,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         private Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
         private boolean deviceIsConnected;
+        private int droppedCommands = 0;
 
         private @Nullable Socket socket;
         private @Nullable InputStream inputStream;
@@ -678,6 +685,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return str == null || str.trim().isEmpty();
         }
 
+        public void resetDroppedCommands() {
+            droppedCommands = 0;
+        }
+
         /*
          * Connect to the command and serial port(s) on the device. The serial connections are established only for
          * devices that support serial.
@@ -706,7 +717,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         @SuppressWarnings("null")
         protected synchronized void connect() {
             if (reAuthenticationNeeded()) {
-                logger.info("Force re-authentication has initiated");
+                logger.debug("Force re-authentication has initiated");
                 this.authenticate();
             }
             if (isConnected() && getVersion() == 2) {
@@ -718,14 +729,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             try {
                 socket = new Socket();
                 socket.setSoTimeout(config.getTimeout() * 1000);
-                // socket.setKeepAlive(true); for 7200 seconds plus
-                // socket.setReuseAddress(true);
                 if (ipPort != null) {
                     socket.connect(new InetSocketAddress(ipAddress, NumberUtils.createInteger(ipPort)),
                             config.getTimeout() * 1000);
                 }
             } catch (IOException e) {
-                logger.info("IOException connecting to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
+                logger.debug("IOException connecting to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
                 if (message != null) {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
@@ -739,7 +748,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 writer = new DataOutputStream(socket.getOutputStream());
                 inputStream = socket.getInputStream();
             } catch (IOException e) {
-                logger.info("IOException getting streams for {} at {}: {}", thing.getUID(), ipAddress, e.getMessage(),
+                logger.debug("IOException getting streams for {} at {}: {}", thing.getUID(), ipAddress, e.getMessage(),
                         e);
                 String message = e.getMessage();
                 if (message != null) {
@@ -820,8 +829,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 configuration.put(CONFIG_TOKEN, tk.getToken());
                 configuration.put(CONFIG_KEY, tk.getKey());
-                // had a problem with this once because it keep looping with new keys and tokens
-                // never reached the info message below
                 updateConfiguration(configuration);
 
                 logger.trace("Token: {}", tk.getToken());
@@ -858,7 +865,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
-                                logger.info("An interupted error (success) has occured {}", e.getMessage());
+                                logger.debug("An interupted error (success) has occured {}", e.getMessage());
                             }
                             requestStatus(mideaACHandler.getDoPoll());
                         } else {
@@ -905,7 +912,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             packet.finalize();
 
             if (!isConnected()) {
-                logger.info("Unable to send message; no connection to {}. starting over: {}", thing.getUID(), command);
+                logger.debug("Unable to send message; no connection to {}. starting over: {}", thing.getUID(), command);
                 markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
             }
 
@@ -918,6 +925,28 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 }
 
                 write(bytes);
+
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
+                }
+
+                if (inputStream.available() == 0) {
+                    logger.debug("Sending second write {}", command);
+                    write(bytes);
+                }
+
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    logger.debug("An interupted error (retrycommand3) has occured {}", e.getMessage());
+                }
+
+                if (inputStream.available() == 0) {
+                    logger.debug("Sending third write {}", command);
+                    write(bytes);
+                }
 
                 // Socket timeout will wait up to 1-10 seconds for bytes. Typically less than 1 second for me
                 byte[] responseBytes = read();
@@ -1025,10 +1054,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     return;
                 } else {
                     logger.info("Problem with reading response, skipping command {}", command);
+                    droppedCommands = droppedCommands + 1;
                     return;
                 }
             } catch (SocketException e) {
-                logger.info("SocketException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
+                logger.debug("SocketException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
                 if (message != null) {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
@@ -1036,7 +1066,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
                 }
             } catch (IOException e) {
-                logger.info(" Send IOException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
+                logger.debug(" Send IOException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
                 if (message != null) {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
@@ -1118,6 +1148,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getOutdoorTemperature(),
                     response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
+            updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
         }
 
         public byte @Nullable [] read() {
@@ -1134,9 +1165,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         logger.debug("Response received length: {} Thing:{}", len, thing.getUID());
                         bytes = Arrays.copyOfRange(bytes, 0, len);
                         return bytes;
-                    } else {
-                        logger.info("zero bytes, not null");
-                        return null;
                     }
                 }
             } catch (IOException e) {
@@ -1155,7 +1183,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             try {
                 writer.write(buffer, 0, buffer.length);
             } catch (IOException e) {
-                logger.info("Write error");
+                logger.debug("Write error");
                 String message = e.getMessage();
                 if (message != null) {
                     markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
@@ -1179,7 +1207,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.debug("Starting connection monitor job in {} seconds for {} at {}", config.getPollingTime(),
                         thing.getUID(), ipAddress);
                 long frequency = config.getPollingTime();
-                long delay = 15L;
+                long delay = 30L;
                 connectionMonitorJob = scheduler.scheduleWithFixedDelay(connectionMonitorRunnable, delay, frequency,
                         TimeUnit.SECONDS);
             }

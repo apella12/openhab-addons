@@ -73,6 +73,7 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_OUTDOOR_TEMPERATURE = "outdoorTemperature";
     public static final String CHANNEL_HUMIDITY = "humidity";
     public static final String CHANNEL_SCREEN_DISPLAY = "screenDisplay";
+    public static final String DROPPED_COMMANDS = "droppedCommands";
 
     public static final Unit<Temperature> API_TEMPERATURE_UNIT = SIUnits.CELSIUS;
 

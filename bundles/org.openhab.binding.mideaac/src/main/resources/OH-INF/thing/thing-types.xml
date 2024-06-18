@@ -197,7 +197,6 @@
 		<label>Eco mode</label>
 		<description>Eco mode, according to manual works only in COOL mode (temperature shall be set to 24C and fan on AUTO).</description>
 		<category>Switch</category>
-		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="turboMode">
 		<item-type>Switch</item-type>
@@ -225,7 +224,6 @@
 		<label>Sleep function</label>
 		<description>Sleep function ("Moon with a star" icon on IR Remote Controller).</description>
 		<category>Switch</category>
-		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="tempUnit">
 		<item-type>Switch</item-type>

@@ -15,7 +15,7 @@ package org.openhab.binding.mideaac.internal.handler;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class CommandBase {
     @SuppressWarnings("unused")
     private final Logger logger = LoggerFactory.getLogger(CommandBase.class);
@@ -144,7 +145,7 @@ public class CommandBase {
 
         @Override
         public String toString() {
-            // TODO Auto-generated method stub
+            // Drops the trailing 2 or 3 from the fan speed
             return super.toString().replace("2", "").replace("3", "");
         }
     }
@@ -191,13 +192,17 @@ public class CommandBase {
         data[0x02] = (byte) 0xAC;
     }
 
-    @Override
-    public void finalize() {
+    public void compose() {
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
-        data = ArrayUtils.add(data, crc8);
-
+        byte[] newData1 = new byte[data.length + 1];
+        System.arraycopy(data, 0, newData1, 0, data.length);
+        newData1[data.length] = crc8;
+        data = newData1;
         byte chksum = checksum(Arrays.copyOfRange(data, 1, data.length));
-        data = ArrayUtils.add(data, chksum);
+        byte[] newData2 = new byte[data.length + 1];
+        System.arraycopy(data, 0, newData2, 0, data.length);
+        newData2[data.length] = chksum;
+        data = newData2;
     }
 
     public byte[] getBytes() {

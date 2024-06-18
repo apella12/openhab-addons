@@ -17,12 +17,14 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
  * Packet class for Midea AC.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class Packet {
     private CommandBase command;
     private byte[] packet;
@@ -72,9 +74,9 @@ public class Packet {
     }
 
     @SuppressWarnings("null")
-    @Override
-    public void finalize() {
-        command.finalize();
+
+    public void compose() {
+        command.compose();
 
         // Append the command data(48 bytes) to the packet
         byte[] cmdEncrypted = mideaACHandler.getSecurity().aesEncrypt(command.getBytes());

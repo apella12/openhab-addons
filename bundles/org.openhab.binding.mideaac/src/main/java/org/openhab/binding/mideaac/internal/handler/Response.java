@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.mideaac.internal.handler;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
@@ -23,8 +24,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class Response {
     byte[] data;
+    float empty = 22;
     private Logger logger = LoggerFactory.getLogger(Response.class);
 
     private final int version;
@@ -64,6 +67,7 @@ public class Response {
                 logger.trace("PowerState: {}", getPowerState());
                 logger.trace("ImodeResume: {}", getImmodeResume());
                 logger.trace("TimerMode: {}", getTimerMode());
+                logger.trace("Prompt Tone: {}", getPromptTone());
                 logger.trace("ApplianceError: {}", getApplianceError());
                 logger.trace("TargetTemperature: {}", getTargetTemperature());
                 logger.trace("OperationalMode: {}", getOperationalMode());
@@ -72,7 +76,7 @@ public class Response {
                 logger.trace("OffTimer: {}", getOffTimer());
                 logger.trace("SwingMode: {}", getSwingMode());
                 logger.trace("CozySleep: {}", getCozySleep());
-                logger.trace("Save: {}", getSave());
+                logger.trace("Power Saving: {}", getSave());
                 logger.trace("LowFrequencyFan: {}", getLowFrequencyFan());
                 logger.trace("SuperFan: {}", getSuperFan());
                 logger.trace("FeelOwn: {}", getFeelOwn());
@@ -99,6 +103,7 @@ public class Response {
             logger.trace("PowerState: {}", getPowerState());
             logger.trace("ImodeResume: {}", getImmodeResume());
             logger.trace("TimerMode: {}", getTimerMode());
+            logger.trace("Prompt Tone: {}", getPromptTone());
             logger.trace("ApplianceError: {}", getApplianceError());
             logger.trace("TargetTemperature: {}", getTargetTemperature());
             logger.trace("OperationalMode: {}", getOperationalMode());
@@ -143,6 +148,10 @@ public class Response {
         return (data[0x01] & 0x10) > 0;
     }
 
+    public boolean getPromptTone() {
+        return (data[0x01] & 0x40) > 0;
+    }
+
     public boolean getApplianceError() {
         return (data[0x01] & 0x80) > 0;
     }
@@ -160,30 +169,17 @@ public class Response {
     }
 
     public Timer getOnTimer() {
-        int onTimerValue = data[0x04];
-        int onTimerMinutes = data[0x06];
-        return new Timer(((onTimerValue & (byte) 0x80) >> 7) > 0, (onTimerValue & (byte) 0x7c) >> 2,
-                (onTimerValue & 0x3) | ((onTimerMinutes & (byte) 0xf0) >> 4));
+        return new Timer((data[0x04] & (byte) 0x80) > 0, ((data[0x04] & (byte) 0x7c) >> 2),
+                (data[0x04] & 0x3) * 15 | ((data[0x06] & (byte) 0xf0) >> 4));
     }
 
     public Timer getOffTimer() {
-        int offTimerValue = data[0x05];
-        int offTimerMinutes = data[0x06];
-        return new Timer(((offTimerValue & (byte) 0x80) >> 7) > 0, (offTimerValue & (byte) 0x7c) >> 2,
-                (offTimerValue & 0x3) | (offTimerMinutes & (byte) 0xf));
+        return new Timer((data[0x05] & (byte) 0x80) > 0, ((data[0x05] & (byte) 0x7c) >> 2),
+                (data[0x05] & 0x3) * 15 | (data[0x06] & (byte) 0xf));
     }
 
     public SwingMode getSwingMode() {
-        if (getVersion() == 2) {
-            // logger.debug("SwingMode value: {}", (data[0x07] & 0x0f));
-            return SwingMode.fromId(data[0x07] & 0x0f);
-        }
-
-        if (getVersion() == 3) {
-            // logger.debug("SwingMode value: {}", (data[0x07] & 0x0f));
-            return SwingMode.fromId(data[0x07] & 0x0f);
-        }
-        return SwingMode.UNKNOWN;
+        return SwingMode.fromId(data[0x07] & 0x0f);
     }
 
     public int getCozySleep() {
@@ -264,14 +260,14 @@ public class Response {
 
     public Float getIndoorTemperature() {
         // My AC just uses byte[11] for 0.5 degrees Validated with NetHome App reading
-        // Changed int to float, left byte[15], but blank
+        // Changed int to float, left byte[15] in case used by others
         double indoorTempInteger;
         double indoorTempDecimal;
 
         if (data[0] == (byte) 0xc0) {
             if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) < -19
                     || ((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) > 50) {
-                return null;
+                return empty;
             } else {
                 indoorTempInteger = (float) ((data[11] - 50f) / 2f);
             }
@@ -300,7 +296,7 @@ public class Response {
             }
             if (data[0] == (byte) 0xa1) {
                 if (((Byte.toUnsignedInt(data[13]) - 50) / 2) < -19 || ((Byte.toUnsignedInt(data[13]) - 50) / 2) > 50) {
-                    return null;
+                    return empty;
                 } else {
                     indoorTempInteger = (float) (Byte.toUnsignedInt(data[13]) - 50) / 2;
                 }
@@ -314,7 +310,7 @@ public class Response {
             }
         }
 
-        return null;
+        return empty;
     }
 
     public Float getIndoorTemperature1() {
@@ -331,7 +327,7 @@ public class Response {
                     return (float) (tempInteger - tempDecimal);
                 }
             } else {
-                return null;
+                return empty;
             }
         } else {
             return (float) ((Byte.toUnsignedInt(data[11]) - 50) / 2);
@@ -351,7 +347,7 @@ public class Response {
                     return (float) (tempInteger - tempDecimal);
                 }
             } else {
-                return null;
+                return empty;
             }
         } else {
             // return (Byte.toUnsignedInt(data[0x0c]) - 50) / 2.0f;
@@ -360,6 +356,6 @@ public class Response {
     }
 
     public int getHumidity() {
-        return (data[0x0d] & (byte) 0x7f);
+        return (data[19] & (byte) 0x7f);
     }
 }

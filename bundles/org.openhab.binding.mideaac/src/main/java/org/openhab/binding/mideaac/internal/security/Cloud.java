@@ -340,6 +340,6 @@ public class Cloud {
     }
 
     private void handleApiError(int asInt, String asString) {
-        // TODO Auto-generated method stub
+        logger.debug("Api error in Cloud class");
     }
 }

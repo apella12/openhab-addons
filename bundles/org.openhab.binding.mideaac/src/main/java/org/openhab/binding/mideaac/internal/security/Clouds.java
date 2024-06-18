@@ -14,11 +14,15 @@ package org.openhab.binding.mideaac.internal.security;
 
 import java.util.HashMap;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * Clouds.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class Clouds {
 
     private final HashMap<Integer, Cloud> clouds;
@@ -34,7 +38,7 @@ public class Clouds {
         return cloud;
     }
 
-    public Cloud get(String email, String password, CloudProvider cloudProvider) {
+    public @Nullable Cloud get(String email, String password, CloudProvider cloudProvider) {
         int hash = (email + password + cloudProvider.getName()).hashCode();
         if (clouds.containsKey(hash)) {
             return clouds.get(hash);

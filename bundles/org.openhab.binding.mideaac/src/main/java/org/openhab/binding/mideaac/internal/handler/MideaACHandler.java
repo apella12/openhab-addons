@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +32,6 @@ import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
 import javax.measure.spi.SystemOfUnits;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
@@ -83,17 +83,15 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private @Nullable MideaACConfiguration config;
     private @Nullable Map<String, String> properties;
-    private @Nullable String ipAddress = null;
-    private @Nullable String ipPort = null;
-    private @Nullable String deviceId = null;
+    private String ipAddress = "";
+    private String ipPort = "";
+    private String deviceId = "";
     private int version = 0;
 
-    // private final DataSmoother dataHistory = new DataSmoother();
+    public CloudProvider cloudProvider = new CloudProvider("", "", "", "", "", "", "", "");
+    private Security security = new Security(cloudProvider);
 
-    private @Nullable CloudProvider cloudProvider = null;
-    private @Nullable Security security;
-
-    public @Nullable CloudProvider getCloudProvider() {
+    public CloudProvider getCloudProvider() {
         return cloudProvider;
     }
 
@@ -143,7 +141,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return connectionManager;
     }
 
-    private @Nullable Response getLastResponse() {
+    private Response getLastResponse() {
         return getConnectionManager().getLastResponse();
     }
 
@@ -169,11 +167,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
 
-        if (getLastResponse() == null) {
-            logger.debug("Last Response not being picked up by set command {} starting over", command);
-            markOfflineWithMessage(ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding with its status.");
-            return;
-        }
         // this is to avoid collisions from handleCommand with the Polling
         getConnectionManager().cancelConnectionMonitorJob();
 
@@ -182,7 +175,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return;
         }
 
-        // This is to go directly to the set command, skips a poll
+        // This is to go directly to the set commands, after authorization
         doPoll = false;
         connectionManager.connect();
 
@@ -204,6 +197,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             handleScreenDisplay(command);
         } else if (channelUID.getId().equals(CHANNEL_TEMP_UNIT)) {
             handleTempUnit(command);
+        } else if (channelUID.getId().equals(CHANNEL_SLEEP_FUNCTION)) {
+            handleSleepFunction(command);
         }
     }
 
@@ -456,7 +451,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     public void handleTempUnit(Command command) {
-        // At least with my unit this is only for the display, calcs always in Celsius
+        // This is only for the display, calcs always in Celsius
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -465,6 +460,23 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             commandSet.setFahrenheit(true);
         } else {
             logger.debug("Unknown temperature unit/farenheit command: {}", command);
+            return;
+        }
+
+        getConnectionManager().sendCommandAndMonitor(commandSet);
+    }
+
+    public void handleSleepFunction(Command command) {
+        CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
+
+        commandSet.setPowerState(true);
+
+        if (command.equals(OnOffType.OFF)) {
+            commandSet.setSleepMode(false);
+        } else if (command.equals(OnOffType.ON)) {
+            commandSet.setSleepMode(true);
+        } else {
+            logger.debug("Unknown sleep Mode command: {}", command);
             return;
         }
 
@@ -662,10 +674,15 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         private @Nullable ScheduledFuture<?> connectionMonitorJob;
 
-        private @Nullable Response lastResponse;
+        private byte[] data = HexFormat.of().parseHex("C00042667F7F003C0000046066000000000000000000F9ECDB");
+
+        private String responseType = "query";
+
+        private byte bodyType = (byte) 0xc0;
+
+        private Response lastResponse = new Response(data, getVersion(), responseType, bodyType);
         private MideaACHandler mideaACHandler;
 
-        @Nullable
         public Response getLastResponse() {
             return this.lastResponse; // JO addded this. 11/28/23
         }
@@ -682,7 +699,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         public static boolean isBlank(String str) {
-            return str == null || str.trim().isEmpty();
+            return str.trim().isEmpty();
         }
 
         public void resetDroppedCommands() {
@@ -730,8 +747,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 socket = new Socket();
                 socket.setSoTimeout(config.getTimeout() * 1000);
                 if (ipPort != null) {
-                    socket.connect(new InetSocketAddress(ipAddress, NumberUtils.createInteger(ipPort)),
-                            config.getTimeout() * 1000);
+                    int port = Integer.parseInt(ipPort);
+                    socket.connect(new InetSocketAddress(ipAddress, port), config.getTimeout() * 1000);
                 }
             } catch (IOException e) {
                 logger.debug("IOException connecting to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
@@ -909,7 +926,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 ((CommandSet) command).setPromptTone(config.getPromptTone());
             }
             Packet packet = new Packet(command, deviceId, mideaACHandler);
-            packet.finalize();
+            packet.compose();
 
             if (!isConnected()) {
                 logger.debug("Unable to send message; no connection to {}. starting over: {}", thing.getUID(), command);

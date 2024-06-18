@@ -12,16 +12,19 @@
  */
 package org.openhab.binding.mideaac.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link MideaACConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class MideaACConfiguration {
     /**
      * IP Address of the device.
      */
-    private String ipAddress;
+    private String ipAddress = "";
 
     public String getIpAddress() {
         return ipAddress;
@@ -31,7 +34,7 @@ public class MideaACConfiguration {
         this.ipAddress = ipAddress;
     }
 
-    private String ipPort;
+    private String ipPort = "";
 
     public String getIpPort() {
         return ipPort;
@@ -41,7 +44,7 @@ public class MideaACConfiguration {
         this.ipPort = ipPort;
     }
 
-    private String deviceId;
+    private String deviceId = "";
 
     public String getDeviceId() {
         return deviceId;
@@ -51,7 +54,7 @@ public class MideaACConfiguration {
         this.deviceId = deviceId;
     }
 
-    private String email;
+    private String email = "";
 
     public String getEmail() {
         return email;
@@ -71,7 +74,7 @@ public class MideaACConfiguration {
         this.reauth = reauth;
     }
 
-    private String password;
+    private String password = "";
 
     public String getPassword() {
         return password;
@@ -81,7 +84,7 @@ public class MideaACConfiguration {
         this.password = password;
     }
 
-    private String cloud;
+    private String cloud = "";
 
     public String getCloud() {
         return cloud;
@@ -91,7 +94,7 @@ public class MideaACConfiguration {
         this.token = cloud;
     }
 
-    private String token;
+    private String token = "";
 
     public String getToken() {
         return token;
@@ -101,7 +104,7 @@ public class MideaACConfiguration {
         this.token = token;
     }
 
-    private String key;
+    private String key = "";
 
     public String getKey() {
         return key;

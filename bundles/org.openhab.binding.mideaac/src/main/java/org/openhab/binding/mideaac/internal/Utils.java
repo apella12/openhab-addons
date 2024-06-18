@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.jose4j.base64url.Base64;
 
 import com.google.gson.JsonObject;
@@ -27,9 +28,11 @@ import com.google.gson.JsonObject;
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class Utils {
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private static final char[] HEX_ARRAY_LOWERCASE = "0123456789abcdef".toCharArray();
+    static byte[] empty = new byte[0];
 
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -132,7 +135,7 @@ public class Utils {
             return Arrays.copyOfRange(bb.array(), 0, 6);
         }
 
-        return null;
+        return empty;
     }
 
     public static String getQueryString(JsonObject json) {
@@ -140,6 +143,7 @@ public class Utils {
         Iterator<String> keys = json.keySet().stream().sorted().iterator();
         // sb.append("?"); // start of query args
         while (keys.hasNext()) {
+            @SuppressWarnings("null")
             String key = keys.next();
             sb.append(key);
             sb.append("=");

@@ -12,11 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.security;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * Cloud Provider.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class CloudProvider {
 
     private String name;
@@ -69,17 +72,7 @@ public class CloudProvider {
         return hmackey;
     }
 
-    // private CloudProvider(String name, String appkey, String appid, String apiurl, String signkey, String proxied) {
-    // super();
-    // this.name = name;
-    // this.appkey = appkey;
-    // this.appid = appid;
-    // this.apiurl = apiurl;
-    // this.signkey = signkey;
-    // this.proxied = proxied;
-    // }
-
-    private CloudProvider(String name, String appkey, String appid, String apiurl, String signkey, String iotkey,
+    public CloudProvider(String name, String appkey, String appid, String apiurl, String signkey, String iotkey,
             String hmackey, String proxied) {
         super();
         this.name = name;
@@ -96,16 +89,15 @@ public class CloudProvider {
         switch (name) {
             case "NetHome Plus":
                 return new CloudProvider("NetHome Plus", "3742e9e5842d4ad59c2db887e12449f9", "1017",
-                        "https://mapp.appsmb.com", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S", null, null, null);
+                        "https://mapp.appsmb.com", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S", "", "", "");
             case "Midea Air":
                 return new CloudProvider("Midea Air", "ff0cf6f5f0c3471de36341cab3f7a9af", "1117",
-                        "https://mapp.appsmb.com", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S", null, null, null);
+                        "https://mapp.appsmb.com", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S", "", "", "");
             case "MSmartHome":
                 return new CloudProvider("MSmartHome", "ac21b9f9cbfe4ca5a88562ef25e2b768", "1010",
                         "https://mp-prod.appsmb.com/mas/v5/app/proxy?alias=", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S",
                         "meicloud", "PROD_VnoClJI9aikS8dyy", "v5");
         }
-
-        return null;
+        return new CloudProvider("", "", "", "", "", "", "", "");
     }
 }

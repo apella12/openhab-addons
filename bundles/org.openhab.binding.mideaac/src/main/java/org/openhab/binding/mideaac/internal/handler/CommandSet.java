@@ -12,13 +12,14 @@
  */
 package org.openhab.binding.mideaac.internal.handler;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
  * Command changing a Midea AC.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
+@NonNullByDefault
 public class CommandSet extends CommandBase {
 
     public CommandSet() {
@@ -28,7 +29,12 @@ public class CommandSet extends CommandBase {
         data[0x0a] = (byte) 0x40;
 
         byte[] extra = { 0x00, 0x00, 0x00 };
-        data = ArrayUtils.addAll(data, extra);
+        byte[] newData = new byte[data.length + 3];
+        System.arraycopy(data, 0, newData, 0, data.length);
+        newData[data.length] = extra[0];
+        newData[data.length + 1] = extra[1];
+        newData[data.length + 2] = extra[2];
+        data = newData;
     }
 
     public static CommandSet fromResponse(Response response) {
@@ -42,15 +48,18 @@ public class CommandSet extends CommandBase {
         commandSet.setTurboMode(response.getTurboMode());
         commandSet.setSwingMode(response.getSwingMode());
         commandSet.setScreenDisplay(response.getNightLight());
+        commandSet.setEcoMode(response.getEcoMode());
+        commandSet.setPromptTone(response.getPromptTone());
+        commandSet.setSleepMode(response.getSleepFunction());
 
         return commandSet;
     }
 
     public void setPromptTone(boolean feedbackEnabled) {
         if (!feedbackEnabled) {
-            data[0x0b] &= ~(byte) 0x42; // Clear the audible bits
+            data[0x0b] &= ~(byte) 0x40; // Clear the audible bit
         } else {
-            data[0x0b] |= (byte) 0x42;
+            data[0x0b] |= (byte) 0x40;
         }
     }
 
@@ -85,12 +94,24 @@ public class CommandSet extends CommandBase {
     }
 
     public void setEcoMode(boolean ecoModeEnabled) {
-        data[0x13] = ecoModeEnabled ? (byte) 0xff : 0x00;
+        if (!ecoModeEnabled) {
+            data[0x13] &= ~0x10;// Clear the Eco bit
+        } else {
+            data[0x13] |= 0x10;
+        }
     }
 
     public void setSwingMode(SwingMode mode) {
         data[0x11] &= ~0x0f; // Clear the mode bits
         data[0x11] |= mode.getId() & 0x0f;
+    }
+
+    public void setSleepMode(boolean sleepModeEnabled) {
+        if (sleepModeEnabled) {
+            data[0x14] |= 0x01;
+        } else {
+            data[0x14] &= (~0x01);
+        }
     }
 
     public void setTurboMode(boolean turboModeEnabled) {
@@ -101,9 +122,18 @@ public class CommandSet extends CommandBase {
         }
     }
 
-    public void setScreenDisplay(boolean screenDisplayEnabed) {
+    public void setFahrenheit(boolean fahrenheitEnabled) {
+        // set the display to Fahrenheit from Celsius
+        if (fahrenheitEnabled) {
+            data[0x14] |= 0x04;
+        } else {
+            data[0x14] &= (~0x04);
+        }
+    }
+
+    public void setScreenDisplay(boolean screenDisplayEnabled) {
         // the LED lights on the AC. these display temperature and are often too bright during nights
-        if (screenDisplayEnabed) {
+        if (screenDisplayEnabled) {
             data[0x14] |= 0x10;
         } else {
             data[0x14] &= (~0x10);
@@ -117,15 +147,6 @@ public class CommandSet extends CommandBase {
             data[0x0c] |= 0x10;
         } else {
             data[0x0c] &= (~0x10);
-        }
-    }
-
-    public void setFahrenheit(boolean fahrenheitEnabled) {
-        // set the display to Fahrenheit from Celsius
-        if (fahrenheitEnabled) {
-            data[0x14] |= 0x04;
-        } else {
-            data[0x14] &= (~0x04);
         }
     }
 }

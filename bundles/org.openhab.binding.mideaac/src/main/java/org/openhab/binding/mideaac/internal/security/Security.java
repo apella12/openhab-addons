@@ -35,6 +35,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ import com.google.gson.JsonObject;
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
+@NonNullByDefault
 public class Security {
     // private final static String appKey = "434a209a5ce141c3b726de067835d7f0";
     // private final static String signKey = ;
@@ -56,7 +58,7 @@ public class Security {
     // private final static String iotkey = "meicloud";
     // private final static String hmackey = "PROD_VnoClJI9aikS8dyy";
 
-    private SecretKeySpec encKey = null;
+    private @Nullable SecretKeySpec encKey = null;
     private Logger logger = LoggerFactory.getLogger(Security.class);
     private IvParameterSpec iv = new IvParameterSpec(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 
@@ -77,25 +79,25 @@ public class Security {
                 cipher.init(Cipher.DECRYPT_MODE, key);
             } catch (InvalidKeyException e) {
                 logger.warn("AES decryption error: InvalidKeyException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
 
             try {
                 plainText = cipher.doFinal(encryptData);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES decryption error: IllegalBlockSizeException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             } catch (BadPaddingException e) {
                 logger.warn("AES decryption error: BadPaddingException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
 
         } catch (NoSuchAlgorithmException e) {
             logger.warn("AES decryption error: NoSuchAlgorithmException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         } catch (NoSuchPaddingException e) {
             logger.warn("AES decryption error: NoSuchPaddingException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
 
         return plainText;
@@ -119,23 +121,23 @@ public class Security {
                 encryptData = cipher.doFinal(plainText);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES encryption error: IllegalBlockSizeException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             } catch (BadPaddingException e) {
                 logger.warn("AES encryption error: BadPaddingException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
         } catch (NoSuchAlgorithmException e) {
             logger.warn("AES encryption error: NoSuchAlgorithmException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         } catch (NoSuchPaddingException e) {
             logger.warn("AES encryption error: NoSuchPaddingException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
 
         return encryptData;
     }
 
-    private SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
+    private @Nullable SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
         if (encKey == null) {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(cloudProvider.getSignKey().getBytes(StandardCharsets.US_ASCII));
@@ -159,7 +161,7 @@ public class Security {
             return md.digest();
         } catch (NoSuchAlgorithmException e) {
         }
-        return null;
+        return new byte[0];
     }
 
     public enum MsgType {
@@ -191,7 +193,7 @@ public class Security {
 
     private int requestCount = 0;
     private int responseCount = 0;
-    private byte[] tcpKey;
+    private byte[] tcpKey = new byte[0];
 
     public byte[] encode8370(byte[] data, MsgType msgtype) {
         ByteBuffer headerBuffer = ByteBuffer.allocate(256);
@@ -349,28 +351,28 @@ public class Security {
                 cipher.init(Cipher.DECRYPT_MODE, key, iv);
             } catch (InvalidKeyException e) {
                 logger.warn("AES decryption error: InvalidKeyException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             } catch (InvalidAlgorithmParameterException e) {
                 logger.warn("AES decryption error: InvalidAlgorithmParameterException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
 
             try {
                 plainText = cipher.doFinal(encryptData);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES decryption error: IllegalBlockSizeException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             } catch (BadPaddingException e) {
                 logger.warn("AES decryption error: BadPaddingException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
 
         } catch (NoSuchAlgorithmException e) {
             logger.warn("AES decryption error: NoSuchAlgorithmException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         } catch (NoSuchPaddingException e) {
             logger.warn("AES decryption error: NoSuchPaddingException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
 
         return plainText;
@@ -396,17 +398,17 @@ public class Security {
                 encryptData = cipher.doFinal(plainText);
             } catch (IllegalBlockSizeException e) {
                 logger.warn("AES encryption error: IllegalBlockSizeException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             } catch (BadPaddingException e) {
                 logger.warn("AES encryption error: BadPaddingException: {}", e.getMessage());
-                return null;
+                return new byte[0];
             }
         } catch (NoSuchAlgorithmException e) {
             logger.warn("AES encryption error: NoSuchAlgorithmException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         } catch (NoSuchPaddingException e) {
             logger.warn("AES encryption error: NoSuchPaddingException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
 
         return encryptData;
@@ -417,7 +419,7 @@ public class Security {
             return MessageDigest.getInstance("SHA-256").digest(bytes);
         } catch (NoSuchAlgorithmException e) {
             logger.warn("SHA256 digest error: NoSuchAlgorithmException: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
     }
 
@@ -427,7 +429,7 @@ public class Security {
         return random;
     }
 
-    public String sign(String url, JsonObject payload) {
+    public @Nullable String sign(String url, JsonObject payload) {
         logger.trace("url: {}", url);
         String path;
         try {
@@ -449,7 +451,7 @@ public class Security {
         return null;
     }
 
-    public String newSign(String data, String random) {
+    public @Nullable String newSign(String data, String random) {
         String msg = cloudProvider.getIotKey();
         if (data != null) {
             msg += data;
@@ -477,7 +479,7 @@ public class Security {
         return Utils.bytesToHexLowercase(mac.doFinal(data.getBytes()));
     }
 
-    public String encryptPassword(@Nullable String loginId, String password) {
+    public @Nullable String encryptPassword(@Nullable String loginId, String password) {
         try {
             // Hash the password
             MessageDigest m = MessageDigest.getInstance("SHA-256");
@@ -495,7 +497,7 @@ public class Security {
     }
 
     // Encrypts password for cloud API
-    public String encryptIamPassword(@Nullable String loginId, String password) {
+    public @Nullable String encryptIamPassword(@Nullable String loginId, String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(password.getBytes(StandardCharsets.US_ASCII));

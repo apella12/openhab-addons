@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
@@ -256,7 +255,16 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             byte[] id = Arrays.copyOfRange(data, 20, 26);
             logger.trace("Id Bytes: {}", Utils.bytesToHex(id));
 
-            ArrayUtils.reverse(id);
+            // Reverse the subarray in-place
+            // This level 3 issue replaces level 2 forbidden package
+            // import org.apache.commons.lang3.ArrayUtils;
+            // ArrayUtils.reverse(id);
+            for (int i = 0; i < id.length / 2; i++) {
+                byte temp = id[i];
+                id[i] = id[id.length - i - 1];
+                id[id.length - i - 1] = temp;
+            }
+
             BigInteger bigId = new BigInteger(id);
             mSmartId = bigId.toString();
 
@@ -297,7 +305,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
                     .build();
         } else if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 6)).equals("3C3F786D6C20")) {
             logger.debug("Midea AC v1 device was detected, supported, but not implemented yet.");
-            // TODO:
+            // Possible code for AC1 device from ??:
             // if data[:6].hex() == '3c3f786d6c20':
             // mSmartVersion = 'V1'
             // root=ET.fromstring(data.decode(encoding="utf-8", errors="replace"))

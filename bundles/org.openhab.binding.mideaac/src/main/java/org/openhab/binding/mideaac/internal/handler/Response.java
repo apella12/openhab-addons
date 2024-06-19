@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class Response {
     byte[] data;
-    float empty = 22;
+    float empty = (float) -22.5;
     private Logger logger = LoggerFactory.getLogger(Response.class);
 
     private final int version;
@@ -169,17 +169,17 @@ public class Response {
     }
 
     public Timer getOnTimer() {
-        return new Timer((data[0x04] & (byte) 0x80) > 0, ((data[0x04] & (byte) 0x7c) >> 2),
+        return new Timer((data[0x04] & 0x80) > 0, ((data[0x04] & (byte) 0x7c) >> 2),
                 (data[0x04] & 0x3) * 15 | ((data[0x06] & (byte) 0xf0) >> 4));
     }
 
     public Timer getOffTimer() {
-        return new Timer((data[0x05] & (byte) 0x80) > 0, ((data[0x05] & (byte) 0x7c) >> 2),
+        return new Timer((data[0x05] & 0x80) > 0, ((data[0x05] & (byte) 0x7c) >> 2),
                 (data[0x05] & 0x3) * 15 | (data[0x06] & (byte) 0xf));
     }
 
     public SwingMode getSwingMode() {
-        return SwingMode.fromId(data[0x07] & 0x0f);
+        return SwingMode.fromId(data[0x07] & 0x3f, getVersion());
     }
 
     public int getCozySleep() {
@@ -260,14 +260,16 @@ public class Response {
 
     public Float getIndoorTemperature() {
         // My AC just uses byte[11] for 0.5 degrees Validated with NetHome App reading
-        // Changed int to float, left byte[15] in case used by others
+        // Changed int to float to handle, left byte[15] as used by others
         double indoorTempInteger;
         double indoorTempDecimal;
 
         if (data[0] == (byte) 0xc0) {
-            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) < -19
-                    || ((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) > 50) {
-                return empty;
+            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) < -19) {
+                return (float) -19;
+            }
+            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) > 50) {
+                return (float) 50;
             } else {
                 indoorTempInteger = (float) ((data[11] - 50f) / 2f);
             }
@@ -295,8 +297,11 @@ public class Response {
                 }
             }
             if (data[0] == (byte) 0xa1) {
-                if (((Byte.toUnsignedInt(data[13]) - 50) / 2) < -19 || ((Byte.toUnsignedInt(data[13]) - 50) / 2) > 50) {
-                    return empty;
+                if (((Byte.toUnsignedInt(data[13]) - 50) / 2.0f) < -19) {
+                    return (float) -19;
+                }
+                if (((Byte.toUnsignedInt(data[13]) - 50) / 2.0f) > 50) {
+                    return (float) 50;
                 } else {
                     indoorTempInteger = (float) (Byte.toUnsignedInt(data[13]) - 50) / 2;
                 }
@@ -309,34 +314,12 @@ public class Response {
                 }
             }
         }
-
         return empty;
-    }
-
-    public Float getIndoorTemperature1() {
-        // this confuses me. Does not appear to be used and duplicates getIndoorTemperature() Left in for now
-        logger.debug("this.responseType:{} this.bodyType:{}", this.responseType, this.bodyType);
-
-        if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
-            if (data[11] != 0xFF) {
-                int tempInteger = ((data[11]) - 50) / 2;
-                double tempDecimal = ((data[15] & 0x0f)) * 0.1;
-                if (data[11] > 49) {
-                    return (float) (tempInteger + tempDecimal);
-                } else {
-                    return (float) (tempInteger - tempDecimal);
-                }
-            } else {
-                return empty;
-            }
-        } else {
-            return (float) ((Byte.toUnsignedInt(data[11]) - 50) / 2);
-        }
     }
 
     public Float getOutdoorTemperature() {
         // My AC just uses byte[12] for 0.5 degrees; Validated with NetHome App reading
-        // Changed int to float, left byte[15], but blank
+        // Changed int to float to handle, left byte[15] as used by others
         if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
             if (data[12] != 0xFF) {
                 double tempInteger = (float) ((data[12] - 50f) / 2f);
@@ -350,11 +333,11 @@ public class Response {
                 return empty;
             }
         } else {
-            // return (Byte.toUnsignedInt(data[0x0c]) - 50) / 2.0f;
             return (float) ((Byte.toUnsignedInt(data[12]) - 50) / 2);
         }
     }
 
+    // Need to validate what byte has humidity (if any)
     public int getHumidity() {
         return (data[19] & (byte) 0x7f);
     }

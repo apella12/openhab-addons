@@ -49,7 +49,6 @@ public class CommandSet extends CommandBase {
         commandSet.setSwingMode(response.getSwingMode());
         commandSet.setScreenDisplay(response.getNightLight());
         commandSet.setEcoMode(response.getEcoMode());
-        commandSet.setPromptTone(response.getPromptTone());
         commandSet.setSleepMode(response.getSleepFunction());
 
         return commandSet;
@@ -102,8 +101,8 @@ public class CommandSet extends CommandBase {
     }
 
     public void setSwingMode(SwingMode mode) {
-        data[0x11] &= ~0x0f; // Clear the mode bits
-        data[0x11] |= mode.getId() & 0x0f;
+        data[0x11] &= ~0x3f; // Clear the mode bits
+        data[0x11] |= mode.getId() & 0x3f;
     }
 
     public void setSleepMode(boolean sleepModeEnabled) {

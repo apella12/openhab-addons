@@ -181,8 +181,7 @@
 	<channel-type id="swingMode">
 		<item-type>String</item-type>
 		<label>Swing mode</label>
-		<description>Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH. Getting and setting is supported for version 2. Version 3 is
-			not supported in protocol in LAN and Cloud.</description>
+		<description>Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH.</description>
 		<state>
 			<options>
 				<option value="OFF">OFF</option>

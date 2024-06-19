@@ -49,7 +49,7 @@ public class CommandBase {
         DRY(3),
         HEAT(4),
         FAN_ONLY(5),
-        UNKWNOWN(0);
+        UNKNOWN(0);
 
         private final int value;
 
@@ -67,34 +67,51 @@ public class CommandBase {
                     return type;
                 }
             }
-            return UNKWNOWN;
+            return UNKNOWN;
         }
     }
 
     public enum SwingMode {
-        OFF(0),
-        VERTICAL(0xC),
-        HORIZONTAL(0x3),
-        BOTH(0xF),
-        UNKNOWN(0xFF);
+        OFF3(0x30, 3),
+        VERTICAL3(0x3C, 3),
+        HORIZONTAL3(0x33, 3),
+        BOTH3(0x3F, 3),
+        OFF2(0, 2),
+        VERTICAL2(0xC, 2),
+        HORIZONTAL2(0x3, 2),
+        BOTH2(0xF, 2),
+
+        UNKNOWN(0xFF, 0);
 
         private final int value;
+        private final int version;
 
-        private SwingMode(int value) {
+        private SwingMode(int value, int version) {
             this.value = value;
+            this.version = version;
         }
 
         public int getId() {
             return value;
         }
 
-        public static SwingMode fromId(int id) {
+        public int getVersion() {
+            return version;
+        }
+
+        public static SwingMode fromId(int id, int version) {
             for (SwingMode type : values()) {
-                if (type.getId() == id) {
+                if (type.getId() == id && type.getVersion() == version) {
                     return type;
                 }
             }
             return UNKNOWN;
+        }
+
+        @Override
+        public String toString() {
+            // Drops the trailing 2 or 3 from the swing mode
+            return super.toString().replace("2", "").replace("3", "");
         }
     }
 

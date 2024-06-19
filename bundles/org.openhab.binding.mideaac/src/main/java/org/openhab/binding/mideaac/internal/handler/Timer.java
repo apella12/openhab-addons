@@ -15,7 +15,7 @@ package org.openhab.binding.mideaac.internal.handler;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Timer.
+ * On Off Timer Channels.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -31,19 +31,6 @@ public class Timer {
         this.minutes = minutes;
     }
 
-    public boolean getStatus() {
-        return status;
-    }
-
-    public int getHours() {
-        return hours;
-    }
-
-    public int getMinutes() {
-        return minutes;
-    }
-
-    @Override
     public String toString() {
         if (status) {
             return String.format("enabled: %s, hours: %d, minutes: %d", status, hours, minutes);

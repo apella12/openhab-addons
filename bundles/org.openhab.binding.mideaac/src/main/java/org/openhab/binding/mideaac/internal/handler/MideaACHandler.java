@@ -136,6 +136,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public boolean doPoll = true;
     public boolean retry = true;
+    public boolean connectionMessage = true;
 
     private ConnectionManager getConnectionManager() {
         return connectionManager;
@@ -391,23 +392,35 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     public void handleSwingMode(Command command) {
-        if (this.getVersion() == 3) {
-            logger.debug("Setting Swing Mode for version 3 is not supported by protocol (LAN and Cloud)");
-            // return; if already set keep it. It can be erased, but not set
-        }
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         commandSet.setPowerState(true);
 
         if (command instanceof StringType) {
             if (command.equals(SWING_MODE_OFF)) {
-                commandSet.setSwingMode(SwingMode.OFF);
+                if (getVersion() == 2) {
+                    commandSet.setSwingMode(SwingMode.OFF2);
+                } else if (getVersion() == 3) {
+                    commandSet.setSwingMode(SwingMode.OFF3);
+                }
             } else if (command.equals(SWING_MODE_VERTICAL)) {
-                commandSet.setSwingMode(SwingMode.VERTICAL);
+                if (getVersion() == 2) {
+                    commandSet.setSwingMode(SwingMode.VERTICAL2);
+                } else if (getVersion() == 3) {
+                    commandSet.setSwingMode(SwingMode.VERTICAL3);
+                }
             } else if (command.equals(SWING_MODE_HORIZONTAL)) {
-                commandSet.setSwingMode(SwingMode.HORIZONTAL);
+                if (getVersion() == 2) {
+                    commandSet.setSwingMode(SwingMode.HORIZONTAL2);
+                } else if (getVersion() == 3) {
+                    commandSet.setSwingMode(SwingMode.HORIZONTAL3);
+                }
             } else if (command.equals(SWING_MODE_BOTH)) {
-                commandSet.setSwingMode(SwingMode.BOTH);
+                if (getVersion() == 2) {
+                    commandSet.setSwingMode(SwingMode.BOTH2);
+                } else if (getVersion() == 3) {
+                    commandSet.setSwingMode(SwingMode.BOTH3);
+                }
             } else {
                 logger.debug("Unknown swing mode command: {}", command);
                 return;
@@ -581,16 +594,17 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private void markOfflineWithMessage(ThingStatusDetail statusDetail, String statusMessage) {
         // If it's offline with no detail or if it's not offline, mark it offline with detailed status
-        if ((isOffline() && getDetail() == ThingStatusDetail.NONE)
-                || (isOffline() && !statusMessage.equals(getDescription())) || !isOffline()) {
+        if (!isOffline()) {
             logger.info("Changing status of {} from {}({}) to OFFLINE({})", thing.getUID(), getStatus(), getDetail(),
                     statusDetail);
-            if (isOffline()) {
-                updateStatus(ThingStatus.UNKNOWN);
-            }
-
-            updateStatus(ThingStatus.OFFLINE, statusDetail, statusMessage);
         }
+        if ((isOffline() && getDetail() == ThingStatusDetail.NONE)
+                || (isOffline() && !statusMessage.equals(getDescription()))) {
+            logger.debug("Changing status of {} from {}({}) to OFFLINE({})", thing.getUID(), getStatus(), getDetail(),
+                    statusDetail);
+        }
+
+        updateStatus(ThingStatus.OFFLINE, statusDetail, statusMessage);
 
         // This is to space out the looping with a short then long pause
         if (retry) {
@@ -604,7 +618,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             retry = false;
             getConnectionManager().connect();
         } else {
-            logger.info("Connection issue, resetting, please wait ...");
+            if (connectionMessage) {
+                logger.info("Connection issue, resetting, please wait ...");
+            }
+            connectionMessage = false;
             getConnectionManager().cancelConnectionMonitorJob();
             getConnectionManager().disconnect();
             getConnectionManager().scheduleConnectionMonitorJob();
@@ -634,6 +651,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     public void resetRetry() {
         retry = true;
+    }
+
+    public void resetConnectionMessage() {
+        connectionMessage = true;
     }
 
     private ThingStatus getStatus() {
@@ -689,7 +710,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         Runnable connectionMonitorRunnable = () -> {
             logger.debug("Connecting to {} at IP {} for Poll", thing.getUID(), ipAddress);
-            mideaACHandler.resetRetry();
             connect();
         };
 
@@ -724,11 +744,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 return false;
             }
             Calendar now = Calendar.getInstance();
-            Calendar tokenReqeustedAt = Calendar.getInstance();
-            tokenReqeustedAt.setTime(getTokenReqested());
-            tokenReqeustedAt.add(Calendar.HOUR, reuth);
+            Calendar tokenRequestedAt = Calendar.getInstance();
+            tokenRequestedAt.setTime(getTokenReqested());
+            tokenRequestedAt.add(Calendar.HOUR, reuth);
 
-            return now.compareTo(tokenReqeustedAt) > 0;
+            return now.compareTo(tokenRequestedAt) > 0;
         }
 
         @SuppressWarnings("null")
@@ -737,9 +757,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.debug("Force re-authentication has initiated");
                 this.authenticate();
             }
-            if (isConnected() && getVersion() == 2) {
-                return;
-            }
+
             logger.trace("Connecting to {} at {}:{}", thing.getUID(), ipAddress, ipPort);
 
             // Open socket
@@ -776,6 +794,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
             if (!deviceIsConnected) {
                 logger.info("Connected to {} at {}", thing.getUID(), ipAddress);
+                mideaACHandler.resetRetry();
+                mideaACHandler.resetConnectionMessage();
             }
             logger.debug("Connected to {} at {}", thing.getUID(), ipAddress);
             deviceIsConnected = true;

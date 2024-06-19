@@ -29,8 +29,6 @@ public class Packet {
     private CommandBase command;
     private byte[] packet;
     private MideaACHandler mideaACHandler;
-    // @SuppressWarnings("unused") //JO added and rimmed out
-    // private String deviceId; //JO added and rimmed out
     // private static Logger logger = LoggerFactory.getLogger(Packet.class);
 
     @SuppressWarnings("deprecation")
@@ -44,7 +42,7 @@ public class Packet {
                 (byte) 0x5a, (byte) 0x5a,
                 // 2 bytes - mMessageType
                 (byte) 0x01, (byte) 0x11,
-                // 2 bytes - PacketLenght
+                // 2 bytes - PacketLength
                 (byte) 0x00, (byte) 0x00,
                 // 2 bytes
                 (byte) 0x20, (byte) 0x00,
@@ -60,12 +58,8 @@ public class Packet {
         Date d = new Date();
         byte[] datetimeBytes = { (byte) (d.getYear() / 100), (byte) (d.getYear() % 100), (byte) d.getMonth(),
                 (byte) d.getDate(), (byte) d.getHours(), (byte) d.getMinutes(), (byte) d.getSeconds(),
-                (byte) d.getTime() }; // TOOD:
-        // , 0x00
-        // };(byte)
-        // d.getTime()
-        // set
-        // milliseconds
+                (byte) d.getTime() };
+
         System.arraycopy(datetimeBytes, 0, packet, 12, 8);
 
         byte[] idBytes = new BigInteger(deviceId).toByteArray();
@@ -82,7 +76,7 @@ public class Packet {
         byte[] cmdEncrypted = mideaACHandler.getSecurity().aesEncrypt(command.getBytes());
         packet = ArrayUtils.addAll(packet, Arrays.copyOf(cmdEncrypted, 48));
 
-        // PacketLenght
+        // PacketLength
         byte[] lenBytes = { (byte) (packet.length + 16), 0 };
 
         System.arraycopy(lenBytes, 0, packet, 4, 2);

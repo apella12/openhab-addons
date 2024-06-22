@@ -181,7 +181,7 @@
 	<channel-type id="swingMode">
 		<item-type>String</item-type>
 		<label>Swing mode</label>
-		<description>Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH.</description>
+		<description>Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH. Some V3 versions do not support</description>
 		<state>
 			<options>
 				<option value="OFF">OFF</option>

@@ -1076,21 +1076,25 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         byte[] data = mideaACHandler.getSecurity()
                                 .aesDecrypt(Arrays.copyOfRange(responseBytes, 40, responseBytes.length - 16));
                         // The response data from the appliance includes a packet header which we don't want
-                        logger.trace("else leg Bytes decoded with header: length: {}, data: {}", data.length,
+                        logger.trace("V2 Bytes decoded with header: length: {}, data: {}", data.length,
                                 Utils.bytesToHex(data));
+                        if (data.length > 0) {
+                            data = Arrays.copyOfRange(data, 10, data.length);
+                            logger.trace("V2 Bytes decoded and stripped without header: length: {}, data: {}",
+                                    data.length, Utils.bytesToHex(data));
 
-                        data = Arrays.copyOfRange(data, 10, data.length);
-                        logger.trace("else leg Bytes decoded and stripped without header: length: {}, data: {}",
-                                data.length, Utils.bytesToHex(data));
-
-                        lastResponse = new Response(data, getVersion(), "", (byte) 0x00);
-                        processMessage(lastResponse);
-                        logger.debug("else leg data length is {} version is {} thing is {}", data.length, version,
-                                thing.getUID());
+                            lastResponse = new Response(data, getVersion(), "", (byte) 0x00);
+                            processMessage(lastResponse);
+                            logger.debug("V2 data length is {} version is {} thing is {}", data.length, version,
+                                    thing.getUID());
+                        } else {
+                            logger.debug("Problem with reading V2 response, skipping command {}", command);
+                            droppedCommands = droppedCommands + 1;
+                        }
                     }
                     return;
                 } else {
-                    logger.info("Problem with reading response, skipping command {}", command);
+                    logger.debug("Problem with reading response, skipping command {}", command);
                     droppedCommands = droppedCommands + 1;
                     return;
                 }

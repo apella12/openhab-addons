@@ -1090,12 +1090,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         } else {
                             logger.debug("Problem with reading V2 response, skipping command {}", command);
                             droppedCommands = droppedCommands + 1;
+                            updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
                         }
                     }
                     return;
                 } else {
                     logger.debug("Problem with reading response, skipping command {}", command);
                     droppedCommands = droppedCommands + 1;
+                    updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
                     return;
                 }
             } catch (SocketException e) {
@@ -1189,7 +1191,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, new QuantityType<Temperature>(response.getOutdoorTemperature(),
                     response.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS));
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
-            updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
         }
 
         public byte @Nullable [] read() {

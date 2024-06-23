@@ -13,11 +13,12 @@
 package org.openhab.binding.mideaac.internal.handler;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Date;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.mideaac.internal.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Packet class for Midea AC.
@@ -29,7 +30,7 @@ public class Packet {
     private CommandBase command;
     private byte[] packet;
     private MideaACHandler mideaACHandler;
-    // private static Logger logger = LoggerFactory.getLogger(Packet.class);
+    private Logger logger = LoggerFactory.getLogger(Packet.class);
 
     @SuppressWarnings("deprecation")
     public Packet(CommandBase command, String deviceId, MideaACHandler mideaACHandler) {
@@ -63,7 +64,13 @@ public class Packet {
         System.arraycopy(datetimeBytes, 0, packet, 12, 8);
 
         byte[] idBytes = new BigInteger(deviceId).toByteArray();
-        ArrayUtils.reverse(idBytes);
+        // could be eliminated with apache array.utils level 2 issue
+        // also question why device ID is reversed in the first place.
+        for (int i = 0; i < idBytes.length / 2; i++) {
+            byte temp = idBytes[i];
+            idBytes[i] = idBytes[idBytes.length - i - 1];
+            idBytes[idBytes.length - i - 1] = temp;
+        }
         System.arraycopy(idBytes, 0, packet, 20, 6);
     }
 
@@ -74,15 +81,33 @@ public class Packet {
 
         // Append the command data(48 bytes) to the packet
         byte[] cmdEncrypted = mideaACHandler.getSecurity().aesEncrypt(command.getBytes());
-        packet = ArrayUtils.addAll(packet, Arrays.copyOf(cmdEncrypted, 48));
 
-        // PacketLength
+        // Ensure 48 bytes
+        if (cmdEncrypted.length < 48) {
+            byte[] paddedCmdEncrypted = new byte[48];
+            System.arraycopy(cmdEncrypted, 0, paddedCmdEncrypted, 0, cmdEncrypted.length);
+            cmdEncrypted = paddedCmdEncrypted;
+        }
+
+        byte[] newPacket = new byte[packet.length + cmdEncrypted.length];
+        System.arraycopy(packet, 0, newPacket, 0, packet.length);
+        System.arraycopy(cmdEncrypted, 0, newPacket, packet.length, cmdEncrypted.length);
+        packet = newPacket;
+        logger.trace("Packet after cmdEncrpted {}", Utils.bytesToHex(packet));
+
+        // Override packet length bytes with actual values
         byte[] lenBytes = { (byte) (packet.length + 16), 0 };
-
         System.arraycopy(lenBytes, 0, packet, 4, 2);
 
+        // calculate checksum data
+        byte[] checksumData = mideaACHandler.getSecurity().encode32Data(packet);
+
         // Append a basic checksum data(16 bytes) to the packet
-        packet = ArrayUtils.addAll(packet, mideaACHandler.getSecurity().encode32Data(packet));
+        byte[] newPacketTwo = new byte[packet.length + checksumData.length];
+        System.arraycopy(packet, 0, newPacketTwo, 0, packet.length);
+        System.arraycopy(checksumData, 0, newPacketTwo, packet.length, checksumData.length);
+        packet = newPacketTwo;
+        logger.trace("Packet after checksum {}", Utils.bytesToHex(packet));
     }
 
     public byte[] getBytes() {

@@ -72,6 +72,7 @@ public class CommandBase {
     }
 
     // Two versions of V3, Supported Swing or Non-Supported (4)
+    // V2 set without leading 3, but reports with it (1)
     public enum SwingMode {
         OFF3(0x30, 3),
         OFF4(0x00, 3),
@@ -83,8 +84,11 @@ public class CommandBase {
         BOTH4(0xF, 3),
         OFF2(0, 2),
         VERTICAL2(0xC, 2),
+        VERTICAL1(0x3C, 2),
         HORIZONTAL2(0x3, 2),
+        HORIZONTAL1(0x33, 2),
         BOTH2(0xF, 2),
+        BOTH1(0x3F, 2),
 
         UNKNOWN(0xFF, 0);
 
@@ -115,8 +119,8 @@ public class CommandBase {
 
         @Override
         public String toString() {
-            // Drops the trailing 2, 3 or 4 (nonsupported V3) from the swing mode
-            return super.toString().replace("2", "").replace("3", "").replace("4", "");
+            // Drops the trailing 1 (V2 report) 2, 3 or 4 (nonsupported V3) from the swing mode
+            return super.toString().replace("1", "").replace("2", "").replace("3", "").replace("4", "");
         }
     }
 

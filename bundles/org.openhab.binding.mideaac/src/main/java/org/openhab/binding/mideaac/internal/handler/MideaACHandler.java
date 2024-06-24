@@ -959,18 +959,18 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 if (getVersion() == 3) {
                     bytes = mideaACHandler.getSecurity().encode8370(bytes, MsgType.MSGTYPE_ENCRYPTED_REQUEST);
-                }
 
-                write(bytes);
+                    write(bytes);
 
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
-                    logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                        logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
+                    }
                 }
 
                 if (inputStream.available() == 0) {
-                    logger.debug("Sending second write {}", command);
+                    logger.debug("Input stream empty sending second V3 or first V2 write {}", command);
                     write(bytes);
                 }
 
@@ -981,11 +981,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 }
 
                 if (inputStream.available() == 0) {
-                    logger.debug("Sending third write {}", command);
+                    logger.debug("Input stream empty sending third V3 or second V2 write {}", command);
                     write(bytes);
                 }
 
-                // Socket timeout will wait up to 1-10 seconds for bytes. Typically less than 1 second for me
+                // Socket timeout will wait up to 2-10 seconds (as set) for bytes. Typically less than 1 second for me
                 byte[] responseBytes = read();
 
                 if (responseBytes != null) {

@@ -502,6 +502,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         connectionManager.disconnect();
         getConnectionManager().cancelConnectionMonitorJob();
         connectionManager.resetDroppedCommands();
+        connectionManager.updateChannel(DROPPED_COMMANDS, new DecimalType(connectionManager.getDroppedCommands()));
 
         setCloudProvider(CloudProvider.getCloudProvider("MSmartHome"));
         setSecurity(new Security(cloudProvider));
@@ -643,6 +644,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     @Override
     public void dispose() {
         connectionManager.cancelConnectionMonitorJob();
+        markOffline();
     }
 
     public void resetDoPoll() {
@@ -724,6 +726,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         public void resetDroppedCommands() {
             droppedCommands = 0;
+        }
+
+        public int getDroppedCommands() {
+            return droppedCommands = 0;
         }
 
         /*
@@ -959,18 +965,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                 if (getVersion() == 3) {
                     bytes = mideaACHandler.getSecurity().encode8370(bytes, MsgType.MSGTYPE_ENCRYPTED_REQUEST);
-
-                    write(bytes);
-
-                    try {
-                        Thread.sleep(1500);
-                    } catch (InterruptedException e) {
-                        logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
-                    }
                 }
 
                 if (inputStream.available() == 0) {
-                    logger.debug("Input stream empty sending second V3 or first V2 write {}", command);
+                    logger.debug("Input stream empty sending write {}", command);
                     write(bytes);
                 }
 
@@ -981,7 +979,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 }
 
                 if (inputStream.available() == 0) {
-                    logger.debug("Input stream empty sending third V3 or second V2 write {}", command);
+                    logger.debug("Input stream empty sending second write {}", command);
                     write(bytes);
                 }
 
@@ -1046,14 +1044,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                 logger.trace("Response Type expected: {} and bodyType2:{}", responseType, bodyType2);
                                 logger.trace("Bytes in HEX, decoded and stripped without header: length: {}, data: {}",
                                         data.length, Utils.bytesToHex(data));
-                                logger.trace(
+                                logger.debug(
                                         "Bytes in BINARY, decoded and stripped without header: length: {}, data: {}",
                                         data.length, Utils.bytesToBinary(data));
 
                                 if (data.length > 0) {
                                     if (data.length < 21) {
                                         logger.error("Response data is {} long minimum is 21!", data.length);
-                                        // return; need to check, believe not fatal, longer bytes are not used
+                                        return;
                                     }
                                     lastResponse = new Response(data, getVersion(), responseType, bodyType);
                                     try {
@@ -1246,8 +1244,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         @SuppressWarnings("null")
         private void scheduleConnectionMonitorJob() {
             if (connectionMonitorJob == null) {
-                logger.debug("Starting connection monitor job in {} seconds for {} at {}", config.getPollingTime(),
-                        thing.getUID(), ipAddress);
+                logger.debug("Starting connection monitor job in {} seconds for {} at {} after 30 second delay",
+                        config.getPollingTime(), thing.getUID(), ipAddress);
                 long frequency = config.getPollingTime();
                 long delay = 30L;
                 connectionMonitorJob = scheduler.scheduleWithFixedDelay(connectionMonitorRunnable, delay, frequency,

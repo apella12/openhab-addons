@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class Response {
     byte[] data;
+    // set @empty to match the return from an empty byte
     float empty = (float) -22.5;
     private Logger logger = LoggerFactory.getLogger(Response.class);
 
@@ -44,6 +45,41 @@ public class Response {
         this.bodyType = bodyType;
         this.responseType = responseType;
 
+        logger.debug("PowerState: {}", getPowerState());
+        logger.trace("ImodeResume: {}", getImmodeResume());
+        logger.trace("TimerMode: {}", getTimerMode());
+        logger.trace("Prompt Tone: {}", getPromptTone());
+        logger.trace("ApplianceError: {}", getApplianceError());
+        logger.debug("TargetTemperature: {}", getTargetTemperature());
+        logger.debug("OperationalMode: {}", getOperationalMode());
+        logger.debug("FanSpeed: {}", getFanSpeed());
+        logger.trace("OnTimer: {}", getOnTimer());
+        logger.trace("OffTimer: {}", getOffTimer());
+        logger.debug("SwingMode: {}", getSwingMode());
+        logger.trace("CozySleep: {}", getCozySleep());
+        logger.trace("Power Saving: {}", getSave());
+        logger.trace("LowFrequencyFan: {}", getLowFrequencyFan());
+        logger.trace("SuperFan: {}", getSuperFan());
+        logger.trace("FeelOwn: {}", getFeelOwn());
+        logger.trace("ChildSleepMode: {}", getChildSleepMode());
+        logger.trace("ExchangeAir: {}", getExchangeAir());
+        logger.trace("DryClean: {}", getDryClean());
+        logger.trace("AuxHeat: {}", getAuxHeat());
+        logger.trace("EcoMode: {}", getEcoMode());
+        logger.trace("CleanUp: {}", getCleanUp());
+        logger.trace("TempUnit: {}", getTempUnit());
+        logger.debug("SleepFunction: {}", getSleepFunction());
+        logger.debug("TurboMode: {}", getTurboMode());
+        logger.trace("Fahrenheit: {}", getFahrenheit());
+        logger.trace("CatchCold: {}", getCatchCold());
+        logger.trace("NightLight: {}", getNightLight());
+        logger.trace("PeakElec: {}", getPeakElec());
+        logger.trace("NaturalFan: {}", getNaturalFan());
+        logger.debug("IndoorTemperature: {}", getIndoorTemperature());
+        logger.debug("OutdoorTemperature: {}", getOutdoorTemperature());
+        logger.debug("Humidity: {}", getHumidity());
+
+        // Log Response and Body Type for V3. V2 set at "" and 0x00
         if (version == 3) {
             logger.trace("Response and Body Type: {}, {}", responseType, bodyType);
             // https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/ac/message.py#L418
@@ -55,84 +91,12 @@ public class Response {
                     && (bodyType == 0xB0 || bodyType == 0xB1 || bodyType == 0xB5)) {
                 logger.trace("Response Handler: XBXMessage");
             } else if (("set".equals(responseType) || "query".equals(responseType)) && bodyType == -64) { // 0xC0 = -64
-                                                                                                          // ??
                 logger.trace("Response Handler: XCOMessage");
             } else if ("query".equals(responseType) && bodyType == 0xC1) {
                 logger.trace("Response Handler: XC1Message");
             } else {
                 logger.trace("Response Handler: _general_");
             }
-            {
-
-                logger.trace("PowerState: {}", getPowerState());
-                logger.trace("ImodeResume: {}", getImmodeResume());
-                logger.trace("TimerMode: {}", getTimerMode());
-                logger.trace("Prompt Tone: {}", getPromptTone());
-                logger.trace("ApplianceError: {}", getApplianceError());
-                logger.trace("TargetTemperature: {}", getTargetTemperature());
-                logger.trace("OperationalMode: {}", getOperationalMode());
-                logger.trace("FanSpeed: {}", getFanSpeed());
-                logger.trace("OnTimer: {}", getOnTimer());
-                logger.trace("OffTimer: {}", getOffTimer());
-                logger.trace("SwingMode: {}", getSwingMode());
-                logger.trace("CozySleep: {}", getCozySleep());
-                logger.trace("Power Saving: {}", getSave());
-                logger.trace("LowFrequencyFan: {}", getLowFrequencyFan());
-                logger.trace("SuperFan: {}", getSuperFan());
-                logger.trace("FeelOwn: {}", getFeelOwn());
-                logger.trace("ChildSleepMode: {}", getChildSleepMode());
-                logger.trace("ExchangeAir: {}", getExchangeAir());
-                logger.trace("DryClean: {}", getDryClean());
-                logger.trace("AuxHeat: {}", getAuxHeat());
-                logger.trace("EcoMode: {}", getEcoMode());
-                logger.trace("CleanUp: {}", getCleanUp());
-                logger.trace("TempUnit: {}", getTempUnit());
-                logger.trace("SleepFunction: {}", getSleepFunction());
-                logger.trace("TurboMode: {}", getTurboMode());
-                logger.trace("Fahrenheit: {}", getFahrenheit());
-                logger.trace("CatchCold: {}", getCatchCold());
-                logger.trace("NightLight: {}", getNightLight());
-                logger.trace("PeakElec: {}", getPeakElec());
-                logger.trace("NaturalFan: {}", getNaturalFan());
-                logger.trace("IndoorTemperature: {}", getIndoorTemperature());
-                logger.trace("OutdoorTemperature: {}", getOutdoorTemperature());
-                logger.trace("Humidity: {}", getHumidity());
-            }
-
-        } else {
-            logger.trace("PowerState: {}", getPowerState());
-            logger.trace("ImodeResume: {}", getImmodeResume());
-            logger.trace("TimerMode: {}", getTimerMode());
-            logger.trace("Prompt Tone: {}", getPromptTone());
-            logger.trace("ApplianceError: {}", getApplianceError());
-            logger.trace("TargetTemperature: {}", getTargetTemperature());
-            logger.trace("OperationalMode: {}", getOperationalMode());
-            logger.trace("FanSpeed: {}", getFanSpeed());
-            logger.trace("OnTimer: {}", getOnTimer());
-            logger.trace("OffTimer: {}", getOffTimer());
-            logger.trace("SwingMode: {}", getSwingMode());
-            logger.trace("CozySleep: {}", getCozySleep());
-            logger.trace("Save: {}", getSave());
-            logger.trace("LowFrequencyFan: {}", getLowFrequencyFan());
-            logger.trace("SuperFan: {}", getSuperFan());
-            logger.trace("FeelOwn: {}", getFeelOwn());
-            logger.trace("ChildSleepMode: {}", getChildSleepMode());
-            logger.trace("ExchangeAir: {}", getExchangeAir());
-            logger.trace("DryClean: {}", getDryClean());
-            logger.trace("AuxHeat: {}", getAuxHeat());
-            logger.trace("EcoMode: {}", getEcoMode());
-            logger.trace("CleanUp: {}", getCleanUp());
-            logger.trace("TempUnit: {}", getTempUnit());
-            logger.trace("SleepFunction: {}", getSleepFunction());
-            logger.trace("TurboMode: {}", getTurboMode());
-            logger.trace("Fahrenheit: {}", getFahrenheit());
-            logger.trace("CatchCold: {}", getCatchCold());
-            logger.trace("NightLight: {}", getNightLight());
-            logger.trace("PeakElec: {}", getPeakElec());
-            logger.trace("NaturalFan: {}", getNaturalFan());
-            logger.trace("IndoorTemperature: {}", getIndoorTemperature());
-            logger.trace("OutdoorTemperature: {}", getOutdoorTemperature());
-            logger.trace("Humidity: {}", getHumidity());
         }
     }
 
@@ -265,10 +229,10 @@ public class Response {
         double indoorTempDecimal;
 
         if (data[0] == (byte) 0xc0) {
-            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) < -19) {
+            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0) < -19) {
                 return (float) -19;
             }
-            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0f) > 50) {
+            if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0) > 50) {
                 return (float) 50;
             } else {
                 indoorTempInteger = (float) ((data[11] - 50f) / 2f);
@@ -282,6 +246,7 @@ public class Response {
                 return (float) (indoorTempInteger - indoorTempDecimal);
             }
         }
+        // Not observed or tested
         if (data[0] == (byte) 0xa0 || data[0] == (byte) 0xa1) {
             if (data[0] == (byte) 0xa0) {
                 if ((data[1] >> 2) - 4 == 0) {
@@ -320,21 +285,17 @@ public class Response {
     public Float getOutdoorTemperature() {
         // My AC just uses byte[12] for 0.5 degrees; Validated with NetHome App reading
         // Changed int to float to handle, left byte[15] as used by others
-        if (("set".equals(this.responseType) || "query".equals(this.responseType)) && this.bodyType == -64) {
-            if (data[12] != 0xFF) {
-                double tempInteger = (float) ((data[12] - 50f) / 2f);
-                double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
-                if (data[12] > 49) {
-                    return (float) (tempInteger + tempDecimal);
-                } else {
-                    return (float) (tempInteger - tempDecimal);
-                }
+        // Assumed to be used for all response and body types
+        if (data[12] != 0xFF) {
+            double tempInteger = (float) ((data[12] - 50f) / 2f);
+            double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
+            if (data[12] > 49) {
+                return (float) (tempInteger + tempDecimal);
             } else {
-                return empty;
+                return (float) (tempInteger - tempDecimal);
             }
-        } else {
-            return (float) ((Byte.toUnsignedInt(data[12]) - 50) / 2);
         }
+        return empty;
     }
 
     // Need to validate what byte has humidity (if any)

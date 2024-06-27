@@ -128,8 +128,8 @@ public class CommandBase {
         AUTO2(102, 2),
         FULL2(100, 2),
         HIGH2(80, 2),
-        MEDIUM2(60, 2),
-        LOW2(40, 2),
+        MEDIUM2(50, 2),
+        LOW2(30, 2),
         SILENT2(20, 2),
         UNKNOWN2(0, 2),
 

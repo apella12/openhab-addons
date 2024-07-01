@@ -16,9 +16,9 @@ import java.math.BigInteger;
 import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.openhab.binding.mideaac.internal.Utils;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 /**
  * Packet class for Midea AC.
@@ -30,7 +30,7 @@ public class Packet {
     private CommandBase command;
     private byte[] packet;
     private MideaACHandler mideaACHandler;
-    private Logger logger = LoggerFactory.getLogger(Packet.class);
+    // private Logger logger = LoggerFactory.getLogger(Packet.class);
 
     @SuppressWarnings("deprecation")
     public Packet(CommandBase command, String deviceId, MideaACHandler mideaACHandler) {
@@ -93,7 +93,7 @@ public class Packet {
         System.arraycopy(packet, 0, newPacket, 0, packet.length);
         System.arraycopy(cmdEncrypted, 0, newPacket, packet.length, cmdEncrypted.length);
         packet = newPacket;
-        logger.trace("Packet after cmdEncrpted {}", Utils.bytesToHex(packet));
+        // logger.trace("Packet after cmdEncrpted {}", Utils.bytesToHex(packet));
 
         // Override packet length bytes with actual values
         byte[] lenBytes = { (byte) (packet.length + 16), 0 };
@@ -107,7 +107,7 @@ public class Packet {
         System.arraycopy(packet, 0, newPacketTwo, 0, packet.length);
         System.arraycopy(checksumData, 0, newPacketTwo, packet.length, checksumData.length);
         packet = newPacketTwo;
-        logger.trace("Packet after checksum {}", Utils.bytesToHex(packet));
+        // logger.trace("Packet after checksum {}", Utils.bytesToHex(packet));
     }
 
     public byte[] getBytes() {

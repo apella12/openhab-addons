@@ -79,7 +79,7 @@ public class CommandSet extends CommandBase {
         // Clear the temperature bits.
         data[0x0c] &= ~0x0f;
         // Clear the temperature bits, except the 0.5 bit, which will be set properly in all cases
-        data[0x0c] |= (int) Math.round(temperature) & 0xf;
+        data[0x0c] |= (int) (Math.round(temperature * 2) / 2) & 0xf;
         // set the +0.5 bit
         setTemperatureDot5((Math.round(temperature * 2)) % 2 != 0);
     }

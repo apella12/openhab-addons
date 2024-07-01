@@ -941,6 +941,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         public void sendCommandAndMonitor(CommandBase command) {
             sendCommand(command);
             mideaACHandler.resetDoPoll();
+            disconnect();
             if (connectionMonitorJob == null) {
                 scheduleConnectionMonitorJob();
             }
@@ -1135,11 +1136,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.warn("IOException closing connection to {} at {}: {}", thing.getUID(), ipAddress, e.getMessage(),
                         e);
             }
-            deviceIsConnected = false;
+            // deviceIsConnected = false;
             socket = null;
             inputStream = null;
             writer = null;
-            markOffline();
+            // markOffline();
         }
 
         private void updateChannel(String channelName, State state) {
@@ -1191,7 +1192,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
         }
 
-        public byte @Nullable [] read() {
+        public synchronized byte @Nullable [] read() {
             byte[] bytes = new byte[512];
 
             if (inputStream == null) {
@@ -1208,7 +1209,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     }
                 }
             } catch (IOException e) {
-                logger.debug(" Byte read exception");
+                String message = e.getMessage();
+                logger.debug(" Byte read exception {}", message);
             }
             return null;
         }
@@ -1223,13 +1225,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             try {
                 writer.write(buffer, 0, buffer.length);
             } catch (IOException e) {
-                logger.debug("Write error");
                 String message = e.getMessage();
-                if (message != null) {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
-                } else {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
-                }
+                logger.debug("Write error {}", message);
             }
         }
 

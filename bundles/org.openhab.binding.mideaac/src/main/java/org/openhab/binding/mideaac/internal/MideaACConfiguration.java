@@ -21,12 +21,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class MideaACConfiguration {
-
+    /**
+     * IP Address of the device.
+     */
     private String ipAddress = "";
 
-    /**
-     * @param ipAddress of the device. Get/Set
-     */
     public String getIpAddress() {
         return ipAddress;
     }
@@ -37,9 +36,6 @@ public class MideaACConfiguration {
 
     private String ipPort = "";
 
-    /**
-     * @param ipPort of the device. Get/Set
-     */
     public String getIpPort() {
         return ipPort;
     }
@@ -50,9 +46,6 @@ public class MideaACConfiguration {
 
     private String deviceId = "";
 
-    /**
-     * @param deviceId of the device. Get/Set
-     */
     public String getDeviceId() {
         return deviceId;
     }
@@ -63,9 +56,6 @@ public class MideaACConfiguration {
 
     private String email = "";
 
-    /**
-     * @param email for your cloud provider. Get/Set
-     */
     public String getEmail() {
         return email;
     }
@@ -76,10 +66,6 @@ public class MideaACConfiguration {
 
     private int reauth;
 
-    /**
-     * @param reauth interval to get new key
-     *            and token. Get/Set. 0 = never
-     */
     public Integer getReauth() {
         return reauth;
     }
@@ -90,9 +76,6 @@ public class MideaACConfiguration {
 
     private String password = "";
 
-    /**
-     * @param password for your cloud provider. Get/Set
-     */
     public String getPassword() {
         return password;
     }
@@ -103,24 +86,16 @@ public class MideaACConfiguration {
 
     private String cloud = "";
 
-    /**
-     * @param cloud your cloud provider Name from
-     *            supported options. Required V3 devices. Get/Set.
-     */
     public String getCloud() {
         return cloud;
     }
 
     public void setCloud(String cloud) {
-        this.cloud = cloud;
+        this.token = cloud;
     }
 
     private String token = "";
 
-    /**
-     * @param token Required V3 devices. Get/Set.
-     *            Discovery possible with email and password
-     */
     public String getToken() {
         return token;
     }
@@ -131,10 +106,6 @@ public class MideaACConfiguration {
 
     private String key = "";
 
-    /**
-     * @param key Required V3 devices. Get/Set.
-     *            Discovery possible with email and password
-     */
     public String getKey() {
         return key;
     }
@@ -145,10 +116,6 @@ public class MideaACConfiguration {
 
     private int pollingTime;
 
-    /**
-     * @param pollingTime Frequency in seconds Get/Set.
-     *            Thirty seconds minimum
-     */
     public int getPollingTime() {
         return pollingTime;
     }
@@ -159,10 +126,6 @@ public class MideaACConfiguration {
 
     private int timeout;
 
-    /**
-     * @param timeout How long after message is sent will the
-     *            socket wait Get/Set. Two to 10 seconds
-     */
     public int getTimeout() {
         return timeout;
     }
@@ -173,10 +136,6 @@ public class MideaACConfiguration {
 
     private boolean promptTone;
 
-    /**
-     * @param promptTone Set the device to "ding" when
-     *            command is received.
-     */
     public boolean getPromptTone() {
         return promptTone;
     }
@@ -185,16 +144,10 @@ public class MideaACConfiguration {
         this.promptTone = promptTone;
     }
 
-    /**
-     * Check during initialization that the params are valid
-     */
     public boolean isValid() {
         return !("0".equalsIgnoreCase(deviceId) || deviceId.isBlank() || ipPort.isBlank() || ipAddress.isBlank());
     }
 
-    /**
-     * Check during initialization if discovery is needed
-     */
     public boolean isDiscoveryNeeded() {
         return ("0".equalsIgnoreCase(deviceId) || deviceId.isBlank() || ipPort.isBlank() || ipAddress.isBlank()
                 || !Utils.validateIP(ipAddress));

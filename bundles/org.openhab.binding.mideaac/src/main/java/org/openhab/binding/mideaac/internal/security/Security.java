@@ -45,13 +45,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * The {@link Security} class provides Security coding and decoding.
- * The basic aes Protocol is used by both V2 and V3 devices.
+ * Security coding and decoding.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
 @NonNullByDefault
 public class Security {
+    // private final static String appKey = "434a209a5ce141c3b726de067835d7f0";
+    // private final static String signKey = ;
+
+    // private final static String loginKey = "ac21b9f9cbfe4ca5a88562ef25e2b768";
+    // private final static String iotkey = "meicloud";
+    // private final static String hmackey = "PROD_VnoClJI9aikS8dyy";
 
     private @Nullable SecretKeySpec encKey = null;
     private Logger logger = LoggerFactory.getLogger(Security.class);
@@ -63,9 +68,6 @@ public class Security {
         this.cloudProvider = cloudProvider;
     }
 
-    /*
-     * Basic Decryption for all devices using common signkey
-     */
     public byte[] aesDecrypt(byte[] encryptData) {
         byte[] plainText = {};
 
@@ -97,12 +99,10 @@ public class Security {
             logger.warn("AES decryption error: NoSuchPaddingException: {}", e.getMessage());
             return new byte[0];
         }
+
         return plainText;
     }
 
-    /*
-     * Basic Encryption for all devices using common signkey
-     */
     public byte[] aesEncrypt(byte[] plainText) {
         byte[] encryptData = {};
 
@@ -137,7 +137,7 @@ public class Security {
         return encryptData;
     }
 
-    public @Nullable SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
+    private @Nullable SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
         if (encKey == null) {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(cloudProvider.getSignKey().getBytes(StandardCharsets.US_ASCII));
@@ -164,9 +164,6 @@ public class Security {
         return new byte[0];
     }
 
-    /*
-     * Message types
-     */
     public enum MsgType {
         MSGTYPE_HANDSHAKE_REQUEST(0x0),
         MSGTYPE_HANDSHAKE_RESPONSE(0x1),
@@ -198,9 +195,6 @@ public class Security {
     private int responseCount = 0;
     private byte[] tcpKey = new byte[0];
 
-    /*
-     * Advanced Encryption for V3 devices
-     */
     public byte[] encode8370(byte[] data, MsgType msgtype) {
         ByteBuffer headerBuffer = ByteBuffer.allocate(256);
         ByteBuffer dataBuffer = ByteBuffer.allocate(256);
@@ -259,9 +253,6 @@ public class Security {
         return result;
     }
 
-    /*
-     * Advanced Decryption for V3 devices
-     */
     public Decryption8370Result decode8370(byte[] data) throws IOException {
         if (data.length < 6) {
             return new Decryption8370Result(new ArrayList<byte[]>(), data);
@@ -460,12 +451,9 @@ public class Security {
         return null;
     }
 
-    /*
-     * Provides a randown iotKey for Cloud Providers that do no use it
-     */
     public @Nullable String newSign(String data, String random) {
         String msg = cloudProvider.getIotKey();
-        if (!data.isEmpty()) {
+        if (data != null) {
             msg += data;
         }
         msg += random;

@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MideaACDiscoveryService} service for Midea AC.
+ * Discovery service for Midea AC.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.mideaac")
 public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
-    private static int discoveryTimeoutSeconds = 5;
+    private static int discoveryTimeoutSeconds = 5; // 5; //
     private final int receiveJobTimeout = 20000;
     private final int udpPacketTimeout = receiveJobTimeout - 50;
     private final String mideaacNamePrefix = "MideaAC";
@@ -63,6 +63,8 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     @Nullable
     private DatagramSocket discoverSocket;
 
+    // private @Nullable MideaACHandler mideaACHandler;
+
     @SuppressWarnings("unused")
     private boolean fullDiscovery = false;
     @Nullable
@@ -72,8 +74,14 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
     public MideaACDiscoveryService() {
         super(SUPPORTED_THING_TYPES_UIDS, discoveryTimeoutSeconds, false);
-        this.security = new Security(CloudProvider.getCloudProvider(""));
+        this.security = new Security(CloudProvider.getCloudProvider("MSmartHome"));
     }
+
+    /*
+     * public void setHandler(MideaACHandler mideaACHandler) {
+     * this.mideaACHandler = mideaACHandler;
+     * }
+     */
 
     @Override
     protected void startScan() {
@@ -123,7 +131,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     }
 
     /**
-     * Performs the actual discovery of a specific Midea AC device (thing).
+     * Performs the actual discovery of Midea AC devices (things).
      */
     @SuppressWarnings("null")
     public void discoverThing(String ipAddress, DiscoveryHandler discoveryHandler) {
@@ -197,7 +205,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * Closes the discovery socket and cleans the value. No need for synchronization as this method is called from a
      * synchronized context.
      */
-    @SuppressWarnings("null")
     private void closeDiscoverSocket() {
         if (discoverSocket != null) {
             discoverSocket.close();
@@ -210,7 +217,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      *
      * @param packet containing data of detected device
      */
-    @SuppressWarnings("null")
     private void thingDiscovered(DatagramPacket packet) {
         DiscoveryResult dr = discoveryPacketReceived(packet);
         if (dr != null) {
@@ -249,9 +255,17 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             byte[] id = Arrays.copyOfRange(data, 20, 26);
             logger.trace("Id Bytes: {}", Utils.bytesToHex(id));
 
-            byte[] idReverse = Utils.reverse(id);
+            // Reverse the subarray in-place
+            // This level 3 issue replaces level 2 forbidden package
+            // import org.apache.commons.lang3.ArrayUtils;
+            // ArrayUtils.reverse(id);
+            for (int i = 0; i < id.length / 2; i++) {
+                byte temp = id[i];
+                id[i] = id[id.length - i - 1];
+                id[id.length - i - 1] = temp;
+            }
 
-            BigInteger bigId = new BigInteger(idReverse);
+            BigInteger bigId = new BigInteger(id);
             mSmartId = bigId.toString();
 
             logger.debug("Id: '{}'", mSmartId);
@@ -259,6 +273,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             byte[] encryptData = Arrays.copyOfRange(data, 40, data.length - 16);
             logger.debug("Encrypt data: '{}'", Utils.bytesToHex(encryptData));
 
+            // byte[] reply = mideaACHandler.getSecurity().aesDecrypt(encryptData);
             byte[] reply = security.aesDecrypt(encryptData);
             logger.debug("Length: {}, Reply: '{}'", reply.length, Utils.bytesToHex(reply));
 
@@ -266,8 +281,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
                     + Byte.toUnsignedInt(reply[1]) + "." + Byte.toUnsignedInt(reply[0]);
             logger.debug("IP: '{}'", mSmartip);
 
-            BigInteger portId = new BigInteger(Utils.reverse(Arrays.copyOfRange(reply, 4, 8)));
-            mSmartPort = portId.toString();
+            mSmartPort = String.valueOf(bytes2port(Arrays.copyOfRange(reply, 4, 8)));
             logger.debug("Port: '{}'", mSmartPort);
 
             mSmartSN = new String(reply, 8, 40 - 8, StandardCharsets.UTF_8);
@@ -291,6 +305,20 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
                     .build();
         } else if (Utils.bytesToHex(Arrays.copyOfRange(data, 0, 6)).equals("3C3F786D6C20")) {
             logger.debug("Midea AC v1 device was detected, supported, but not implemented yet.");
+            // Possible code for AC1 device from ??:
+            // if data[:6].hex() == '3c3f786d6c20':
+            // mSmartVersion = 'V1'
+            // root=ET.fromstring(data.decode(encoding="utf-8", errors="replace"))
+            // child = root.find('body/device')
+            // m=child.attrib
+            // mSmartPort, mSmartSN, mSmartType = m['port'], m['apc_sn'], str(hex(int(m['apc_type'])))[2:]
+            // response = get_device_info(mSmartip, int(mSmartPort))
+            // mSmartId = get_id_fromSmartresponse(response)
+            //
+            // _LOGGER.info(
+            // "*** Found a {} device - type: '0x{}' - version: {} - ip: {} - port: {} - id: {} - sn: {} - ssid:
+            // {}".format(mSmartsupport, mSmartType, mSmartVersion, mSmartip, mSmartPort, mSmartId, mSmartSN,
+            // mSmartSSID))
             return null;
         } else {
             logger.debug(
@@ -299,8 +327,25 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         }
     }
 
+    private int bytes2port(byte[] bytes) {
+        int b = 0;
+        int i = 0;
+        while (b < 4) {
+            int b1;
+            if (b < bytes.length) {
+                b1 = bytes[b] & 0xFF;
+            } else {
+                b1 = 0;
+            }
+
+            i |= b1 << b * 8;
+            b += 1;
+        }
+        return i;
+    }
+
     /**
-     * Creates a OH name for the Midea AC device.
+     * Creates a name for the Midea AC device.
      *
      * @param byteMac mac address in bytes
      * @return the name for the device
@@ -324,7 +369,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         properties.put(CONFIG_IP_PORT, port);
         properties.put(CONFIG_DEVICEID, id);
         properties.put(CONFIG_POLLING_TIME, 60);
-        properties.put(CONFIG_CONNECTING_TIMEOUT, 4);
         properties.put(CONFIG_PROMPT_TONE, false);
         properties.put(PROPERTY_VERSION, version);
         properties.put(PROPERTY_SN, sn);

@@ -16,18 +16,18 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link CommandBase} has the discover command and the routine poll command
+ * Base Commands.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
 @NonNullByDefault
 public class CommandBase {
+    @SuppressWarnings("unused")
     private final Logger logger = LoggerFactory.getLogger(CommandBase.class);
 
     private static final byte[] DISCOVER_COMMAND = new byte[] { (byte) 0x5a, (byte) 0x5a, (byte) 0x01, (byte) 0x11,
@@ -43,9 +43,6 @@ public class CommandBase {
 
     protected byte[] data;
 
-    /**
-     * Operational Modes byte/label of the Midea AC device
-     */
     public enum OperationalMode {
         AUTO(1),
         COOL(2),
@@ -74,11 +71,8 @@ public class CommandBase {
         }
     }
 
-    /**
-     * Converts byte value to the Swing Mode label by version
-     * Two versions of V3, Supported Swing or Non-Supported (4)
-     * V2 set without leading 3, but reports with it (1)
-     */
+    // Two versions of V3, Supported Swing or Non-Supported (4)
+    // V2 set without leading 3, but reports with it (1)
     public enum SwingMode {
         OFF3(0x30, 3),
         OFF4(0x00, 3),
@@ -130,9 +124,6 @@ public class CommandBase {
         }
     }
 
-    /**
-     * Converts byte value to the Fan Speed label by version
-     */
     public enum FanSpeed {
         AUTO2(102, 2),
         FULL2(100, 2),
@@ -194,9 +185,6 @@ public class CommandBase {
         return DISCOVER_COMMAND;
     }
 
-    /*
-     * Byte Array structure for commands
-     */
     @SuppressWarnings("deprecation")
     public CommandBase() {
         data = new byte[] { (byte) 0xaa,
@@ -230,11 +218,7 @@ public class CommandBase {
         data[0x02] = (byte) 0xAC;
     }
 
-    /*
-     * Pulls the elements of the Base command together
-     */
     public void compose() {
-        logger.debug("Base Bytes before crypt {}", Utils.bytesToHex(data));
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
         byte[] newData1 = new byte[data.length + 1];
         System.arraycopy(data, 0, newData1, 0, data.length);

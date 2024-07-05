@@ -15,7 +15,7 @@ package org.openhab.binding.mideaac.internal.security;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link TokenKey} returns the active Token and Key.
+ * Token Key.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */

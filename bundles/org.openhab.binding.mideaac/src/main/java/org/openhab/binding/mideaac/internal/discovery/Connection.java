@@ -23,7 +23,7 @@ import java.net.UnknownHostException;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link Connection} Manages the discovery connection to a Midea AC.
+ * Manages the connection to a Midea AC.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */

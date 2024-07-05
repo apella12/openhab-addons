@@ -18,27 +18,27 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * The {@link Clouds} class securely stores email and password
+ * Clouds.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
 @NonNullByDefault
 public class Clouds {
 
-    private final HashMap<Integer, CloudDTO> clouds;
+    private final HashMap<Integer, Cloud> clouds;
 
     public Clouds() {
-        clouds = new HashMap<Integer, CloudDTO>();
+        clouds = new HashMap<Integer, Cloud>();
     }
 
-    private CloudDTO add(String email, String password, CloudProvider cloudProvider) {
+    private Cloud add(String email, String password, CloudProvider cloudProvider) {
         int hash = (email + password + cloudProvider.getName()).hashCode();
-        CloudDTO cloud = new CloudDTO(email, password, cloudProvider);
+        Cloud cloud = new Cloud(email, password, cloudProvider);
         clouds.put(hash, cloud);
         return cloud;
     }
 
-    public @Nullable CloudDTO get(String email, String password, CloudProvider cloudProvider) {
+    public @Nullable Cloud get(String email, String password, CloudProvider cloudProvider) {
         int hash = (email + password + cloudProvider.getName()).hashCode();
         if (clouds.containsKey(hash)) {
             return clouds.get(hash);

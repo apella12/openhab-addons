@@ -16,8 +16,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.config.discovery.DiscoveryResult;
 
 /**
- * Discovery {@link DiscoveryHandler}
- * 
+ *
  * @author Jacek Dobrowolski - Initial contribution
  */
 @NonNullByDefault

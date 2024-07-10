@@ -42,7 +42,7 @@ import org.openhab.binding.mideaac.internal.discovery.MideaACDiscoveryService;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
-import org.openhab.binding.mideaac.internal.security.Cloud;
+import org.openhab.binding.mideaac.internal.security.CloudDTO;
 import org.openhab.binding.mideaac.internal.security.CloudProvider;
 import org.openhab.binding.mideaac.internal.security.Clouds;
 import org.openhab.binding.mideaac.internal.security.Decryption8370Result;
@@ -739,7 +739,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         @SuppressWarnings("null")
         private Date getTokenReqested() {
-            Cloud cloud = mideaACHandler.getClouds().get(config.getEmail(), config.getPassword(), cloudProvider);
+            CloudDTO cloud = mideaACHandler.getClouds().get(config.getEmail(), config.getPassword(), cloudProvider);
             return cloud.getTokenRequested();
         }
 
@@ -864,7 +864,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         @SuppressWarnings("null")
         private void getTokenKeyCloud(CloudProvider cloudProvider) {
-            Cloud cloud = mideaACHandler.getClouds().get(config.getEmail(), config.getPassword(), cloudProvider);
+            CloudDTO cloud = mideaACHandler.getClouds().get(config.getEmail(), config.getPassword(), cloudProvider);
             cloud.setHttpClient(httpClient);
             if (cloud.login()) {
                 TokenKey tk = cloud.getToken(config.getDeviceId());

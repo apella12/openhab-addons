@@ -41,8 +41,8 @@ import com.google.gson.JsonObject;
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
-public class Cloud {
-    private final Logger logger = LoggerFactory.getLogger(Cloud.class);
+public class CloudDTO {
+    private final Logger logger = LoggerFactory.getLogger(CloudDTO.class);
 
     @SuppressWarnings("unused")
     private static final Gson GSON = new Gson();
@@ -91,7 +91,7 @@ public class Cloud {
     private @Nullable String loginId;
     private @Nullable String sessionId;
 
-    public Cloud(String email, String password, CloudProvider cloudProvider) {
+    public CloudDTO(String email, String password, CloudProvider cloudProvider) {
         this.loginAccount = email;
         this.password = password;
         this.cloudProvider = cloudProvider;

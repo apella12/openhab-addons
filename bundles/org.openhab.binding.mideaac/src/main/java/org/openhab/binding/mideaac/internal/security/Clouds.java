@@ -25,20 +25,20 @@ import org.eclipse.jdt.annotation.Nullable;
 @NonNullByDefault
 public class Clouds {
 
-    private final HashMap<Integer, Cloud> clouds;
+    private final HashMap<Integer, CloudDTO> clouds;
 
     public Clouds() {
-        clouds = new HashMap<Integer, Cloud>();
+        clouds = new HashMap<Integer, CloudDTO>();
     }
 
-    private Cloud add(String email, String password, CloudProvider cloudProvider) {
+    private CloudDTO add(String email, String password, CloudProvider cloudProvider) {
         int hash = (email + password + cloudProvider.getName()).hashCode();
-        Cloud cloud = new Cloud(email, password, cloudProvider);
+        CloudDTO cloud = new CloudDTO(email, password, cloudProvider);
         clouds.put(hash, cloud);
         return cloud;
     }
 
-    public @Nullable Cloud get(String email, String password, CloudProvider cloudProvider) {
+    public @Nullable CloudDTO get(String email, String password, CloudProvider cloudProvider) {
         int hash = (email + password + cloudProvider.getName()).hashCode();
         if (clouds.containsKey(hash)) {
             return clouds.get(hash);

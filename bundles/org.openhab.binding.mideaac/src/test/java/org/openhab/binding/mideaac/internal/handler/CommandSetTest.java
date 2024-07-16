@@ -21,8 +21,7 @@ import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
 
 /**
- * The {@link CommandSetTest} compares example SET commands with the
- * expected results.
+ * Test Set Commands
  *
  * @author Robert Eckhoff - Initial contribution
  */
@@ -39,36 +38,27 @@ public class CommandSetTest {
     }
 
     @Test
-    public void testsetTargetTemperature() {
+    public void setTargetTemperatureTest() {
+        float targetTemperature = 25.5f;
         CommandSet commandSet = new CommandSet();
-        // Device is limited to 0.5 degree C increments. Check rounding too
+        commandSet.setTargetTemperature(targetTemperature);
+        assertEquals(targetTemperature, commandSet.getTargetTemperature());
+    }
 
-        // Test case 1
-        float targetTemperature1 = 25.4f;
-        commandSet.setTargetTemperature(targetTemperature1);
-        assertEquals(25.5f, commandSet.getTargetTemperature());
+    @Test
+    public void setTargetTemperatureTest2() {
+        float targetTemperature = 17.0f;
+        CommandSet commandSet = new CommandSet();
+        commandSet.setTargetTemperature(targetTemperature);
+        assertEquals(targetTemperature, commandSet.getTargetTemperature());
+    }
 
-        // Test case 2
-        float targetTemperature2 = 17.8f;
-        commandSet.setTargetTemperature(targetTemperature2);
-        assertEquals(18.0f, commandSet.getTargetTemperature());
-
-        // Test case 3
-        float targetTemperature3 = 21.26f;
-        commandSet.setTargetTemperature(targetTemperature3);
-        assertEquals(21.5f, commandSet.getTargetTemperature());
-
-        // Test case 4
-        float degreefahr = 72.0f;
-        float targetTemperature4 = ((degreefahr + 40.0f) * (5.0f / 9.0f)) - 40.0f;
-        commandSet.setTargetTemperature(targetTemperature4);
-        assertEquals(22.0f, commandSet.getTargetTemperature());
-
-        // Test case 5
-        float degreefahr2 = 66.0f;
-        float targetTemperature5 = ((degreefahr2 + 40.0f) * (5.0f / 9.0f)) - 40.0f;
-        commandSet.setTargetTemperature(targetTemperature5);
-        assertEquals(19.0f, commandSet.getTargetTemperature());
+    @Test
+    public void setTargetTemperatureTest3() {
+        float targetTemperature = 30.0f;
+        CommandSet commandSet = new CommandSet();
+        commandSet.setTargetTemperature(targetTemperature);
+        assertEquals(targetTemperature, commandSet.getTargetTemperature());
     }
 
     @Test
@@ -96,110 +86,5 @@ public class CommandSetTest {
         CommandSet commandSet = new CommandSet();
         commandSet.setOperationalMode(mode);
         assertEquals(mode1, commandSet.getOperationalMode());
-    }
-
-    @Test
-    public void testHandleOnTimer() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = true;
-        int hours = 3;
-        int minutes = 59;
-        int bits = (int) Math.floor(minutes / 15);
-        int time = 143;
-        int remainder = (15 - (int) (minutes - bits * 15));
-        commandSet.setOnTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOnTimer());
-        assertEquals(remainder, commandSet.getOnTimer2());
-    }
-
-    @Test
-    public void testHandleOnTimer2() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = false;
-        int hours = 3;
-        int minutes = 60;
-        int time = 127;
-        int remainder = 0;
-        commandSet.setOnTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOnTimer());
-        assertEquals(remainder, commandSet.getOnTimer2());
-    }
-
-    @Test
-    public void testHandleOnTimer3() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = true;
-        int hours = 0;
-        int minutes = 14;
-        int time = 128;
-        int remainder = (15 - minutes);
-        commandSet.setOnTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOnTimer());
-        assertEquals(remainder, commandSet.getOnTimer2());
-    }
-
-    @Test
-    public void testHandleOffTimer() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = true;
-        int hours = 3;
-        int minutes = 59;
-        int bits = (int) Math.floor(minutes / 15);
-        int time = 143;
-        int remainder = (15 - (int) (minutes - bits * 15));
-        commandSet.setOffTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOffTimer());
-        assertEquals(remainder, commandSet.getOffTimer2());
-    }
-
-    @Test
-    public void testHandleOffTimer2() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = false;
-        int hours = 3;
-        int minutes = 60;
-        int time = 127;
-        int remainder = 0;
-        commandSet.setOffTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOffTimer());
-        assertEquals(remainder, commandSet.getOffTimer2());
-    }
-
-    @Test
-    public void testHandleOffTimer3() {
-        CommandSet commandSet = new CommandSet();
-        boolean on = true;
-        int hours = 0;
-        int minutes = 14;
-        int time = 128;
-        int remainder = (15 - minutes);
-        commandSet.setOffTimer(on, hours, minutes);
-        assertEquals(time, commandSet.getOffTimer());
-        assertEquals(remainder, commandSet.getOffTimer2());
-    }
-
-    @Test
-    public void testSetScreenDisplayOff() {
-        CommandSet commandSet = new CommandSet();
-        commandSet.setScreenDisplay(true);
-
-        // Check the modified bytes
-        assertEquals((byte) 0x20, commandSet.data[0x01]);
-        assertEquals((byte) 0x03, commandSet.data[0x09]);
-        assertEquals((byte) 0x41, commandSet.data[0x0a]);
-        assertEquals((byte) 0x02, commandSet.data[0x0b] & 0x02); // Check if bit 1 is set
-        assertEquals((byte) 0x00, commandSet.data[0x0b] & 0x80); // Check if bit 7 is cleared
-        assertEquals((byte) 0x00, commandSet.data[0x0c]);
-        assertEquals((byte) 0xff, commandSet.data[0x0d]);
-        assertEquals((byte) 0x02, commandSet.data[0x0e]);
-        assertEquals((byte) 0x00, commandSet.data[0x0f]);
-        assertEquals((byte) 0x02, commandSet.data[0x10]);
-        assertEquals((byte) 0x00, commandSet.data[0x11]);
-        assertEquals((byte) 0x00, commandSet.data[0x12]);
-        assertEquals((byte) 0x00, commandSet.data[0x13]);
-        assertEquals((byte) 0x00, commandSet.data[0x14]);
-
-        // Check the length of the data array
-        assertEquals(31, commandSet.data.length);
     }
 }

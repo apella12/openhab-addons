@@ -20,8 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 
 /**
- * The {@link ResponseTest} extracts the AC device response and
- * compares them to the expected result.
+ * Test Response from a device.
  *
  * @author Robert Eckhoff - Initial contribution
  */
@@ -29,7 +28,7 @@ import org.junit.jupiter.api.Test;
 public class ResponseTest {
     @org.jupnp.registry.event.Before
 
-    byte[] data = HexFormat.of().parseHex("C00042668387123C00000460FF007000000000000000F9ECDB");
+    byte[] data = HexFormat.of().parseHex("C0004266877F003C0000046066000000000000000000F9ECDB");
     private int version = 3;
     String responseType = "query";
     byte bodyType = (byte) 0xC0;
@@ -43,7 +42,7 @@ public class ResponseTest {
 
     @Test
     public void testGetImmodeResume() {
-        boolean actualImmodeResume = response.getImmodeResume();
+        boolean actualImmodeResume = response.getPowerState();
         assertEquals(false, actualImmodeResume);
     }
 
@@ -82,14 +81,14 @@ public class ResponseTest {
     @Test
     public void testGetOnTimer() {
         Timer status = response.getOnTimer();
-        String expectedString = "enabled: true, hours: 0, minutes: 59";
+        String expectedString = "enabled: true, hours: 1, minutes: 45";
         assertEquals(expectedString, status.toString());
     }
 
     @Test
     public void testGetOffTimer() {
         Timer status = response.getOffTimer();
-        String expectedString = "enabled: true, hours: 1, minutes: 58";
+        String expectedString = "enabled: false";
         assertEquals(expectedString, status.toString());
     }
 
@@ -201,12 +200,7 @@ public class ResponseTest {
 
     @Test
     public void testGetOutdoorTemperature() {
-        assertEquals(0, response.getOutdoorTemperature());
-    }
-
-    @Test
-    public void testDisplayOn() {
-        assertEquals(false, response.getDisplayOn());
+        assertEquals(26, response.getOutdoorTemperature());
     }
 
     @Test

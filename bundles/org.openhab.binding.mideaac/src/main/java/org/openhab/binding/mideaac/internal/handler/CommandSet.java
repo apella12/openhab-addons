@@ -64,15 +64,25 @@ public class CommandSet extends CommandBase {
 
     public void setPowerState(boolean state) {
         if (!state) {
-            data[0x0b] &= ~0x01;// Clear the power bit
+            data[0x0b] &= ~0x01;
         } else {
             data[0x0b] |= 0x01;
         }
     }
 
+    // For testing assertion
+    public boolean getPowerState() {
+        return (data[0x0b] & 0x1) > 0;
+    }
+
     public void setOperationalMode(OperationalMode mode) {
         data[0x0c] &= ~(byte) 0xe0; // Clear the mode bit
         data[0x0c] |= ((byte) mode.getId() << 5) & (byte) 0xe0;
+    }
+
+    // For testing assertion
+    public int getOperationalMode() {
+        return data[0x0c] &= (byte) 0xe0;
     }
 
     public void setTargetTemperature(float temperature) {
@@ -84,17 +94,23 @@ public class CommandSet extends CommandBase {
         setTemperatureDot5((Math.round(temperature * 2)) % 2 != 0);
     }
 
-    public void setFanSpeed(FanSpeed speed) {
-        setFanSpeed(speed.getId());
+    // For Testing assertion
+    public float getTargetTemperature() {
+        return (data[0x0c] & 0xf) + 16.0f + (((data[0x0c] & 0x10) > 0) ? 0.5f : 0.0f);
     }
 
-    public void setFanSpeed(int speed) {
-        data[0x0d] = (byte) speed;
+    public void setFanSpeed(FanSpeed speed) {
+        data[0x0d] = (byte) (speed.getId());
+    }
+
+    // For testing assertion
+    public int getFanSpeed() {
+        return data[0x0d];
     }
 
     public void setEcoMode(boolean ecoModeEnabled) {
         if (!ecoModeEnabled) {
-            data[0x13] &= ~0x10;// Clear the Eco bit
+            data[0x13] &= ~0x10; // Clear the Eco bit (if set)
         } else {
             data[0x13] |= 0x10;
         }
@@ -103,6 +119,11 @@ public class CommandSet extends CommandBase {
     public void setSwingMode(SwingMode mode) {
         data[0x11] &= ~0x3f; // Clear the mode bits
         data[0x11] |= mode.getId() & 0x3f;
+    }
+
+    // For testing assertion
+    public int getSwingMode() {
+        return data[0x11];
     }
 
     public void setSleepMode(boolean sleepModeEnabled) {

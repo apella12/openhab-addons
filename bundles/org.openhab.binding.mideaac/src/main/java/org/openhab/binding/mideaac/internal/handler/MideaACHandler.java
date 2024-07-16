@@ -75,6 +75,9 @@ import org.slf4j.LoggerFactory;
  * sent to one of the channels.
  *
  * @author Jacek Dobrowolski - Initial contribution
+ * @author Justan Oldman - Last Response
+ * @author Robert Eckhoff - Longer Polls and OH developer guidelines
+ * 
  */
 @NonNullByDefault
 public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler {
@@ -83,11 +86,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private @Nullable MideaACConfiguration config;
     private @Nullable Map<String, String> properties;
+
+    // Initialize variables to allow the @NonNullByDefault
     private String ipAddress = "";
     private String ipPort = "";
     private String deviceId = "";
     private int version = 0;
-
     public CloudProvider cloudProvider = new CloudProvider("", "", "", "", "", "", "", "");
     private Security security = new Security(cloudProvider);
 
@@ -134,6 +138,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private final HttpClient httpClient;
 
+    // Switches to optimize logging, retries and commands
     public boolean doPoll = true;
     public boolean retry = true;
     public boolean connectionMessage = true;
@@ -168,15 +173,16 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
 
-        // this is to avoid collisions from handleCommand with the Polling
+        // This is to stop routine polling during a handleCommand
         getConnectionManager().cancelConnectionMonitorJob();
 
+        // Alternate to routine polling is a rule to refresh at the desired interval
         if (command instanceof RefreshType) {
             connectionManager.connect();
             return;
         }
 
-        // This is to go directly to the set commands, after authorization
+        // This is set to skip poll, after authorization and speed up the command set
         doPoll = false;
         connectionManager.connect();
 
@@ -255,62 +261,24 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return temperature;
     }
 
-    private static float convertTargetFahrenheitTemperatureToInRange(float temperature) {
-        if (temperature < 62.0f) {
-            return 62.0f;
-        }
-        if (temperature > 86.0f) {
-            return 86.0f;
-        }
-
-        return temperature;
-    }
-
     @SuppressWarnings("null")
     public void handleTargetTemperature(Command command) {
-        Response lastResponse = getLastResponse();
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command instanceof DecimalType) {
-            QuantityType<Temperature> quantity = new QuantityType<Temperature>(((DecimalType) command).doubleValue(),
-                    lastResponse.getTempUnit() ? ImperialUnits.FAHRENHEIT : SIUnits.CELSIUS);
-
-            if (lastResponse.getTempUnit()) { // Is this always false? My unit always uses Celsius for calcs
-                if (isImperial()) {
-                    logger.debug("handleTargetTemperature: Set field of type Integer F > F");
-                    commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(quantity.floatValue()));
-                } else {
-                    logger.debug("handleTargetTemperature: Set field of type Integer C > F");
-                    commandSet.setTargetTemperature(convertTargetCelsiusTemperatureToInRange(
-                            quantity.toUnit(ImperialUnits.FAHRENHEIT).floatValue()));
-                }
-            } else {
-                if (isImperial()) {
-                    logger.debug("handleTargetTemperature: Set field of type Integer F > C");
-                    commandSet.setTargetTemperature(
-                            convertTargetFahrenheitTemperatureToInRange(quantity.toUnit(SIUnits.CELSIUS).floatValue()));
-                } else {
-                    logger.debug("handleTargetTemperature: Set field of type Integer C > C");
-                    commandSet.setTargetTemperature(convertTargetCelsiusTemperatureToInRange(quantity.floatValue()));
-                }
-            }
-
+            logger.debug("Handle Target Temperature as DecimalType in degrees C");
+            commandSet.setTargetTemperature(
+                    convertTargetCelsiusTemperatureToInRange(((DecimalType) command).floatValue()));
             getConnectionManager().sendCommandAndMonitor(commandSet);
         } else if (command instanceof QuantityType) {
             QuantityType<?> quantity = (QuantityType<?>) command;
             Unit<?> unit = quantity.getUnit();
-            logger.debug(
-                    "handleTargetTemperature: Set field of type Integer to value of item QuantityType with unit {}",
-                    unit);
+
             if (unit.equals(ImperialUnits.FAHRENHEIT) || unit.equals(SIUnits.CELSIUS)) {
-                if (lastResponse.getTempUnit() && unit.equals(ImperialUnits.FAHRENHEIT)) {
-                    commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(quantity.floatValue()));
-                } else if (lastResponse.getTempUnit() && unit.equals(SIUnits.CELSIUS)) {
-                    commandSet.setTargetTemperature(convertTargetFahrenheitTemperatureToInRange(
-                            quantity.toUnit(ImperialUnits.FAHRENHEIT).floatValue()));
-                } else if (!lastResponse.getTempUnit() && unit.equals(SIUnits.CELSIUS)) {
+                logger.debug("Handle Target Temperature with unit {} to degrees C", unit);
+                if (unit.equals(SIUnits.CELSIUS)) {
                     commandSet.setTargetTemperature(convertTargetCelsiusTemperatureToInRange(quantity.floatValue()));
-                } else if (!lastResponse.getTempUnit() && unit.equals(ImperialUnits.FAHRENHEIT)) {
+                } else {
                     commandSet.setTargetTemperature(
                             convertTargetCelsiusTemperatureToInRange(quantity.toUnit(SIUnits.CELSIUS).floatValue()));
                 }
@@ -318,7 +286,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 getConnectionManager().sendCommandAndMonitor(commandSet);
             }
         } else {
-            logger.debug("handleTargetTemperature unsupported commandType:{}", command.getClass().getTypeName());
+            logger.debug("Handle Target Temperature unsupported commandType:{}", command.getClass().getTypeName());
         }
     }
 
@@ -374,7 +342,20 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    private static float convertTargetCelsiusTemperatureToECORange(float temperature) {
+        if (temperature < 24.0f) {
+            return 24.0f;
+        }
+        if (temperature > 30.0f) {
+            return 30.0f;
+        }
+
+        return temperature;
+    }
+
+    // ECO mode command includes minimum temperature of 24 C and Fan Speed Auto with power ON
     public void handleEcoMode(Command command) {
+        Response lastResponse = getLastResponse();
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         commandSet.setPowerState(true);
@@ -383,6 +364,13 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             commandSet.setEcoMode(false);
         } else if (command.equals(OnOffType.ON)) {
             commandSet.setEcoMode(true);
+            commandSet.setTargetTemperature(
+                    convertTargetCelsiusTemperatureToECORange(lastResponse.getTargetTemperature()));
+            if (getVersion() == 2) {
+                commandSet.setFanSpeed(FanSpeed.AUTO2);
+            } else if (getVersion() == 3) {
+                commandSet.setFanSpeed(FanSpeed.AUTO3);
+            }
         } else {
             logger.debug("Unknown eco mode command: {}", command);
             return;
@@ -391,6 +379,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    // Power turned on with Swing Mode Change
+    // May not work on all V3 models
     public void handleSwingMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -430,6 +420,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    // Power turned on with Turbo Mode Change
     public void handleTurboMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -447,8 +438,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    // May not work on all models
     public void handleScreenDisplay(Command command) {
-        // this doesn't work for me. The bit is always off (false) even with the LED on
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -463,8 +454,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    // This is only for the LED device display, calcs always in Celsius
     public void handleTempUnit(Command command) {
-        // This is only for the display, calcs always in Celsius
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
@@ -479,6 +470,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    // Power turned on with Sleep Mode Change
     public void handleSleepFunction(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -594,11 +586,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     private void markOfflineWithMessage(ThingStatusDetail statusDetail, String statusMessage) {
-        // If it's offline with no detail or if it's not offline, mark it offline with detailed status
         if (!isOffline()) {
             logger.info("Changing status of {} from {}({}) to OFFLINE({})", thing.getUID(), getStatus(), getDetail(),
                     statusDetail);
         }
+        // Only new Debug message if reason (message) has changed
         if ((isOffline() && getDetail() == ThingStatusDetail.NONE)
                 || (isOffline() && !statusMessage.equals(getDescription()))) {
             logger.debug("Changing status of {} from {}({}) to OFFLINE({})", thing.getUID(), getStatus(), getDetail(),
@@ -607,7 +599,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         updateStatus(ThingStatus.OFFLINE, statusDetail, statusMessage);
 
-        // This is to space out the looping with a short then long pause
+        // This is to space out the looping with a short (5 second) then long (30 second) pause(s)
+        // Only info log prior to first long pause.
         if (retry) {
             try {
                 Thread.sleep(5000);
@@ -637,24 +630,28 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return thing.getStatus().equals(ThingStatus.OFFLINE);
     }
 
-    public boolean getDoPoll() {
-        return doPoll;
-    }
-
     @Override
     public void dispose() {
         connectionManager.cancelConnectionMonitorJob();
         markOffline();
     }
 
+    // Allow Connection manager to get doPoll
+    public boolean getDoPoll() {
+        return doPoll;
+    }
+
+    // Reset doPoll after sendCommand complete
     public void resetDoPoll() {
         doPoll = true;
     }
 
+    // Reset Retry after successful connection
     public void resetRetry() {
         retry = true;
     }
 
+    // Limit logging of connection messages
     public void resetConnectionMessage() {
         connectionMessage = true;
     }
@@ -684,6 +681,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
      * indoor AC unit evaporator.
      *
      * @author Jacek Dobrowolski - Initial Contribution
+     * 
+     * @author Robert Eckhoff - Revised logic to reconnect with security before each poll or command
      */
     private class ConnectionManager {
         private Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
@@ -707,7 +706,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         private MideaACHandler mideaACHandler;
 
         public Response getLastResponse() {
-            return this.lastResponse; // JO addded this. 11/28/23
+            return this.lastResponse;
         }
 
         Runnable connectionMonitorRunnable = () -> {
@@ -724,6 +723,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return str.trim().isEmpty();
         }
 
+        // Count dropped commands from initialization
+        // Channel created for easy observation
+        // Dropped commands when no bytes to read after two tries
         public void resetDroppedCommands() {
             droppedCommands = 0;
         }
@@ -931,6 +933,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        // Skipped if new Set command
         public void requestStatus(boolean polling) {
             if (polling) {
                 CommandBase requestStatusCommand = new CommandBase();
@@ -938,6 +941,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        // After command reset, disconnect and restart monitor (if needed)
         public void sendCommandAndMonitor(CommandBase command) {
             sendCommand(command);
             mideaACHandler.resetDoPoll();
@@ -968,6 +972,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     bytes = mideaACHandler.getSecurity().encode8370(bytes, MsgType.MSGTYPE_ENCRYPTED_REQUEST);
                 }
 
+                // Ensure input stream is empty before writing packet
                 if (inputStream.available() == 0) {
                     logger.debug("Input stream empty sending write {}", command);
                     write(bytes);
@@ -979,12 +984,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     logger.debug("An interupted error (retrycommand3) has occured {}", e.getMessage());
                 }
 
+                // Check if input stream is empty after 1.5 seconds - If yes send packet again
+                // Observed "normal" response time is 0.75 seconds - Assumed TCP failure, so resend
                 if (inputStream.available() == 0) {
                     logger.debug("Input stream empty sending second write {}", command);
                     write(bytes);
                 }
 
-                // Socket timeout will wait up to 2-10 seconds (as set) for bytes. Typically less than 1 second for me
+                // Socket timeout (UI parameter) 2 seconds minimum up to 10 seconds.
                 byte[] responseBytes = read();
 
                 if (responseBytes != null) {
@@ -994,9 +1001,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                             logger.debug("Response length:{} thing:{} ", response.length, thing.getUID());
                             if (response.length > 40 + 16) {
                                 byte[] data = mideaACHandler.getSecurity()
-                                        .aesDecrypt(Arrays.copyOfRange(response, 40, response.length - 16)); // JO 16
+                                        .aesDecrypt(Arrays.copyOfRange(response, 40, response.length - 16));
 
-                                // data[1]: BodyType
                                 logger.trace("Bytes in HEX, decoded and with header: length: {}, data: {}", data.length,
                                         Utils.bytesToHex(data));
                                 byte bodyType2 = data[0x1];
@@ -1035,7 +1041,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                         break;
                                     default:
                                         logger.error("Invalid response type: {}", data[0x9]);
-                                        // code block
                                 }
                                 logger.trace("Response Type: {} and bodyType:{}", responseType, data[0x1]);
 
@@ -1119,7 +1124,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         protected synchronized void disconnect() {
-            // Make sure writer, inputStream and socket are closed
+            // Make sure writer, inputStream and socket are closed before each command is started
             logger.debug("Disconnecting from {} at {}", thing.getUID(), ipAddress);
 
             try {
@@ -1136,11 +1141,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 logger.warn("IOException closing connection to {} at {}: {}", thing.getUID(), ipAddress, e.getMessage(),
                         e);
             }
-            // deviceIsConnected = false;
             socket = null;
             inputStream = null;
             writer = null;
-            // markOffline();
         }
 
         private void updateChannel(String channelName, State state) {

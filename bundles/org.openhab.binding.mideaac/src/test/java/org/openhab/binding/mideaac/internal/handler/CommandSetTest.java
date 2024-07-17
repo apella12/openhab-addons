@@ -38,27 +38,36 @@ public class CommandSetTest {
     }
 
     @Test
-    public void setTargetTemperatureTest() {
-        float targetTemperature = 25.5f;
+    public void testsetTargetTemperature() {
         CommandSet commandSet = new CommandSet();
-        commandSet.setTargetTemperature(targetTemperature);
-        assertEquals(targetTemperature, commandSet.getTargetTemperature());
-    }
+        // Device is limited to 0.5 degree C increments. Check rounding too
 
-    @Test
-    public void setTargetTemperatureTest2() {
-        float targetTemperature = 17.0f;
-        CommandSet commandSet = new CommandSet();
-        commandSet.setTargetTemperature(targetTemperature);
-        assertEquals(targetTemperature, commandSet.getTargetTemperature());
-    }
+        // Test case 1
+        float targetTemperature1 = 25.4f;
+        commandSet.setTargetTemperature(targetTemperature1);
+        assertEquals(25.5f, commandSet.getTargetTemperature());
 
-    @Test
-    public void setTargetTemperatureTest3() {
-        float targetTemperature = 30.0f;
-        CommandSet commandSet = new CommandSet();
-        commandSet.setTargetTemperature(targetTemperature);
-        assertEquals(targetTemperature, commandSet.getTargetTemperature());
+        // Test case 2
+        float targetTemperature2 = 17.8f;
+        commandSet.setTargetTemperature(targetTemperature2);
+        assertEquals(18.0f, commandSet.getTargetTemperature());
+
+        // Test case 3
+        float targetTemperature3 = 21.26f;
+        commandSet.setTargetTemperature(targetTemperature3);
+        assertEquals(21.5f, commandSet.getTargetTemperature());
+
+        // Test case 4
+        float degreefahr = 72.0f;
+        float targetTemperature4 = ((degreefahr + 40.0f) * (5.0f / 9.0f)) - 40.0f;
+        commandSet.setTargetTemperature(targetTemperature4);
+        assertEquals(22.0f, commandSet.getTargetTemperature());
+
+        // Test case 5
+        float degreefahr2 = 66.0f;
+        float targetTemperature5 = ((degreefahr2 + 40.0f) * (5.0f / 9.0f)) - 40.0f;
+        commandSet.setTargetTemperature(targetTemperature5);
+        assertEquals(19.0f, commandSet.getTargetTemperature());
     }
 
     @Test

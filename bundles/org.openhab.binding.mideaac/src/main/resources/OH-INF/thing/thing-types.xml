@@ -4,7 +4,7 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<!-- Sample Thing Type -->
+	<!-- Thing Type -->
 	<thing-type id="ac">
 		<label>Midea Air Conditioner</label>
 		<description>Midea Air Conditioner with USB WIFI stick. There are 2 versions: v2 - without encryption, v3 - with
@@ -71,7 +71,7 @@
 			<parameter name="cloud" type="text" required="false">
 				<context>cloud</context>
 				<label>Cloud Provider</label>
-				<description>Cloud Provider name for email and password (recommended: MSmartHome).</description>
+				<description>Cloud Provider name for email and password.</description>
 				<options>
 					<option value=""></option>
 					<option value="MSmartHome">MSmartHome</option>
@@ -96,7 +96,7 @@
 			<parameter name="reauth" type="text" required="false">
 				<context>reauth</context>
 				<label>Re-authentication interval</label>
-				<description>Re-authenticates and request new token in every given hour (never if is set 0).</description>
+				<description>Request new token after X hours (never - set 0).</description>
 				<default>0</default>
 			</parameter>
 			<parameter name="token" type="text" required="false">
@@ -154,7 +154,6 @@
 		<description>Operational mode: AUTO, COOL, DRY, HEAT.</description>
 		<state>
 			<options>
-				<!--<option value="OFF">OFF</option> -->
 				<option value="AUTO">AUTO</option>
 				<option value="COOL">COOL</option>
 				<option value="DRY">DRY</option>
@@ -169,7 +168,6 @@
 		<description>Fan speed: LOW, MEDIUM, HIGH, FULL, AUTO.</description>
 		<state>
 			<options>
-				<!--<option value="OFF">OFF</option> <option value="SILENT">SILENT</option> -->
 				<option value="LOW">LOW</option>
 				<option value="MEDIUM">MEDIUM</option>
 				<option value="HIGH">HIGH</option>
@@ -194,7 +192,7 @@
 	<channel-type id="ecoMode">
 		<item-type>Switch</item-type>
 		<label>Eco mode</label>
-		<description>Eco mode, according to manual works only in COOL mode (temperature shall be set to 24C and fan on AUTO).</description>
+		<description>Eco mode, Cool only, Temp: min. 24C, Fan: AUTO. (Switch may not set)</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="turboMode">
@@ -233,7 +231,8 @@
 	<channel-type id="screenDisplay" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Screen display</label>
-		<description>Turns on and off displaying white digits on a device. Can be set, but status is not returned.</description>
+		<description>Turns on and off displaying white digits on a device. Doesn't work with all models, no confirmation
+			either.</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="imodeResume" advanced="true">
@@ -272,97 +271,97 @@
 	<channel-type id="cozySleep" advanced="true">
 		<item-type>Number</item-type>
 		<label>Cozy sleep</label>
-		<description>Cozy sleep.</description>
+		<description>Cozy sleep (Read Only).</description>
 		<category>Number</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="save" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Save</label>
-		<description>Save.</description>
+		<description>Save (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="lowFrequencyFan" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Low frequency fan</label>
-		<description>Low frequency fan.</description>
+		<description>Low frequency fan (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="superFan" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Super fan</label>
-		<description>Super fan.</description>
+		<description>Super fan (Read Only) .</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="feelOwn" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Feel own</label>
-		<description>Feel own.</description>
+		<description>Feel own (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="childSleepMode" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Child sleep mode</label>
-		<description>Child sleep mode.</description>
+		<description>Child sleep mode (Read Only) .</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="exchangeAir" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Exchange air</label>
-		<description>Exchange air.</description>
+		<description>Exchange air (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="dryClean" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Dry clean</label>
-		<description>Dry clean.</description>
+		<description>Dry clean (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="auxHeat" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Aux heat</label>
-		<description>Aux heat.</description>
+		<description>Aux heat (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="cleanUp" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Clean up</label>
-		<description>Clean up.</description>
+		<description>Clean up (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="catchCold" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Catch cold</label>
-		<description>Catch cold.</description>
+		<description>Catch cold (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="nightLight" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Night light</label>
-		<description>Night light.</description>
+		<description>Night light (Read Only).</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="peakElec" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Peak elec</label>
-		<description>Peak elec.</description>
+		<description>Peak elec (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="naturalFan" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Natural fan</label>
-		<description>Natural fan.</description>
+		<description>Natural fan (Read Only).</description>
 		<category>Switch</category>
 		<state readOnly="true"/>
 	</channel-type>

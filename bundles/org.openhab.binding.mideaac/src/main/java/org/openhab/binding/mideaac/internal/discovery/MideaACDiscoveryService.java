@@ -205,6 +205,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * Closes the discovery socket and cleans the value. No need for synchronization as this method is called from a
      * synchronized context.
      */
+    @SuppressWarnings("null")
     private void closeDiscoverSocket() {
         if (discoverSocket != null) {
             discoverSocket.close();
@@ -217,6 +218,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      *
      * @param packet containing data of detected device
      */
+    @SuppressWarnings("null")
     private void thingDiscovered(DatagramPacket packet) {
         DiscoveryResult dr = discoveryPacketReceived(packet);
         if (dr != null) {

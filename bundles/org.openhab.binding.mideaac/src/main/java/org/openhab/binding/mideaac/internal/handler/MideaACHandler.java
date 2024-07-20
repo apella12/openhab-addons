@@ -1123,6 +1123,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        @SuppressWarnings("null")
         protected synchronized void disconnect() {
             // Make sure writer, inputStream and socket are closed before each command is started
             logger.debug("Disconnecting from {} at {}", thing.getUID(), ipAddress);
@@ -1195,6 +1196,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
         }
 
+        @SuppressWarnings("null")
         public synchronized byte @Nullable [] read() {
             byte[] bytes = new byte[512];
 

@@ -453,9 +453,9 @@ public class Security {
 
     public @Nullable String newSign(String data, String random) {
         String msg = cloudProvider.getIotKey();
-        if (data != null) {
-            msg += data;
-        }
+        // if (data != null) {
+        msg += data;
+        // }
         msg += random;
         String sign;
 

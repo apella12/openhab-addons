@@ -235,12 +235,12 @@ public class Response {
             if (((Byte.toUnsignedInt(data[11]) - 50) / 2.0) > 50) {
                 return (float) 50;
             } else {
-                indoorTempInteger = (float) ((data[11] - 50f) / 2f);
+                indoorTempInteger = (float) ((Byte.toUnsignedInt(data[11]) - 50f) / 2f);
             }
 
             indoorTempDecimal = (float) (((data[15] & 0x0F)) * 0.1f);
 
-            if (data[11] > 49) {
+            if (Byte.toUnsignedInt(data[11]) > 49) {
                 return (float) (indoorTempInteger + indoorTempDecimal);
             } else {
                 return (float) (indoorTempInteger - indoorTempDecimal);
@@ -287,9 +287,9 @@ public class Response {
         // Changed int to float to handle, left byte[15] as used by others
         // Assumed to be used for all response and body types
         if (data[12] != 0xFF) {
-            double tempInteger = (float) ((data[12] - 50f) / 2f);
+            double tempInteger = (float) (Byte.toUnsignedInt(data[12]) - 50f) / 2f;
             double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
-            if (data[12] > 49) {
+            if (Byte.toUnsignedInt(data[12]) > 49) {
                 return (float) (tempInteger + tempDecimal);
             } else {
                 return (float) (tempInteger - tempDecimal);

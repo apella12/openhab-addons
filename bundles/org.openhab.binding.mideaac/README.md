@@ -4,12 +4,14 @@ This binding integrates Air Conditioners that use the Midea protocol.
 Midea is an OEM for many brands including: AirCon, Alpine Home Air, Artel, Beko, Canair, Carrier, Century, Comfee, Cooper&Hunter, Electrolux, Friedrich, Galactic, Goodman, Hualing, Idea, Inventor, Kaisai, Kenmore, Klimaire, Lennox, LG, Mitsui, Mr. Cool, Neoclima, Olimpia Splendid, Pioneer, Pridiom, QLIMA, Qzen, Rotenso, Royal Clima, Samsung, Senville, Thermocore, Toshiba, Trane and more.
 
 A device is likely supported if it uses one of the following Android apps or it's iOS equivalent.
-
-Artic King (com.arcticking.ac) - Discovery of key and token not currently supported
-Midea Air (com.midea.aircondition.obm) - Full Support of key and token updates
-NetHome Plus (com.midea.aircondition) - Full Support of key and token updates
-SmartHome/MSmartHome (com.midea.ai.overseas) - Full Support of key and token updates
-Toshiba AC NA (com.midea.toshiba) - Discovery of key and token not currently supported
+ 
+| Application						 		 |				Comment									 |
+|:-------------------------------------------|:------------------------------------------------------|
+|Artic King (com.arcticking.ac) 			 | Discovery of key and token not currently supported	 |
+|Midea Air (com.midea.aircondition.obm)		 | Full Support of key and token updates				 |
+|NetHome Plus (com.midea.aircondition)		 | Full Support of key and token updates				 |
+|SmartHome/MSmartHome (com.midea.ai.overseas)| Full Support of key and token updates				 |
+|Toshiba AC NA (com.midea.toshiba)			 | Discovery of key and token not currently supported	 |
 
 Note: The Air Conditioner must already be set-up on the WiFi network and must have a fixed IP Address 
 	with one of the three apps listed above for full discovery and key and token updates.
@@ -30,7 +32,7 @@ No binding configuration is required.
 ## Thing Configuration
 
 | Parameter            		| Required ? 		| Comment
-|:-------------------------:|:-----------------:|:---------------------------------------------------------------------------------:|
+|:--------------------------|:------------------|:----------------------------------------------------------------------------------|
 | IP Address 				| Required 			| IP Address of the device.           												|                                                            
 | IP Port         			| Required  		| IP port of the device (for V2: 6444).												|
 | Device ID       			| Required  		| ID of the device. Leave 0 to do ID discovery (length 6 bytes - signed). 			|                                   
@@ -49,7 +51,7 @@ No binding configuration is required.
 Following items are available:
 
 | Channel               | Type                 | Description                                                                                                    | read only |
-|:---------------------:|:--------------------:|:--------------------------------------------------------------------------------------------------------------:|:---------:|
+|:----------------------|:---------------------|:---------------------------------------------------------------------------------------------------------------|:----------|
 | Power					| Switch               | Turn the AC on and off.                                                                                        |           |
 | Target temperature    | Number:Temperature   | Target temperature.                                                                                            |           |
 | Operational mode      | String               | Operational mode: OFF (turns off), AUTO, COOL, DRY, HEAT.                                                      |           |

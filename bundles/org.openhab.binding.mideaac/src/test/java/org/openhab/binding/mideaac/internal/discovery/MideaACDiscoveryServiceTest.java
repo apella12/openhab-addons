@@ -24,9 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.openhab.binding.mideaac.internal.Utils;
 
 /**
- * The {@link MideaACDiscoveryServiceTest} tests the discovery byte arrays
- * (reply string already decrypted - See SecurityTest)
- * to extract the correct device information
+ * Discovery service Test for Midea AC.
  *
  * @author Robert Eckhoff - Initial contribution
  */
@@ -46,8 +44,12 @@ public class MideaACDiscoveryServiceTest {
             data = Arrays.copyOfRange(data, 8, data.length - 16);
         }
         byte[] id = Arrays.copyOfRange(data, 20, 26);
-        byte[] idReverse = Utils.reverse(id);
-        BigInteger bigId = new BigInteger(idReverse);
+        for (int i = 0; i < id.length / 2; i++) {
+            byte temp = id[i];
+            id[i] = id[id.length - i - 1];
+            id[id.length - i - 1] = temp;
+        }
+        BigInteger bigId = new BigInteger(id);
         mSmartId = bigId.toString();
         assertEquals("-129742371548736", mSmartId);
     }
@@ -61,8 +63,7 @@ public class MideaACDiscoveryServiceTest {
 
     @Test
     public void testPort() {
-        BigInteger portId = new BigInteger(Utils.reverse(Arrays.copyOfRange(reply, 4, 8)));
-        mSmartPort = portId.toString();
+        mSmartPort = String.valueOf(bytes2port(Arrays.copyOfRange(reply, 4, 8)));
         assertEquals("6444", mSmartPort);
     }
 
@@ -83,5 +84,22 @@ public class MideaACDiscoveryServiceTest {
         mSmartSSID = new String(reply, 41, reply[40], StandardCharsets.UTF_8);
         mSmartType = mSmartSSID.split("_")[1];
         assertEquals("ac", mSmartType);
+    }
+
+    private int bytes2port(byte[] bytes) {
+        int b = 0;
+        int i = 0;
+        while (b < 4) {
+            int b1;
+            if (b < bytes.length) {
+                b1 = bytes[b] & 0xFF;
+            } else {
+                b1 = 0;
+            }
+
+            i |= b1 << b * 8;
+            b += 1;
+        }
+        return i;
     }
 }

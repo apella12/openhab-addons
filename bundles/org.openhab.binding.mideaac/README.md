@@ -30,26 +30,26 @@ No binding configuration is required.
 ## Thing Configuration
 
 | Parameter            		| Required ? 		| Comment
-|--------------------------------------------------------------------------------------------
-| IP Address 				| Required 			| IP Address of the device.                                                                       
-| IP Port         			| Required  		| IP port of the device (for V2: 6444).
-| Device ID       			| Required  		| ID of the device. Leave 0 to do ID discovery (length 6 bytes - signed).                                    
-| Cloud Provider 			| Optional  		| Cloud Provider name for email and password
-| Cloud Provider Email  	| Optional 			| Email for cloud account chosen in Cloud Provider.
-| Cloud Provider Password 	| Optional 			| Password for cloud account chosen in Cloud Provider.
-| Re-authorization Interval | Optional 			| Request new token after X hours (never - set 0).
-| Token  					| Required for V.3 	| Secret Token (length 128 HEX)
-| Key						| Required for V.3 	| Secret Key (length 64 HEX)        |
-| Polling time 				| Required  		| Polling time in seconds to update status. Minimum time is 30 seconds.
-| Timeout 					| Required 			| Connecting timeout. Minimum time is 2 second, maximum 10 seconds (4 seconds default).
-| Prompt tone 				| Optional 			| "Ding" tone when command is received and executed.
+|:-------------------------:|:-----------------:|:---------------------------------------------------------------------------------:|
+| IP Address 				| Required 			| IP Address of the device.           												|                                                            
+| IP Port         			| Required  		| IP port of the device (for V2: 6444).												|
+| Device ID       			| Required  		| ID of the device. Leave 0 to do ID discovery (length 6 bytes - signed). 			|                                   
+| Cloud Provider 			| Optional  		| Cloud Provider name for email and password										|
+| Cloud Provider Email  	| Optional 			| Email for cloud account chosen in Cloud Provider.									|
+| Cloud Provider Password 	| Optional 			| Password for cloud account chosen in Cloud Provider.								|
+| Re-authorization Interval | Optional 			| Request new token after X hours (never - set 0).									|
+| Token  					| Required for V.3 	| Secret Token (length 128 HEX)														|
+| Key						| Required for V.3 	| Secret Key (length 64 HEX)       													|
+| Polling time 				| Required  		| Polling time in seconds to update status. Minimum time is 30 seconds.				|
+| Timeout 					| Required 			| Connecting timeout. Minimum time is 2 second, maximum 10 seconds (4 secs default).|
+| Prompt tone 				| Optional 			| "Ding" tone when command is received and executed.								|
 
 ## Channels
 
 Following items are available:
 
 | Channel               | Type                 | Description                                                                                                    | read only |
-|-----------------------|----------------------|----------------------------------------------------------------------------------------------------------------|-----------|
+|:---------------------:|:--------------------:|:--------------------------------------------------------------------------------------------------------------:|:---------:|
 | Power					| Switch               | Turn the AC on and off.                                                                                        |           |
 | Target temperature    | Number:Temperature   | Target temperature.                                                                                            |           |
 | Operational mode      | String               | Operational mode: OFF (turns off), AUTO, COOL, DRY, HEAT.                                                      |           |
@@ -60,9 +60,9 @@ Following items are available:
 | Indoor temperature    | Number:Temperature   | Indoor temperature measured in the room, where internal unit is installed.                                     | Yes       |
 | Outdoor temperature   | Number:Temperature   | Outdoor temperature measured outside, where external unit is installed.                                        | Yes       |
 | Sleep function        | Switch               | Sleep function ("Moon with a star" icon on IR Remote Controller).                                              |           |
-| ON Timer				| String               |														| Yes       |
-| OFF Timer				| String               |														| Yes       |
-| Temperature Unit		| Switch               | Sets the display to Fahrenheit (true) or Celsius (false).							|           |
+| ON Timer				| String               |																												| Yes       |
+| OFF Timer				| String               |																												| Yes       |
+| Temperature Unit		| Switch               | Sets the display to Fahrenheit (true) or Celsius (false).														|           |
 
 Following items are in API but are not tested (marked as advanced and read only channels):
 

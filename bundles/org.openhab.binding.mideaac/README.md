@@ -1,17 +1,15 @@
 ## Midea AC Binding
 
 This binding integrates Air Conditioners that use the Midea protocol. 
-Midea is an OEM for many brands including: AirCon, Alpine Home Air, Artel, Beko, Canair, Carrier, Century, Comfee, Cooper&Hunter, Electrolux, Friedrich, Galactic, Goodman, Hualing, Idea, Inventor, Kaisai, Kenmore, Klimaire, Lennox, LG, Mitsui, Mr. Cool, Neoclima, Olimpia Splendid, Pioneer, Pridiom, QLIMA, Qzen, Rotenso, Royal Clima, Samsung, Senville, Thermocore, Toshiba, Trane and more.
+Reviewing the Home Assistant equivalent integration, Midea is an OEM for many brands including: AirCon, Alpine Home Air, Artel, Beko, Canair, Carrier, Century, Comfee, Cooper&Hunter, Electrolux, Friedrich, Galactic, Goodman, Hualing, Idea, Inventor, Kaisai, Kenmore, Klimaire, Lennox, LG, Mitsui, Mr. Cool, Neoclima, Olimpia Splendid, Pioneer, Pridiom, QLIMA, Qzen, Rotenso, Royal Clima, Samsung, Senville, Thermocore, Toshiba, Trane and more. Only a few of the above brands have been tested with OpenHAB.  Please report any misinformation.
 
 A device is likely supported if it uses one of the following Android apps or it's iOS equivalent.
  
 | Application						 		 |				Comment									 |
 |:-------------------------------------------|:------------------------------------------------------|
-|Artic King (com.arcticking.ac) 			 | Discovery of key and token not currently supported	 |
 |Midea Air (com.midea.aircondition.obm)		 | Full Support of key and token updates				 |
 |NetHome Plus (com.midea.aircondition)		 | Full Support of key and token updates				 |
 |SmartHome/MSmartHome (com.midea.ai.overseas)| Full Support of key and token updates				 |
-|Toshiba AC NA (com.midea.toshiba)			 | Discovery of key and token not currently supported	 |
 
 Note: The Air Conditioner must already be set-up on the WiFi network and must have a fixed IP Address 
 	with one of the three apps listed above for full discovery and key and token updates.

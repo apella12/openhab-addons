@@ -192,7 +192,7 @@
 	<channel-type id="ecoMode">
 		<item-type>Switch</item-type>
 		<label>Eco mode</label>
-		<description>Eco mode, Cool only, Temp: min. 24C, Fan: AUTO. (Switch may not set)</description>
+		<description>Eco mode, Cool only, Temp: min. 24C, Fan: AUTO. </description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="turboMode">

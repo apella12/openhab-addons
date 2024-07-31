@@ -110,9 +110,9 @@ public class CommandSet extends CommandBase {
 
     public void setEcoMode(boolean ecoModeEnabled) {
         if (!ecoModeEnabled) {
-            data[0x13] &= ~0x10; // Clear the Eco bit (if set)
+            data[0x13] &= ~0x80; // Clear the Eco bit (if set)
         } else {
-            data[0x13] |= 0x10;
+            data[0x13] |= 0x80;
         }
     }
 

@@ -342,35 +342,13 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    private static float convertTargetCelsiusTemperatureToECORange(float temperature) {
-        if (temperature < 24.0f) {
-            return 24.0f;
-        }
-        if (temperature > 30.0f) {
-            return 30.0f;
-        }
-
-        return temperature;
-    }
-
-    // ECO mode command includes minimum temperature of 24 C and Fan Speed Auto with power ON
     public void handleEcoMode(Command command) {
-        Response lastResponse = getLastResponse();
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
-
-        commandSet.setPowerState(true);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setEcoMode(false);
         } else if (command.equals(OnOffType.ON)) {
             commandSet.setEcoMode(true);
-            commandSet.setTargetTemperature(
-                    convertTargetCelsiusTemperatureToECORange(lastResponse.getTargetTemperature()));
-            if (getVersion() == 2) {
-                commandSet.setFanSpeed(FanSpeed.AUTO2);
-            } else if (getVersion() == 3) {
-                commandSet.setFanSpeed(FanSpeed.AUTO3);
-            }
         } else {
             logger.debug("Unknown eco mode command: {}", command);
             return;
@@ -981,7 +959,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 try {
                     Thread.sleep(1500);
                 } catch (InterruptedException e) {
-                    logger.debug("An interupted error (retrycommand3) has occured {}", e.getMessage());
+                    logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
                 }
 
                 // Check if input stream is empty after 1.5 seconds - If yes send packet again

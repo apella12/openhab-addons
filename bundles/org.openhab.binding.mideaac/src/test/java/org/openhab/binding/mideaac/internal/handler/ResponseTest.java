@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 public class ResponseTest {
     @org.jupnp.registry.event.Before
 
-    byte[] data = HexFormat.of().parseHex("C0004266877F003C0000046066000000000000000000F9ECDB");
+    byte[] data = HexFormat.of().parseHex("C00042668387123C0000046066000000000000000000F9ECDB");
     private int version = 3;
     String responseType = "query";
     byte bodyType = (byte) 0xC0;
@@ -81,14 +81,14 @@ public class ResponseTest {
     @Test
     public void testGetOnTimer() {
         Timer status = response.getOnTimer();
-        String expectedString = "enabled: true, hours: 1, minutes: 45";
+        String expectedString = "enabled: true, hours: 0, minutes: 59";
         assertEquals(expectedString, status.toString());
     }
 
     @Test
     public void testGetOffTimer() {
         Timer status = response.getOffTimer();
-        String expectedString = "enabled: false";
+        String expectedString = "enabled: true, hours: 1, minutes: 58";
         assertEquals(expectedString, status.toString());
     }
 

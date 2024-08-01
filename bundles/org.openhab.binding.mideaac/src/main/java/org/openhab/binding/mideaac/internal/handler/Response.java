@@ -134,12 +134,12 @@ public class Response {
 
     public Timer getOnTimer() {
         return new Timer((data[0x04] & 0x80) > 0, ((data[0x04] & (byte) 0x7c) >> 2),
-                (data[0x04] & 0x3) * 15 | ((data[0x06] & (byte) 0xf0) >> 4));
+                ((data[0x04] & 0x3) * 15 + 15 - (((data[0x06] & (byte) 0xf0) >> 4) & 0x0F)));
     }
 
     public Timer getOffTimer() {
         return new Timer((data[0x05] & 0x80) > 0, ((data[0x05] & (byte) 0x7c) >> 2),
-                (data[0x05] & 0x3) * 15 | (data[0x06] & (byte) 0xf));
+                ((data[0x05] & 0x3) * 15 + 15 - (data[0x06] & (byte) 0xf)));
     }
 
     public SwingMode getSwingMode() {

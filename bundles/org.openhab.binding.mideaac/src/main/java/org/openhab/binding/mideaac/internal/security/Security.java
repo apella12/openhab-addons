@@ -137,7 +137,7 @@ public class Security {
         return encryptData;
     }
 
-    private @Nullable SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
+    public @Nullable SecretKeySpec getEncKey() throws NoSuchAlgorithmException {
         if (encKey == null) {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(cloudProvider.getSignKey().getBytes(StandardCharsets.US_ASCII));

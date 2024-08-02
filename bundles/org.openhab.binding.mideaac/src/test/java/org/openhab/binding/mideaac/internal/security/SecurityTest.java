@@ -23,11 +23,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.mideaac.internal.Utils;
 
 /**
- * The {@link SecurityTest} decodes the AES encrypted byte array portion
- * of the Discovery byte array. This is used in the MideaACDiscoveryServiceTest.
+ * Security coding and decoding Test.
  *
  * @author Robert Eckhoff - Initial Contribution
  */
@@ -53,7 +51,7 @@ public class SecurityTest {
         when(cloudProvider.getSignKey()).thenReturn("xhdiwjnchekd4d512chdjx5d8e4c394D2D7S");
 
         // Prepare the encrypted data
-        byte[] encryptData = Utils.hexStringToByteArray(
+        byte[] encryptData = hexStringToByteArray(
                 "AF55C8897BEA338348DA7FC0B3EF1F1C889CD57C06462D83069558B66AF14A2D66353F52BAECA68AEB4C3948517F276F72D8A3AD4652EFA55466D58975AEB8D948842E20FBDCA6339558C848ECE09211F62B1D8BB9E5C25DBA7BF8E0CC4C77944BDFB3E16E33D88768CC4C3D0658937D0BB19369BF0317B24D3A4DE9E6A13106");
 
         // Perform the decryption
@@ -65,7 +63,7 @@ public class SecurityTest {
 
         // Compare to the actual reply
         String decryptedString = new String(result, StandardCharsets.US_ASCII);
-        byte[] reply = Utils.hexStringToByteArray(
+        byte[] reply = hexStringToByteArray(
                 "F600A8C02C19000030303030303050303030303030305131423838433239353634334243303030300B6E65745F61635F343342430000870002000000000000000000AC00ACAC00000000B88C295643BC150023082122000300000000000000000000000000000000000000000000000000000000000000000000");
         String reply1 = new String(reply, StandardCharsets.US_ASCII);
         assertEquals(reply1, decryptedString);
@@ -82,5 +80,15 @@ public class SecurityTest {
         // Verify the result
         assertNotNull(key);
         assertEquals("AES", key.getAlgorithm());
+    }
+
+    // Helper method to convert hex string to byte array
+    private byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
     }
 }

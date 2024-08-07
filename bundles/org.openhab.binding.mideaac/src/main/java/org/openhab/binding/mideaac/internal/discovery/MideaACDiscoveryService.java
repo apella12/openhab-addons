@@ -74,7 +74,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
     public MideaACDiscoveryService() {
         super(SUPPORTED_THING_TYPES_UIDS, discoveryTimeoutSeconds, false);
-        this.security = new Security(CloudProvider.getCloudProvider("MSmartHome"));
+        this.security = new Security(CloudProvider.getCloudProvider(""));
     }
 
     /*

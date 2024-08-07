@@ -474,11 +474,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         connectionManager.resetDroppedCommands();
         connectionManager.updateChannel(DROPPED_COMMANDS, new DecimalType(connectionManager.getDroppedCommands()));
 
-        setCloudProvider(CloudProvider.getCloudProvider("MSmartHome"));
-        setSecurity(new Security(cloudProvider));
-
         config = getConfigAs(MideaACConfiguration.class);
         properties = editProperties();
+
+        setCloudProvider(CloudProvider.getCloudProvider(config.getCloud()));
+        setSecurity(new Security(cloudProvider));
 
         logger.debug("MideaACHandler config for {} is {}", thing.getUID(), config);
 
@@ -802,7 +802,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             logger.trace("Token: {}", config.getToken());
 
             if (getVersion() == 3) {
-                if (!isBlank(config.getToken()) && !isBlank(config.getKey())) {
+                if (!isBlank(config.getToken()) && !isBlank(config.getKey()) && !config.getCloud().equals("")) {
                     logger.debug("Device {}@{} authenticating", thing.getUID(), ipAddress);
                     doAuthentication();
                 } else {
@@ -813,7 +813,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                             logger.warn("Device {}@{} cannot authenticate, token and key missing", thing.getUID(),
                                     ipAddress);
                         } else {
-                            if (isBlank(config.getCloud())) {
+                            if (isBlank(config.getCloud()) || config.getCloud().equals("")) {
                                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                         "Cloud Provider missing in configuration.");
                                 logger.warn("Device {}@{} cannot authenticate, Cloud Provider missing", thing.getUID(),
@@ -834,6 +834,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                                 "Key missing in configuration.");
                         logger.warn("Device {}@{} cannot authenticate, key missing", thing.getUID(), ipAddress);
+                    } else if (config.getCloud().equals("")) {
+                        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                                "Cloud Provider Required for V3 Device");
+                        logger.warn("Device {}@{} cannot authenticate, Cloud Provider missing", thing.getUID(),
+                                ipAddress);
                     }
                 }
             } else {

@@ -98,6 +98,6 @@ public class CloudProvider {
                         "https://mp-prod.appsmb.com/mas/v5/app/proxy?alias=", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S",
                         "meicloud", "PROD_VnoClJI9aikS8dyy", "v5");
         }
-        return new CloudProvider("", "", "", "", "", "", "", "");
+        return new CloudProvider("", "", "", "", "xhdiwjnchekd4d512chdjx5d8e4c394D2D7S", "", "", "");
     }
 }

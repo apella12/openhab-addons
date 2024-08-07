@@ -7,7 +7,7 @@
 	<!-- Thing Type -->
 	<thing-type id="ac">
 		<label>Midea Air Conditioner</label>
-		<description>Midea Air Conditioner with USB WIFI stick. There are 2 versions: v2 - without encryption, v3 - with
+		<description>Midea Air Conditioner with USB WiFi stick. There are 2 versions: V2 - without encryption, V3 - with
 			encryption - Token and Key must be provided, it can be automatically obtained from Cloud.
 		</description>
 
@@ -59,7 +59,7 @@
 			<parameter name="ipPort" type="text" required="true">
 				<context>ipPort</context>
 				<label>IP Port</label>
-				<description>IP port of the device (for V2: 6444).</description>
+				<description>IP port of the device.</description>
 				<default>6444</default>
 			</parameter>
 			<parameter name="deviceId" type="text" required="true">
@@ -71,7 +71,7 @@
 			<parameter name="cloud" type="text" required="false">
 				<context>cloud</context>
 				<label>Cloud Provider</label>
-				<description>Cloud Provider name for email and password.</description>
+				<description>Cloud Provider name. Required for V3.</description>
 				<options>
 					<option value=""></option>
 					<option value="MSmartHome">MSmartHome</option>
@@ -84,13 +84,13 @@
 			<parameter name="email" type="text" required="false">
 				<context>email</context>
 				<label>Email</label>
-				<description>Email for cloud account chosen in Cloud Provider.</description>
+				<description>Email for Cloud Provider account. Needed for key/token discovery.</description>
 				<default></default>
 			</parameter>
 			<parameter name="password" type="text" required="false">
 				<context>password</context>
 				<label>Password</label>
-				<description>Password for cloud account chosen in Cloud Provider.</description>
+				<description>Password for Cloud Provider account. Needed for key/token discovery.</description>
 				<default></default>
 			</parameter>
 			<parameter name="reauth" type="text" required="false">
@@ -103,14 +103,14 @@
 				<context>token</context>
 				<label>Token</label>
 				<description>Secret Token (length 128 HEX) used for secure connection authentication used with devices v3 (if not
-					known, enter email and password for Cloud to retrieve it).</description>
+					known, enter email and password for Cloud Provider to retrieve it).</description>
 				<default></default>
 			</parameter>
 			<parameter name="key" type="text" required="false">
 				<context>key</context>
 				<label>Key</label>
 				<description>Secret Key (length 64 HEX) used for secure connection authentication used with devices v3 (if not
-					known, enter email and password for Cloud to retrieve it).</description>
+					known, enter email and password for Cloud Provider to retrieve it).</description>
 				<default></default>
 			</parameter>
 			<parameter name="pollingTime" type="decimal" required="true" min="30" unit="s">

@@ -91,7 +91,7 @@ public class MideaACConfiguration {
     }
 
     public void setCloud(String cloud) {
-        this.token = cloud;
+        this.cloud = cloud;
     }
 
     private String token = "";

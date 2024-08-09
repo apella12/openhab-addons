@@ -155,4 +155,18 @@ public class Utils {
 
         return sb.toString();
     }
+
+    public static byte[] reverse(byte[] array) {
+        int left = 0;
+        int right = array.length - 1;
+        while (left < right) {
+            byte temp = array[left];
+            array[left] = array[right];
+            array[right] = temp;
+            left++;
+            right--;
+        }
+
+        return array;
+    }
 }

@@ -44,12 +44,8 @@ public class MideaACDiscoveryServiceTest {
             data = Arrays.copyOfRange(data, 8, data.length - 16);
         }
         byte[] id = Arrays.copyOfRange(data, 20, 26);
-        for (int i = 0; i < id.length / 2; i++) {
-            byte temp = id[i];
-            id[i] = id[id.length - i - 1];
-            id[id.length - i - 1] = temp;
-        }
-        BigInteger bigId = new BigInteger(id);
+        byte[] idReverse = Utils.reverse(id);
+        BigInteger bigId = new BigInteger(idReverse);
         mSmartId = bigId.toString();
         assertEquals("-129742371548736", mSmartId);
     }

@@ -16,7 +16,7 @@ import java.math.BigInteger;
 import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-// import org.openhab.binding.mideaac.internal.Utils;
+import org.openhab.binding.mideaac.internal.Utils;
 // import org.slf4j.Logger;
 // import org.slf4j.LoggerFactory;
 
@@ -64,14 +64,8 @@ public class Packet {
         System.arraycopy(datetimeBytes, 0, packet, 12, 8);
 
         byte[] idBytes = new BigInteger(deviceId).toByteArray();
-        // could be eliminated with apache array.utils level 2 issue
-        // also question why device ID is reversed in the first place.
-        for (int i = 0; i < idBytes.length / 2; i++) {
-            byte temp = idBytes[i];
-            idBytes[i] = idBytes[idBytes.length - i - 1];
-            idBytes[idBytes.length - i - 1] = temp;
-        }
-        System.arraycopy(idBytes, 0, packet, 20, 6);
+        byte[] idBytesRev = Utils.reverse(idBytes);
+        System.arraycopy(idBytesRev, 0, packet, 20, 6);
     }
 
     @SuppressWarnings("null")

@@ -77,12 +77,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         this.security = new Security(CloudProvider.getCloudProvider(""));
     }
 
-    /*
-     * public void setHandler(MideaACHandler mideaACHandler) {
-     * this.mideaACHandler = mideaACHandler;
-     * }
-     */
-
     @Override
     protected void startScan() {
         logger.debug("Start scan for Midea AC devices.");
@@ -257,17 +251,9 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             byte[] id = Arrays.copyOfRange(data, 20, 26);
             logger.trace("Id Bytes: {}", Utils.bytesToHex(id));
 
-            // Reverse the subarray in-place
-            // This level 3 issue replaces level 2 forbidden package
-            // import org.apache.commons.lang3.ArrayUtils;
-            // ArrayUtils.reverse(id);
-            for (int i = 0; i < id.length / 2; i++) {
-                byte temp = id[i];
-                id[i] = id[id.length - i - 1];
-                id[id.length - i - 1] = temp;
-            }
+            byte[] idReverse = Utils.reverse(id);
 
-            BigInteger bigId = new BigInteger(id);
+            BigInteger bigId = new BigInteger(idReverse);
             mSmartId = bigId.toString();
 
             logger.debug("Id: '{}'", mSmartId);

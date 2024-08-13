@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Response from a device.
+ * The {@link Response} performs the decodes of the byte data stream
+ * The original reference is
+ * https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/ac/message.py#L418
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -82,7 +84,6 @@ public class Response {
         // Log Response and Body Type for V3. V2 set at "" and 0x00
         if (version == 3) {
             logger.trace("Response and Body Type: {}, {}", responseType, bodyType);
-            // https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/ac/message.py#L418
             if ("notify2".equals(responseType) && bodyType == -95) { // 0xA0 = -95
                 logger.trace("Response Handler: XA0Message");
             } else if ("notify1".equals(responseType) && bodyType == -91) { // 0xA1 = -91
@@ -222,9 +223,11 @@ public class Response {
         return (data[0x0a] & (byte) 0x40) != 0;
     }
 
+    /*
+     * There is some variation in how this is handled by different
+     * AC models. This covers at least 2 versions found so far.
+     */
     public Float getIndoorTemperature() {
-        // My AC just uses byte[11] for 0.5 degrees Validated with NetHome App reading
-        // Changed int to float to handle, left byte[15] as used by others
         double indoorTempInteger;
         double indoorTempDecimal;
 
@@ -282,10 +285,11 @@ public class Response {
         return empty;
     }
 
+    /*
+     * There is some variation in how this is handled by different
+     * AC models. This covers at least 2 versions found so far.
+     */
     public Float getOutdoorTemperature() {
-        // My AC just uses byte[12] for 0.5 degrees; Validated with NetHome App reading
-        // Changed int to float to handle, left byte[15] as used by others
-        // Assumed to be used for all response and body types
         if (data[12] != 0xFF) {
             double tempInteger = (float) (Byte.toUnsignedInt(data[12]) - 50f) / 2.0f;
             double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
@@ -298,7 +302,10 @@ public class Response {
         return empty;
     }
 
-    // Need to validate what byte has humidity (if any)
+    /*
+     * Not observed with units being tested
+     * From reference Document
+     */
     public int getHumidity() {
         return (data[19] & (byte) 0x7f);
     }

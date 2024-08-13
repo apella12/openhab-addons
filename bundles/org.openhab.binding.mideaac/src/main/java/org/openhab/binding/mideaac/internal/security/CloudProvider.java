@@ -15,7 +15,8 @@ package org.openhab.binding.mideaac.internal.security;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Cloud Provider.
+ * The {@link CloudProvider} class contains the information
+ * to allow encryption and decryption for the supported Cloud Providers
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */
@@ -85,6 +86,10 @@ public class CloudProvider {
         this.proxied = proxied;
     }
 
+    /**
+     * All providers use the same signkey for AES encryption and Decryption.
+     * V2 Devices do not require a Cloud Provider entry as they only use AES
+     */
     public static CloudProvider getCloudProvider(String name) {
         switch (name) {
             case "NetHome Plus":

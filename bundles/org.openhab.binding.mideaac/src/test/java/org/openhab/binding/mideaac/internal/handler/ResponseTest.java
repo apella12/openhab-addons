@@ -20,7 +20,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test Response from a device.
+ * The {@link ResponseTest} extracts the AC device response and
+ * compares them to the expected result.
  *
  * @author Robert Eckhoff - Initial contribution
  */

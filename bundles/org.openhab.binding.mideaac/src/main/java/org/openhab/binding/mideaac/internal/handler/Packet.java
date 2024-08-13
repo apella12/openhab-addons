@@ -17,11 +17,10 @@ import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.Utils;
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
 
 /**
- * Packet class for Midea AC.
+ * The {@link Packet} class for Midea AC creates the
+ * byte array that is sent to the device
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -30,12 +29,10 @@ public class Packet {
     private CommandBase command;
     private byte[] packet;
     private MideaACHandler mideaACHandler;
-    // private Logger logger = LoggerFactory.getLogger(Packet.class);
 
     @SuppressWarnings("deprecation")
     public Packet(CommandBase command, String deviceId, MideaACHandler mideaACHandler) {
         this.command = command;
-        // this.deviceId = deviceId; //JO added and rimmed out
         this.mideaACHandler = mideaACHandler;
 
         packet = new byte[] {
@@ -70,6 +67,9 @@ public class Packet {
 
     @SuppressWarnings("null")
 
+    /**
+     * Final composure of the byte array with the encrypted command
+     */
     public void compose() {
         command.compose();
 

@@ -21,7 +21,8 @@ import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
 
 /**
- * Test Set Commands
+ * The {@link CommandSetTest} compares example SET commands with the
+ * expected results.
  *
  * @author Robert Eckhoff - Initial contribution
  */

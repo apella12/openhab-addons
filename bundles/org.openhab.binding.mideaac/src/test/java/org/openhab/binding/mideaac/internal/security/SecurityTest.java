@@ -26,7 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.openhab.binding.mideaac.internal.Utils;
 
 /**
- * Security coding and decoding Test.
+ * The {@link SecurityTest} decodes the AES encrypted byte array portion
+ * of the Discovery byte array. This is used in the MideaACDiscoveryServiceTest.
  *
  * @author Robert Eckhoff - Initial Contribution
  */

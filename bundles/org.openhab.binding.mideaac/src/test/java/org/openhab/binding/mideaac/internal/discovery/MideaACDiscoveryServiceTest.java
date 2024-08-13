@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.openhab.binding.mideaac.internal.Utils;
 
 /**
- * Discovery service Test for Midea AC.
+ * The {@link MideaACDiscoveryServiceTest} tests the discovery byte arrays
+ * (reply string already decrypted - See SecurityTest)
+ * to extract the correct device information
  *
  * @author Robert Eckhoff - Initial contribution
  */
@@ -59,7 +61,8 @@ public class MideaACDiscoveryServiceTest {
 
     @Test
     public void testPort() {
-        mSmartPort = String.valueOf(bytes2port(Arrays.copyOfRange(reply, 4, 8)));
+        BigInteger portId = new BigInteger(Utils.reverse(Arrays.copyOfRange(reply, 4, 8)));
+        mSmartPort = portId.toString();
         assertEquals("6444", mSmartPort);
     }
 
@@ -80,22 +83,5 @@ public class MideaACDiscoveryServiceTest {
         mSmartSSID = new String(reply, 41, reply[40], StandardCharsets.UTF_8);
         mSmartType = mSmartSSID.split("_")[1];
         assertEquals("ac", mSmartType);
-    }
-
-    private int bytes2port(byte[] bytes) {
-        int b = 0;
-        int i = 0;
-        while (b < 4) {
-            int b1;
-            if (b < bytes.length) {
-                b1 = bytes[b] & 0xFF;
-            } else {
-                b1 = 0;
-            }
-
-            i |= b1 << b * 8;
-            b += 1;
-        }
-        return i;
     }
 }

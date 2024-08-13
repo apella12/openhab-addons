@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 @Component(configurationPid = "binding.mideaac", service = ThingHandlerFactory.class)
 public class MideaACHandlerFactory extends BaseThingHandlerFactory {
 
-    // private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_SAMPLE);
     private final NetworkAddressService networkAddressService;
     private UnitProvider unitProvider;
     private final HttpClient httpClient;

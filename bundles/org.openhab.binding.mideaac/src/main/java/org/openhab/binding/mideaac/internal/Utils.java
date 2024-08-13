@@ -24,7 +24,8 @@ import org.jose4j.base64url.Base64;
 import com.google.gson.JsonObject;
 
 /**
- * Utilities.
+ * The {@link Utils} class defines common byte and String array methods
+ * which are used across the whole binding.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -34,6 +35,9 @@ public class Utils {
     private static final char[] HEX_ARRAY_LOWERCASE = "0123456789abcdef".toCharArray();
     static byte[] empty = new byte[0];
 
+    /*
+     * Converts byte array to upper case hex string
+     */
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
@@ -44,6 +48,9 @@ public class Utils {
         return new String(hexChars);
     }
 
+    /*
+     * Converts byte array to binary string
+     */
     public static String bytesToBinary(byte[] bytes) {
         String s1 = "";
         for (int j = 0; j < bytes.length; j++) {
@@ -52,10 +59,12 @@ public class Utils {
             s1 = s1.concat(" ");
 
         }
-
         return s1;
     }
 
+    /*
+     * Converts byte array to lower case hex string
+     */
     public static String bytesToHexLowercase(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
@@ -66,12 +75,18 @@ public class Utils {
         return new String(hexChars);
     }
 
+    /*
+     * Validates the IP address format
+     */
     public static boolean validateIP(final String ip) {
         String pattern = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
 
         return ip.matches(pattern);
     }
 
+    /*
+     * Converts hex string to a byte array
+     */
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
@@ -81,6 +96,9 @@ public class Utils {
         return data;
     }
 
+    /*
+     * Adds two byte arrays together
+     */
     public static byte[] concatenateArrays(byte[] a, byte[] b) {
         byte[] c = new byte[a.length + b.length];
         System.arraycopy(a, 0, c, 0, a.length);
@@ -110,7 +128,6 @@ public class Utils {
         for (int n = 0; n < nbytes; n++) {
             sb.append(Integer.toHexString(r.nextInt()));
         }
-
         return sb.toString().substring(0, nbytes);
     }
 
@@ -121,6 +138,9 @@ public class Utils {
         return Base64.encode(bytes);
     }
 
+    /*
+     * Extracts 6 bits and reorders them based on signed or unsigned
+     */
     public static byte[] toIntTo6ByteArray(long i, ByteOrder order) {
         final ByteBuffer bb = ByteBuffer.allocate(8);
         bb.order(order);
@@ -134,14 +154,12 @@ public class Utils {
         if (order == ByteOrder.LITTLE_ENDIAN) {
             return Arrays.copyOfRange(bb.array(), 0, 6);
         }
-
         return empty;
     }
 
     public static String getQueryString(JsonObject json) {
         StringBuilder sb = new StringBuilder();
         Iterator<String> keys = json.keySet().stream().sorted().iterator();
-        // sb.append("?"); // start of query args
         while (keys.hasNext()) {
             @SuppressWarnings("null")
             String key = keys.next();
@@ -152,10 +170,12 @@ public class Utils {
                 sb.append("&"); // To allow for another argument.
             }
         }
-
         return sb.toString();
     }
 
+    /*
+     * Used to reverse (or unreverse) the deviceId
+     */
     public static byte[] reverse(byte[] array) {
         int left = 0;
         int right = array.length - 1;
@@ -166,7 +186,6 @@ public class Utils {
             left++;
             right--;
         }
-
         return array;
     }
 }

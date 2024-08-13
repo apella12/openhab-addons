@@ -161,6 +161,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         connectionManager = new ConnectionManager(ipv4Address, this);
     }
 
+    /*
+     * Returns possible Cloud Providers
+     */
     public Clouds getClouds() {
         return clouds;
     }
@@ -169,11 +172,16 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return systemOfUnits instanceof ImperialUnits ? true : false;
     }
 
+    /*
+     * This method handles the Channels that can be set (non-read only)
+     * First the Routine polling is stopped so there is no conflict
+     * Then connects and authorizes (if necessary) and returns here to
+     * create the command set.
+     */
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
 
-        // This is to stop routine polling during a handleCommand
         getConnectionManager().cancelConnectionMonitorJob();
 
         // Alternate to routine polling is a rule to refresh at the desired interval
@@ -182,7 +190,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return;
         }
 
-        // This is set to skip poll, after authorization and speed up the command set
+        // This is set to skip poll, after authorization and speed up the command set execution
         doPoll = false;
         connectionManager.connect();
 
@@ -209,6 +217,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
     }
 
+    /*
+     * Device Power ON OFF
+     */
     public void handlePower(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -224,6 +235,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    /*
+     * Supported AC modes
+     */
     public void handleOperationalMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -261,6 +275,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return temperature;
     }
 
+    /*
+     * Device only uses Celsius in 0.5 degree increments
+     * Fahrenheit is rounded to fit (example
+     * setting to 64 F is 18 C but will result in 64.4 F display in OH)
+     * The evaporator only displays 2 digits, so will show 64.
+     */
     @SuppressWarnings("null")
     public void handleTargetTemperature(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
@@ -290,6 +310,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
     }
 
+    /*
+     * Fan Speeds vary by V2 or V3 and device. This also turns the power ON
+     */
     public void handleFanSpeed(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -342,6 +365,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    /*
+     * Must be set in Cool mode. Fan will switch to Auto
+     * and temp will be 24 C or 75 F on unit (75.2 F in OH)
+     */
     public void handleEcoMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -357,8 +384,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    // Power turned on with Swing Mode Change
-    // May not work on all V3 models
+    /*
+     * Modes supported depends on the device
+     * Power is turned on when swing mode is changed
+     */
     public void handleSwingMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -398,7 +427,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    // Power turned on with Turbo Mode Change
+    /*
+     * Turbo mode is only with Heat or Cool to quickly change
+     * Room temperature. Power is turned on.
+     */
     public void handleTurboMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -416,7 +448,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    // May not work on all models
+    /*
+     * May not work with all models
+     */
     public void handleScreenDisplay(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -432,7 +466,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    // This is only for the LED device display, calcs always in Celsius
+    /*
+     * This is only for the AC LED device display units, calcs always in Celsius
+     */
     public void handleTempUnit(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -448,7 +484,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
-    // Power turned on with Sleep Mode Change
+    /*
+     * Power turned on with Sleep Mode Change
+     * Sleep mode increases temp slightly in first 2 hours of sleep
+     */
     public void handleSleepFunction(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
@@ -466,6 +505,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    /*
+     * Initialize is called on first pass or when a device parameter is changed
+     * The basic check is if the information from Discovery (or the user update)
+     * is valid. Because V2 devices do not require a cloud provider (or token/key)
+     * The check is for the IP, port and deviceID. This method also resets the dropped
+     * commands, disconnects the socket and stops the connection monitor (if these were
+     * running)
+     */
     @SuppressWarnings("null")
     @Override
     public void initialize() {
@@ -577,8 +624,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         updateStatus(ThingStatus.OFFLINE, statusDetail, statusMessage);
 
-        // This is to space out the looping with a short (5 second) then long (30 second) pause(s)
-        // Only info log prior to first long pause.
+        /*
+         * This is to space out the looping with a short (5 second) then long (30 second) pause(s).
+         * Generally a WiFi issue triggers the offline
+         * Only info log prior to first long pause.
+         */
         if (retry) {
             try {
                 Thread.sleep(5000);
@@ -608,28 +658,45 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         return thing.getStatus().equals(ThingStatus.OFFLINE);
     }
 
+    /*
+     * Cancel the connection manager job which will keep going
+     * even with the binding removed and cause warnings about
+     * trying to update Channels with the Handler disposed
+     */
     @Override
     public void dispose() {
         connectionManager.cancelConnectionMonitorJob();
         markOffline();
     }
 
-    // Allow Connection manager to get doPoll
+    /*
+     * DoPoll is set to false in the MideaAC Handler
+     * if a Command is being sent and picked up by
+     * the Connection Manager. Then is reset to true
+     * after the Set command is complete
+     */
     public boolean getDoPoll() {
         return doPoll;
     }
 
-    // Reset doPoll after sendCommand complete
     public void resetDoPoll() {
         doPoll = true;
     }
 
-    // Reset Retry after successful connection
+    /*
+     * Reset Retry controls the short 5 second delay
+     * Before starting 30 second delays. (More severe Wifi issue)
+     * It is reset after a successful connection
+     */
     public void resetRetry() {
         retry = true;
     }
 
-    // Limit logging of connection messages
+    /*
+     * Limit logging of INFO connection messages to
+     * only when the device was Offline in its prior
+     * state
+     */
     public void resetConnectionMessage() {
         connectionMessage = true;
     }
@@ -662,7 +729,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
      * 
      * @author Robert Eckhoff - Revised logic to reconnect with security before each poll or command
      */
-    private class ConnectionManager {
+    public class ConnectionManager {
         private Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
         private boolean deviceIsConnected;
@@ -701,9 +768,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return str.trim().isEmpty();
         }
 
-        // Count dropped commands from initialization
-        // Channel created for easy observation
-        // Dropped commands when no bytes to read after two tries
+        /*
+         * Rest dropped commands from initialization in MideaACHandler
+         * Channel created for easy observation
+         * Dropped commands when no bytes to read after two tries.
+         */
         public void resetDroppedCommands() {
             droppedCommands = 0;
         }
@@ -711,11 +780,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         public int getDroppedCommands() {
             return droppedCommands = 0;
         }
-
-        /*
-         * Connect to the command and serial port(s) on the device. The serial connections are established only for
-         * devices that support serial.
-         */
 
         @SuppressWarnings("null")
         private Date getTokenReqested() {
@@ -737,6 +801,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return now.compareTo(tokenRequestedAt) > 0;
         }
 
+        /*
+         * After checking if the key and token need to be updated (Default = 0 Never)
+         * The socket is established with the writer and inputStream (for reading responses)
+         * The device is considered connected. V2 devices will proceed to send the poll or the
+         * set command. V3 devices with proceed to authenticate
+         */
         @SuppressWarnings("null")
         protected synchronized void connect() {
             if (reAuthenticationNeeded()) {
@@ -795,6 +865,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        /*
+         * For V3 devices only this method checks for the Cloud Provider
+         * key and token (and prompts if missing). It will retrieve the
+         * missing key and token if the account email and password are provided
+         */
         @SuppressWarnings("null")
         public void authenticate() {
             logger.trace("Version: {}", getVersion());
@@ -870,6 +945,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        /*
+         * Sends the Handshake Request to the V3 device. Generally quick response
+         * Without the sleep delay the are problems in sending the Poll/Command
+         * Suspect that the socket write and read streams need a moment to clear
+         * as they will be reused in the SendCommand method
+         */
         @SuppressWarnings("null")
         private void doAuthentication() {
             byte[] request = mideaACHandler.getSecurity().encode8370(Utils.hexStringToByteArray(config.getToken()),
@@ -916,7 +997,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
-        // Skipped if new Set command
+        /*
+         * After authentication, this switch to either send a
+         * Poll or the Set command
+         */
         public void requestStatus(boolean polling) {
             if (polling) {
                 CommandBase requestStatusCommand = new CommandBase();
@@ -924,7 +1008,11 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
-        // After command reset, disconnect and restart monitor (if needed)
+        /*
+         * Calls the sendCommand method, resets the doPoll to true
+         * Disconnects the socket and schedules the connection manager
+         * job, if was stopped (to avoid collision) due to a Set command
+         */
         public void sendCommandAndMonitor(CommandBase command) {
             sendCommand(command);
             mideaACHandler.resetDoPoll();
@@ -934,6 +1022,15 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        /*
+         * Pulls the packet byte array together. There is a check to
+         * make sure to make sure the input stream is empty before sending
+         * the new command and another check if input stream is empty after 1.5 seconds.
+         * Normal device response in 0.75 - 1 second range
+         * If still empty, send the bytes again. If there are bytes, the read method is called.
+         * If the socket times out with no response the command is dropped. There will be another poll
+         * in the time set by the user (30 seconds min) or the set commnd can be retried
+         */
         @SuppressWarnings("null")
         public void sendCommand(CommandBase command) {
             if (command instanceof CommandSet) {
@@ -967,8 +1064,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                     logger.debug("An interupted error (retrycommand2) has occured {}", e.getMessage());
                 }
 
-                // Check if input stream is empty after 1.5 seconds - If yes send packet again
-                // Observed "normal" response time is 0.75 seconds - Assumed TCP failure, so resend
                 if (inputStream.available() == 0) {
                     logger.debug("Input stream empty sending second write {}", command);
                     write(bytes);
@@ -1106,6 +1201,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
+        /*
+         * Closes all elements of the connection
+         */
         @SuppressWarnings("null")
         protected synchronized void disconnect() {
             // Make sure writer, inputStream and socket are closed before each command is started
@@ -1179,6 +1277,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
         }
 
+        /*
+         * Reads the inputStream byte array
+         */
         @SuppressWarnings("null")
         public synchronized byte @Nullable [] read() {
             byte[] bytes = new byte[512];
@@ -1203,6 +1304,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return null;
         }
 
+        /*
+         * Writes the packet that will be sent to the device
+         */
         @SuppressWarnings("null")
         public synchronized void write(byte[] buffer) throws IOException {
             if (writer == null) {
@@ -1224,7 +1328,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         /*
-         * Periodical polling.
+         * Periodical polling. Thirty sceonds minimum
          */
         @SuppressWarnings("null")
         private void scheduleConnectionMonitorJob() {

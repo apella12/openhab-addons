@@ -18,7 +18,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * Clouds.
+ * The {@link Clouds} class securely stores email and password
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */

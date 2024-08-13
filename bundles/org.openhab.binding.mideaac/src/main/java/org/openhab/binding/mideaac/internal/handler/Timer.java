@@ -15,7 +15,8 @@ package org.openhab.binding.mideaac.internal.handler;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * On Off Timer Channels.
+ * The {@link Timer} class returns the On & Off AC Timer values
+ * to the channels. They are read only.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */

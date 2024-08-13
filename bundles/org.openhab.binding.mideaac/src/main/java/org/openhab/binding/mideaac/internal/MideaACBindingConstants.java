@@ -14,8 +14,6 @@ package org.openhab.binding.mideaac.internal;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
@@ -77,15 +75,10 @@ public class MideaACBindingConstants {
 
     public static final Unit<Temperature> API_TEMPERATURE_UNIT = SIUnits.CELSIUS;
 
-    @SuppressWarnings("null")
-    public static final Set<String> SUPPORTED_CHANNEL_IDS = Stream.of(CHANNEL_POWER, CHANNEL_OPERATIONAL_MODE,
-            CHANNEL_TARGET_TEMPERATURE, CHANNEL_INDOOR_TEMPERATURE, CHANNEL_OUTDOOR_TEMPERATURE)
-            .collect(Collectors.toSet());
-
     // Commands sent to/from fan are ASCII
     public static final String CHARSET = "US-ASCII";
 
-    // List of al property ids
+    // List of all property ids
     public static final String CONFIG_IP_ADDRESS = "ipAddress";
     public static final String CONFIG_IP_PORT = "ipPort";
     public static final String CONFIG_DEVICEID = "deviceId";
@@ -94,6 +87,7 @@ public class MideaACBindingConstants {
     public static final String CONFIG_TOKEN = "token";
     public static final String CONFIG_KEY = "key";
     public static final String CONFIG_POLLING_TIME = "pollingTime";
+    public static final String CONFIG_CONNECTING_TIMEOUT = "timeout";
     public static final String CONFIG_PROMPT_TONE = "promptTone";
 
     public static final String PROPERTY_VERSION = "version";

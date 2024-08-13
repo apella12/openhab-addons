@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Decryption.
+ * The {@link Decryption8370Result} Protocol. V3 Only
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */

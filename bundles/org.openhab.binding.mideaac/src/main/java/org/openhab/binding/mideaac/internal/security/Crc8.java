@@ -15,7 +15,7 @@ package org.openhab.binding.mideaac.internal.security;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * CRC8 calculation.
+ * The {@link CRC8} calculation.
  *
  * @author Jacek Dobrowolski - Initial Contribution
  */

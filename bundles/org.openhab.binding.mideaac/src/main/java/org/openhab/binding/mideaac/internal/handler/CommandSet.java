@@ -15,7 +15,10 @@ package org.openhab.binding.mideaac.internal.handler;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Command changing a Midea AC.
+ * This {@link CommandSet} class handles the allowed changes originating from
+ * the items linked to the Midea AC channels. Not all devices
+ * support all commands. The general process is to clear the
+ * bit(s) the set them to the commanded value.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -56,9 +59,9 @@ public class CommandSet extends CommandBase {
 
     public void setPromptTone(boolean feedbackEnabled) {
         if (!feedbackEnabled) {
-            data[0x0b] &= ~(byte) 0x40; // Clear the audible bit
+            data[0x0b] &= ~(byte) 0x40; // Clear
         } else {
-            data[0x0b] |= (byte) 0x40;
+            data[0x0b] |= (byte) 0x40; // Set
         }
     }
 
@@ -70,17 +73,21 @@ public class CommandSet extends CommandBase {
         }
     }
 
-    // For testing assertion
+    /*
+     * For Testing assertion get result
+     */
     public boolean getPowerState() {
         return (data[0x0b] & 0x1) > 0;
     }
 
     public void setOperationalMode(OperationalMode mode) {
-        data[0x0c] &= ~(byte) 0xe0; // Clear the mode bit
+        data[0x0c] &= ~(byte) 0xe0; // Clear
         data[0x0c] |= ((byte) mode.getId() << 5) & (byte) 0xe0;
     }
 
-    // For testing assertion
+    /*
+     * For Testing assertion get result
+     */
     public int getOperationalMode() {
         return data[0x0c] &= (byte) 0xe0;
     }
@@ -94,7 +101,9 @@ public class CommandSet extends CommandBase {
         setTemperatureDot5((Math.round(temperature * 2)) % 2 != 0);
     }
 
-    // For Testing assertion
+    /*
+     * For Testing assertion get result
+     */
     public float getTargetTemperature() {
         return (data[0x0c] & 0xf) + 16.0f + (((data[0x0c] & 0x10) > 0) ? 0.5f : 0.0f);
     }
@@ -103,7 +112,9 @@ public class CommandSet extends CommandBase {
         data[0x0d] = (byte) (speed.getId());
     }
 
-    // For testing assertion
+    /*
+     * For Testing assertion get result
+     */
     public int getFanSpeed() {
         return data[0x0d];
     }
@@ -121,7 +132,9 @@ public class CommandSet extends CommandBase {
         data[0x11] |= mode.getId() & 0x3f;
     }
 
-    // For testing assertion
+    /*
+     * For Testing assertion get result
+     */
     public int getSwingMode() {
         return data[0x11];
     }
@@ -142,8 +155,10 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    /*
+     * Set the display to Fahrenheit from Celsius
+     */
     public void setFahrenheit(boolean fahrenheitEnabled) {
-        // set the display to Fahrenheit from Celsius
         if (fahrenheitEnabled) {
             data[0x14] |= 0x04;
         } else {
@@ -151,8 +166,10 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    /*
+     * The LED lights on the AC are too bright during sleep
+     */
     public void setScreenDisplay(boolean screenDisplayEnabled) {
-        // the LED lights on the AC. these display temperature and are often too bright during nights
         if (screenDisplayEnabled) {
             data[0x14] |= 0x10;
         } else {
@@ -160,9 +177,11 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    /*
+     * Add 0.5C to the temperature value. If needed
+     * Target_temperature setter calls this method
+     */
     private void setTemperatureDot5(boolean temperatureDot5Enabled) {
-        // add 0.5C to the temperature value. not intended to be called directly. target_temperature setter calls this
-        // if needed
         if (temperatureDot5Enabled) {
             data[0x0c] |= 0x10;
         } else {

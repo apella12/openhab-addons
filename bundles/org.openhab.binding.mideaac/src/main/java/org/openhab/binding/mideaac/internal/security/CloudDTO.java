@@ -37,7 +37,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * Cloud.
+ * The {@link CloudDTO} class connects to the Cloud Provider
+ * with user supplied information to retrieve the Security
+ * Token and Key.
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -47,13 +49,9 @@ public class CloudDTO {
     @SuppressWarnings("unused")
     private static final Gson GSON = new Gson();
 
-    // private static final String SERVER_URL = "https://mp-prod.appsmb.com/mas/v5/app/proxy?alias=";
-
     private static final int CLIENT_TYPE = 1; // Android
     private static final int FORMAT = 2; // JSON
     private static final String LANGUAGE = "en_US";
-    // private static final String APP_ID = "1010";
-    // private static final String SRC = "1010";
 
     private Date tokenRequestedAt = new Date();
 
@@ -99,9 +97,11 @@ public class CloudDTO {
         logger.debug("Cloud provider: {}", cloudProvider.getName());
     }
 
+    /*
+     * Set up the initial data payload with the global variable set
+     */
     @SuppressWarnings("null")
     private JsonObject apiRequest(String endpoint, JsonObject args, JsonObject data) {
-        // Set up the initial data payload with the global variable set
         if (data == null) {
             data = new JsonObject();
             data.addProperty("appId", cloudProvider.getAppId());
@@ -120,7 +120,6 @@ public class CloudDTO {
         }
 
         // Add the login information to the payload
-
         if (!data.has("reqId") && !Objects.isNull(cloudProvider.getProxied())
                 && !cloudProvider.getProxied().isBlank()) {
             data.addProperty("reqId", Utils.tokenHex(16));
@@ -133,7 +132,6 @@ public class CloudDTO {
         String random = String.valueOf(time);
 
         // Add the sign to the header
-
         String json = data.toString();
         logger.debug("Request json: {}", json);
 
@@ -222,7 +220,9 @@ public class CloudDTO {
         return null;
     }
 
-    // Performs a user login with the credentials supplied to the constructor
+    /*
+     * Performs a user login with the credentials supplied to the constructor
+     */
     @SuppressWarnings("null")
     public boolean login() {
         if (loginId == null) {
@@ -285,12 +285,12 @@ public class CloudDTO {
         return true;
     }
 
-    // Get tokenlist with udpid
+    /*
+     * Get tokenlist with udpid
+     */
     public TokenKey getToken(String udpid) {
         long i = Long.valueOf(udpid);
 
-        // if (!StringUtils.isBlank(cloudProvider.getProxied())) {
-        // Now (!Objects.isNull(cloudProvider.getProxied()) && !cloudProvider.getProxied().isBlank()))
         JsonObject args = new JsonObject();
         args.addProperty("udpid", security.getUdpId(Utils.toIntTo6ByteArray(i, ByteOrder.BIG_ENDIAN)));
         JsonObject response = apiRequest("/v1/iot/secure/getToken", args, null);
@@ -298,10 +298,6 @@ public class CloudDTO {
         if (response == null) {
             return null;
         }
-
-        // logger.trace("response: {}", response.toString());
-        // JsonObject data = response.getAsJsonObject("data");
-        // logger.trace("data: {}", data.toString());
 
         JsonArray tokenlist = response.getAsJsonArray("tokenlist");
         JsonObject el = tokenlist.get(0).getAsJsonObject();
@@ -311,23 +307,11 @@ public class CloudDTO {
         setTokenRequested();
 
         return new TokenKey(token, key);
-        // } else {
-        // JsonObject response = apiRequest("/v1/appliance/user/list/get", null, null);
-        //
-        // if (response == null) {
-        // return null;
-        // }
-        //
-        // logger.trace("response: {}", response.toString());
-        // // JsonObject data = response.getAsJsonObject("data");
-        // // logger.trace("data: {}", data.toString());
-        // String token = "";
-        // String key = "";
-        // return new TokenKey(token, key);
-        // }
     }
 
-    // Get the login ID from the email address
+    /*
+     * Get the login ID from the email address
+     */
     private boolean getLoginId() {
         JsonObject args = new JsonObject();
         args.addProperty("loginAccount", loginAccount);

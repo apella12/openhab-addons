@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base Commands.
+ * The {@link CommandBase} has the discover command and the routine poll command
  *
  * @author Jacek Dobrowolski - Initial contribution
  */
@@ -43,6 +43,9 @@ public class CommandBase {
 
     protected byte[] data;
 
+    /**
+     * Operational Modes byte/label of the Midea AC device
+     */
     public enum OperationalMode {
         AUTO(1),
         COOL(2),
@@ -71,8 +74,11 @@ public class CommandBase {
         }
     }
 
-    // Two versions of V3, Supported Swing or Non-Supported (4)
-    // V2 set without leading 3, but reports with it (1)
+    /**
+     * Converts byte value to the Swing Mode label by version
+     * Two versions of V3, Supported Swing or Non-Supported (4)
+     * V2 set without leading 3, but reports with it (1)
+     */
     public enum SwingMode {
         OFF3(0x30, 3),
         OFF4(0x00, 3),
@@ -124,6 +130,9 @@ public class CommandBase {
         }
     }
 
+    /**
+     * Converts byte value to the Fan Speed label by version
+     */
     public enum FanSpeed {
         AUTO2(102, 2),
         FULL2(100, 2),
@@ -185,6 +194,9 @@ public class CommandBase {
         return DISCOVER_COMMAND;
     }
 
+    /*
+     * Byte Array structure for commands
+     */
     @SuppressWarnings("deprecation")
     public CommandBase() {
         data = new byte[] { (byte) 0xaa,
@@ -218,6 +230,9 @@ public class CommandBase {
         data[0x02] = (byte) 0xAC;
     }
 
+    /*
+     * Pulls the elements of the Base command together
+     */
     public void compose() {
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
         byte[] newData1 = new byte[data.length + 1];

@@ -7,7 +7,7 @@
 	<!-- Thing Type -->
 	<thing-type id="ac">
 		<label>Midea Air Conditioner</label>
-		<description>Midea Air Conditioner with USB WiFi stick. There are 2 versions: V2 - without encryption, V3 - with
+		<description>Midea Air Conditioner with USB WIFI stick. There are 2 versions: v2 - without encryption, v3 - with
 			encryption - Token and Key must be provided, it can be automatically obtained from Cloud.
 		</description>
 
@@ -59,7 +59,7 @@
 			<parameter name="ipPort" type="text" required="true">
 				<context>ipPort</context>
 				<label>IP Port</label>
-				<description>IP port of the device.</description>
+				<description>IP port of the device (for V2: 6444).</description>
 				<default>6444</default>
 			</parameter>
 			<parameter name="deviceId" type="text" required="true">
@@ -71,7 +71,7 @@
 			<parameter name="cloud" type="text" required="false">
 				<context>cloud</context>
 				<label>Cloud Provider</label>
-				<description>Cloud Provider name. Required for V3.</description>
+				<description>Cloud Provider name for email and password.</description>
 				<options>
 					<option value=""></option>
 					<option value="MSmartHome">MSmartHome</option>
@@ -84,13 +84,13 @@
 			<parameter name="email" type="text" required="false">
 				<context>email</context>
 				<label>Email</label>
-				<description>Email for Cloud Provider account. Needed for key/token discovery.</description>
+				<description>Email for cloud account chosen in Cloud Provider.</description>
 				<default></default>
 			</parameter>
 			<parameter name="password" type="text" required="false">
 				<context>password</context>
 				<label>Password</label>
-				<description>Password for Cloud Provider account. Needed for key/token discovery.</description>
+				<description>Password for cloud account chosen in Cloud Provider.</description>
 				<default></default>
 			</parameter>
 			<parameter name="reauth" type="text" required="false">
@@ -103,14 +103,14 @@
 				<context>token</context>
 				<label>Token</label>
 				<description>Secret Token (length 128 HEX) used for secure connection authentication used with devices v3 (if not
-					known, enter email and password for Cloud Provider to retrieve it).</description>
+					known, enter email and password for Cloud to retrieve it).</description>
 				<default></default>
 			</parameter>
 			<parameter name="key" type="text" required="false">
 				<context>key</context>
 				<label>Key</label>
 				<description>Secret Key (length 64 HEX) used for secure connection authentication used with devices v3 (if not
-					known, enter email and password for Cloud Provider to retrieve it).</description>
+					known, enter email and password for Cloud to retrieve it).</description>
 				<default></default>
 			</parameter>
 			<parameter name="pollingTime" type="decimal" required="true" min="30" unit="s">
@@ -225,14 +225,14 @@
 	<channel-type id="tempUnit">
 		<item-type>Switch</item-type>
 		<label>Temperature unit</label>
-		<description>If set Farenheit unit are be displayed, otherwise Celsius.</description>
+		<description>On = Farenheit on Indoor AC unit LED display, Off = Celsius.</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="screenDisplay" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Screen display</label>
-		<description>Turns on and off displaying white digits on a device. Doesn't work with all models, no confirmation
-			either.</description>
+		<description>Turns on and off LED display on Indoor AC unit. Doesn't work with all models, no Poll
+			confirmation either.</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="imodeResume" advanced="true">
@@ -259,14 +259,14 @@
 	<channel-type id="onTimer" advanced="true">
 		<item-type>String</item-type>
 		<label>ON Timer</label>
-		<description>ON Timer (HH:MM) if set.</description>
-		<state readOnly="true"/>
+		<description>ON Timer (HH:MM) to set.</description>
+		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="offTimer" advanced="true">
 		<item-type>String</item-type>
 		<label>OFF Timer</label>
-		<description>OFF Timer (HH:MM) if set.</description>
-		<state readOnly="true"/>
+		<description>OFF Timer (HH:MM) to set.</description>
+		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="cozySleep" advanced="true">
 		<item-type>Number</item-type>

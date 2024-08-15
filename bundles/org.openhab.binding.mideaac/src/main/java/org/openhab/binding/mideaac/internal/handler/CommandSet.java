@@ -13,6 +13,7 @@
 package org.openhab.binding.mideaac.internal.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
 
 /**
  * This {@link CommandSet} class handles the allowed changes originating from
@@ -40,6 +41,10 @@ public class CommandSet extends CommandBase {
         data = newData;
     }
 
+    /*
+     * These provide continuity so a new command on another channel
+     * doesn't delete the current state of that channel
+     */
     public static CommandSet fromResponse(Response response) {
         CommandSet commandSet = new CommandSet();
 
@@ -53,7 +58,8 @@ public class CommandSet extends CommandBase {
         commandSet.setScreenDisplay(response.getNightLight());
         commandSet.setEcoMode(response.getEcoMode());
         commandSet.setSleepMode(response.getSleepFunction());
-
+        commandSet.setOnTimer(response.getOnTimerData());
+        commandSet.setOffTimer(response.getOffTimerData());
         return commandSet;
     }
 
@@ -156,7 +162,7 @@ public class CommandSet extends CommandBase {
     }
 
     /*
-     * Set the display to Fahrenheit from Celsius
+     * Set the Indoor Unit display to Fahrenheit from Celsius
      */
     public void setFahrenheit(boolean fahrenheitEnabled) {
         if (fahrenheitEnabled) {
@@ -187,5 +193,90 @@ public class CommandSet extends CommandBase {
         } else {
             data[0x0c] &= (~0x10);
         }
+    }
+
+    /*
+     * Set the ON timer for AC device start.
+     */
+    public void setOnTimer(TimerData timerData) {
+        setOnTimer(timerData.status, timerData.hours, timerData.minutes);
+    }
+
+    public void setOnTimer(boolean on, int hours, int minutes) {
+        // Process minutes (1 bit = 15 minutes)
+        int bits = (int) Math.floor(minutes / 15);
+        int subtract = 0;
+        if (bits != 0) {
+            subtract = (15 - (int) (minutes - bits * 15));
+        }
+        if (bits == 0 && minutes != 0) {
+            subtract = (15 - minutes);
+        }
+        data[0x0e] &= ~(byte) 0xff; // Clear
+        data[0x10] &= ~(byte) 0xf0;
+        if (on) {
+            data[0x0e] |= 0x80;
+            data[0x0e] |= (hours << 2) & 0x7c;
+            data[0x0e] |= bits & 0x03;
+            data[0x10] |= (subtract << 4) & 0xf0;
+        } else {
+            data[0x0e] = 0x7f;
+        }
+    }
+
+    /*
+     * For Testing assertion get On Timer result
+     */
+    public int getOnTimer() {
+        return (data[0x0e] & 0xff);
+    }
+
+    /*
+     * For Testing assertion get On Timer result (subtraction amount)
+     */
+    public int getOnTimer2() {
+        return ((data[0x10] & (byte) 0xf0) >> 4) & 0x0f;
+    }
+
+    /*
+     * Set the timer for AC device stop.
+     */
+    public void setOffTimer(TimerData timerData) {
+        setOffTimer(timerData.status, timerData.hours, timerData.minutes);
+    }
+
+    public void setOffTimer(boolean on, int hours, int minutes) {
+        int bits = (int) Math.floor(minutes / 15);
+        int subtract = 0;
+        if (bits != 0) {
+            subtract = (15 - (int) (minutes - bits * 15));
+        }
+        if (bits == 0 && minutes != 0) {
+            subtract = (15 - minutes);
+        }
+        data[0x0f] &= ~(byte) 0xff; // Clear
+        data[0x10] &= ~(byte) 0x0f;
+        if (on) {
+            data[0x0f] |= 0x80;
+            data[0x0f] |= (hours << 2) & 0x7c;
+            data[0x0f] |= bits & 0x03;
+            data[0x10] |= subtract & 0x0f;
+        } else {
+            data[0x0f] = 0x7f;
+        }
+    }
+
+    /*
+     * For Testing assertion get Off Timer result
+     */
+    public int getOffTimer() {
+        return (data[0x0f] & 0xff);
+    }
+
+    /*
+     * For Testing assertion get Off Timer result (subtraction)
+     */
+    public int getOffTimer2() {
+        return ((data[0x10] & (byte) 0x0f)) & 0x0f;
     }
 }

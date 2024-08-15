@@ -42,6 +42,7 @@ import org.openhab.binding.mideaac.internal.discovery.MideaACDiscoveryService;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.handler.Timer.TimeParser;
 import org.openhab.binding.mideaac.internal.security.CloudDTO;
 import org.openhab.binding.mideaac.internal.security.CloudProvider;
 import org.openhab.binding.mideaac.internal.security.Clouds;
@@ -214,6 +215,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             handleTempUnit(command);
         } else if (channelUID.getId().equals(CHANNEL_SLEEP_FUNCTION)) {
             handleSleepFunction(command);
+        } else if (channelUID.getId().equals(CHANNEL_ON_TIMER)) {
+            handleOnTimer(command);
+        } else if (channelUID.getId().equals(CHANNEL_OFF_TIMER)) {
+            handleOffTimer(command);
         }
     }
 
@@ -499,6 +504,76 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             commandSet.setSleepMode(true);
         } else {
             logger.debug("Unknown sleep Mode command: {}", command);
+            return;
+        }
+
+        getConnectionManager().sendCommandAndMonitor(commandSet);
+    }
+
+    public void handleOnTimer(Command command) {
+        CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        TimeParser timeParser = timer.new TimeParser();
+        if (command instanceof StringType) {
+            String timeString = ((StringType) command).toString();
+            if (!timeString.matches("\\d{2}:\\d{2}")) {
+                logger.debug("Invalid time format. Expected HH:MM.");
+                return;
+            }
+            int[] timeParts = timeParser.parseTime(timeString);
+            boolean on = true;
+            hours = timeParts[0];
+            minutes = timeParts[1];
+
+            // Validate minutes and hours
+            if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                return;
+            }
+            if (hours == 0 && minutes == 0) {
+                commandSet.setOnTimer(false, hours, minutes);
+            } else {
+                commandSet.setOnTimer(on, hours, minutes);
+            }
+        } else {
+            logger.debug("Command must be of type StringType: {}", command);
+            return;
+        }
+
+        getConnectionManager().sendCommandAndMonitor(commandSet);
+    }
+
+    public void handleOffTimer(Command command) {
+        CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        TimeParser timeParser = timer.new TimeParser();
+        if (command instanceof StringType) {
+            String timeString = ((StringType) command).toString();
+            if (!timeString.matches("\\d{2}:\\d{2}")) {
+                logger.debug("Invalid time format. Expected HH:MM.");
+                return;
+            }
+            int[] timeParts = timeParser.parseTime(timeString);
+            boolean on = true;
+            hours = timeParts[0];
+            minutes = timeParts[1];
+
+            // Validate minutes and hours
+            if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                return;
+            }
+            if (hours == 0 && minutes == 0) {
+                commandSet.setOffTimer(false, hours, minutes);
+            } else {
+                commandSet.setOffTimer(on, hours, minutes);
+            }
+        } else {
+            logger.debug("Command must be of type StringType: {}", command);
             return;
         }
 

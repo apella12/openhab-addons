@@ -97,4 +97,84 @@ public class CommandSetTest {
         commandSet.setOperationalMode(mode);
         assertEquals(mode1, commandSet.getOperationalMode());
     }
+
+    @Test
+    public void testHandleOnTimer() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = true;
+        int hours = 3;
+        int minutes = 59;
+        int bits = (int) Math.floor(minutes / 15);
+        int time = 143;
+        int remainder = (15 - (int) (minutes - bits * 15));
+        commandSet.setOnTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOnTimer());
+        assertEquals(remainder, commandSet.getOnTimer2());
+    }
+
+    @Test
+    public void testHandleOnTimer2() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = false;
+        int hours = 3;
+        int minutes = 60;
+        int time = 127;
+        int remainder = 0;
+        commandSet.setOnTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOnTimer());
+        assertEquals(remainder, commandSet.getOnTimer2());
+    }
+
+    @Test
+    public void testHandleOnTimer3() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = true;
+        int hours = 0;
+        int minutes = 14;
+        int time = 128;
+        int remainder = (15 - minutes);
+        commandSet.setOnTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOnTimer());
+        assertEquals(remainder, commandSet.getOnTimer2());
+    }
+
+    @Test
+    public void testHandleOffTimer() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = true;
+        int hours = 3;
+        int minutes = 59;
+        int bits = (int) Math.floor(minutes / 15);
+        int time = 143;
+        int remainder = (15 - (int) (minutes - bits * 15));
+        commandSet.setOffTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOffTimer());
+        assertEquals(remainder, commandSet.getOffTimer2());
+    }
+
+    @Test
+    public void testHandleOffTimer2() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = false;
+        int hours = 3;
+        int minutes = 60;
+        int time = 127;
+        int remainder = 0;
+        commandSet.setOffTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOffTimer());
+        assertEquals(remainder, commandSet.getOffTimer2());
+    }
+
+    @Test
+    public void testHandleOffTimer3() {
+        CommandSet commandSet = new CommandSet();
+        boolean on = true;
+        int hours = 0;
+        int minutes = 14;
+        int time = 128;
+        int remainder = (15 - minutes);
+        commandSet.setOffTimer(on, hours, minutes);
+        assertEquals(time, commandSet.getOffTimer());
+        assertEquals(remainder, commandSet.getOffTimer2());
+    }
 }

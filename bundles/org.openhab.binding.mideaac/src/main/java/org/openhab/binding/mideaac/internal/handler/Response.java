@@ -16,6 +16,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,14 +134,48 @@ public class Response {
         return FanSpeed.fromId(data[0x03] & 0x7f, getVersion());
     }
 
+    /*
+     * Creates String representation of the On timer to the channel
+     */
     public Timer getOnTimer() {
         return new Timer((data[0x04] & 0x80) > 0, ((data[0x04] & (byte) 0x7c) >> 2),
-                ((data[0x04] & 0x3) * 15 + 15 - (((data[0x06] & (byte) 0xf0) >> 4) & 0x0F)));
+                ((data[0x04] & 0x3) * 15 + 15 - (((data[0x06] & (byte) 0xf0) >> 4) & 0x0f)));
     }
 
+    /*
+     * This is used to carry the current On Timer (last response) through
+     * subsequent Set commands.
+     */
+    public TimerData getOnTimerData() {
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        boolean status = (data[0x04] & 0x80) > 0;
+        hours = ((data[0x04] & (byte) 0x7c) >> 2);
+        minutes = ((data[0x04] & 0x3) * 15 + 15 - (((data[0x06] & (byte) 0xf0) >> 4) & 0x0f));
+        return timer.new TimerData(status, hours, minutes);
+    }
+
+    /*
+     * Creates String representation of the Off timer to the channel
+     */
     public Timer getOffTimer() {
         return new Timer((data[0x05] & 0x80) > 0, ((data[0x05] & (byte) 0x7c) >> 2),
                 ((data[0x05] & 0x3) * 15 + 15 - (data[0x06] & (byte) 0xf)));
+    }
+
+    /*
+     * This was a try to carry the Off timer (last response) through
+     * subsequent Set commands.
+     */
+    public TimerData getOffTimerData() {
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        boolean status = (data[0x05] & 0x80) > 0;
+        hours = ((data[0x05] & (byte) 0x7c) >> 2);
+        minutes = (data[0x05] & 0x3) * 15 + 15 - (((data[0x06] & (byte) 0xf) & 0x0f));
+        return timer.new TimerData(status, hours, minutes);
     }
 
     public SwingMode getSwingMode() {
@@ -225,7 +260,7 @@ public class Response {
 
     /*
      * There is some variation in how this is handled by different
-     * AC models. This covers at least 2 versions found so far.
+     * AC models. This covers at least 2 versions found.
      */
     public Float getIndoorTemperature() {
         double indoorTempInteger;
@@ -287,10 +322,10 @@ public class Response {
 
     /*
      * There is some variation in how this is handled by different
-     * AC models. This covers at least 2 versions found so far.
+     * AC models. This covers at least 2 versions.
      */
     public Float getOutdoorTemperature() {
-        if (data[12] != 0xFF) {
+        if (data[12] != (byte) 0xff) {
             double tempInteger = (float) (Byte.toUnsignedInt(data[12]) - 50f) / 2.0f;
             double tempDecimal = ((data[15] & 0xf0) >> 4) * 0.1f;
             if (Byte.toUnsignedInt(data[12]) > 49) {
@@ -299,7 +334,7 @@ public class Response {
                 return (float) (tempInteger - tempDecimal);
             }
         }
-        return empty;
+        return 0.0f;
     }
 
     /*

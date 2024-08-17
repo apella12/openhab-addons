@@ -520,26 +520,27 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             String timeString = ((StringType) command).toString();
             if (!timeString.matches("\\d{2}:\\d{2}")) {
                 logger.debug("Invalid time format. Expected HH:MM.");
-                return;
-            }
-            int[] timeParts = timeParser.parseTime(timeString);
-            boolean on = true;
-            hours = timeParts[0];
-            minutes = timeParts[1];
-
-            // Validate minutes and hours
-            if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
-                logger.debug("Invalid hours (24 max) and or minutes (59 max)");
-                return;
-            }
-            if (hours == 0 && minutes == 0) {
                 commandSet.setOnTimer(false, hours, minutes);
             } else {
-                commandSet.setOnTimer(on, hours, minutes);
+                int[] timeParts = timeParser.parseTime(timeString);
+                boolean on = true;
+                hours = timeParts[0];
+                minutes = timeParts[1];
+                // Validate minutes and hours
+                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                    hours = 0;
+                    minutes = 0;
+                }
+                if (hours == 0 && minutes == 0) {
+                    commandSet.setOnTimer(false, hours, minutes);
+                } else {
+                    commandSet.setOnTimer(on, hours, minutes);
+                }
             }
         } else {
             logger.debug("Command must be of type StringType: {}", command);
-            return;
+            commandSet.setOnTimer(false, hours, minutes);
         }
 
         getConnectionManager().sendCommandAndMonitor(commandSet);
@@ -555,26 +556,27 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             String timeString = ((StringType) command).toString();
             if (!timeString.matches("\\d{2}:\\d{2}")) {
                 logger.debug("Invalid time format. Expected HH:MM.");
-                return;
-            }
-            int[] timeParts = timeParser.parseTime(timeString);
-            boolean on = true;
-            hours = timeParts[0];
-            minutes = timeParts[1];
-
-            // Validate minutes and hours
-            if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
-                logger.debug("Invalid hours (24 max) and or minutes (59 max)");
-                return;
-            }
-            if (hours == 0 && minutes == 0) {
                 commandSet.setOffTimer(false, hours, minutes);
             } else {
-                commandSet.setOffTimer(on, hours, minutes);
+                int[] timeParts = timeParser.parseTime(timeString);
+                boolean on = true;
+                hours = timeParts[0];
+                minutes = timeParts[1];
+                // Validate minutes and hours
+                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                    hours = 0;
+                    minutes = 0;
+                }
+                if (hours == 0 && minutes == 0) {
+                    commandSet.setOffTimer(false, hours, minutes);
+                } else {
+                    commandSet.setOffTimer(on, hours, minutes);
+                }
             }
         } else {
             logger.debug("Command must be of type StringType: {}", command);
-            return;
+            commandSet.setOffTimer(false, hours, minutes);
         }
 
         getConnectionManager().sendCommandAndMonitor(commandSet);
@@ -1069,6 +1071,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                 }
             } catch (IOException e) {
                 logger.warn("An IO error in doAuthentication has occured {}", e.getMessage());
+                String message = e.getMessage();
+                if (message != null) {
+                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
+                } else {
+                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
+                }
             }
         }
 
@@ -1113,11 +1121,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
             Packet packet = new Packet(command, deviceId, mideaACHandler);
             packet.compose();
-
-            if (!isConnected()) {
-                logger.debug("Unable to send message; no connection to {}. starting over: {}", thing.getUID(), command);
-                markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
-            }
 
             try {
                 byte[] bytes = packet.getBytes();
@@ -1260,19 +1263,17 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             } catch (SocketException e) {
                 logger.debug("SocketException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
-                if (message != null) {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
-                } else {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
-                }
+                droppedCommands = droppedCommands + 1;
+                updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
+                updateStatus(ThingStatus.OFFLINE, getDetail(), message);
+                return;
             } catch (IOException e) {
                 logger.debug(" Send IOException writing to  {} at {}: {}", thing.getUID(), ipAddress, e.getMessage());
                 String message = e.getMessage();
-                if (message != null) {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, message);
-                } else {
-                    markOfflineWithMessage(ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, "");
-                }
+                droppedCommands = droppedCommands + 1;
+                updateChannel(DROPPED_COMMANDS, new DecimalType(droppedCommands));
+                updateStatus(ThingStatus.OFFLINE, getDetail(), message);
+                return;
             }
         }
 
@@ -1397,13 +1398,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             }
         }
 
-        @SuppressWarnings("null")
-        private boolean isConnected() {
-            return deviceIsConnected && !socket.isClosed() && socket.isConnected();
-        }
-
         /*
-         * Periodical polling. Thirty sceonds minimum
+         * Periodical polling. Thirty seconds minimum
          */
         @SuppressWarnings("null")
         private void scheduleConnectionMonitorJob() {

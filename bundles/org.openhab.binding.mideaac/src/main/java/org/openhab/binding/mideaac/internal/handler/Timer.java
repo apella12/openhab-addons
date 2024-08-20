@@ -34,6 +34,9 @@ public class Timer {
         this.minutes = minutes;
     }
 
+    /*
+     * Timer format for the trace log
+     */
     public String toString() {
         if (status) {
             return String.format("enabled: %s, hours: %d, minutes: %d", status, hours, minutes);
@@ -43,7 +46,7 @@ public class Timer {
     }
 
     /*
-     * Timer format on the OH channel
+     * Timer format of the OH channel
      */
     public String toChannel() {
         if (status) {
@@ -54,7 +57,7 @@ public class Timer {
     }
 
     /*
-     * This splits the channel command back to hours and minutes
+     * This splits the On or off timer channels command back to hours and minutes
      * so the AC start and stop timers can be set
      */
     public class TimeParser {

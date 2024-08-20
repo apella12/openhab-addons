@@ -43,7 +43,7 @@ public class CommandSet extends CommandBase {
 
     /*
      * These provide continuity so a new command on another channel
-     * doesn't delete the current state of that channel
+     * doesn't delete the current states of the other channels
      */
     public static CommandSet fromResponse(Response response) {
         CommandSet commandSet = new CommandSet();
@@ -63,6 +63,9 @@ public class CommandSet extends CommandBase {
         return commandSet;
     }
 
+    /*
+     * Causes indoor device to beep when command received
+     */
     public void setPromptTone(boolean feedbackEnabled) {
         if (!feedbackEnabled) {
             data[0x0b] &= ~(byte) 0x40; // Clear
@@ -71,6 +74,9 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    /*
+     * Turns device On or Off
+     */
     public void setPowerState(boolean state) {
         if (!state) {
             data[0x0b] &= ~0x01;
@@ -86,8 +92,11 @@ public class CommandSet extends CommandBase {
         return (data[0x0b] & 0x1) > 0;
     }
 
+    /*
+     * Cool, Heat, Fan Only, etc. See Command Base class
+     */
     public void setOperationalMode(OperationalMode mode) {
-        data[0x0c] &= ~(byte) 0xe0; // Clear
+        data[0x0c] &= ~(byte) 0xe0;
         data[0x0c] |= ((byte) mode.getId() << 5) & (byte) 0xe0;
     }
 
@@ -98,53 +107,67 @@ public class CommandSet extends CommandBase {
         return data[0x0c] &= (byte) 0xe0;
     }
 
+    /*
+     * Clear, then set the temperature bits, including the 0.5 bit
+     * This is all degrees C
+     */
     public void setTargetTemperature(float temperature) {
-        // Clear the temperature bits.
         data[0x0c] &= ~0x0f;
-        // Clear the temperature bits, except the 0.5 bit, which will be set properly in all cases
         data[0x0c] |= (int) (Math.round(temperature * 2) / 2) & 0xf;
-        // set the +0.5 bit
         setTemperatureDot5((Math.round(temperature * 2)) % 2 != 0);
     }
 
     /*
-     * For Testing assertion get result
+     * For Testing assertion get Setpoint results
      */
     public float getTargetTemperature() {
         return (data[0x0c] & 0xf) + 16.0f + (((data[0x0c] & 0x10) > 0) ? 0.5f : 0.0f);
     }
 
+    /*
+     * Low, Medium, High, Auto etc. See Command Base class
+     */
     public void setFanSpeed(FanSpeed speed) {
         data[0x0d] = (byte) (speed.getId());
     }
 
     /*
-     * For Testing assertion get result
+     * For Testing assertion get Fan Speed results
      */
     public int getFanSpeed() {
         return data[0x0d];
     }
 
+    /*
+     * In cool mode sets Fan to Auto and temp to 24 C
+     */
     public void setEcoMode(boolean ecoModeEnabled) {
         if (!ecoModeEnabled) {
-            data[0x13] &= ~0x80; // Clear the Eco bit (if set)
+            data[0x13] &= ~0x80;
         } else {
             data[0x13] |= 0x80;
         }
     }
 
+    /*
+     * If unit supports, set the vertical and/or horzontal louver
+     */
     public void setSwingMode(SwingMode mode) {
         data[0x11] &= ~0x3f; // Clear the mode bits
         data[0x11] |= mode.getId() & 0x3f;
     }
 
     /*
-     * For Testing assertion get result
+     * For Testing assertion get Swing result
      */
     public int getSwingMode() {
         return data[0x11];
     }
 
+    /*
+     * Activates the sleep function. Setpoint Temp increases in first
+     * two hours of sleep by 1 degree in Cool mode
+     */
     public void setSleepMode(boolean sleepModeEnabled) {
         if (sleepModeEnabled) {
             data[0x14] |= 0x01;
@@ -153,6 +176,9 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    /*
+     * Sets the Turbo mode for maximum cooling or heat
+     */
     public void setTurboMode(boolean turboModeEnabled) {
         if (turboModeEnabled) {
             data[0x14] |= 0x02;
@@ -173,7 +199,7 @@ public class CommandSet extends CommandBase {
     }
 
     /*
-     * The LED lights on the AC are too bright during sleep
+     * Turns the LED lights on the indoor unit off while unit is on.
      */
     public void setScreenDisplay(boolean screenDisplayEnabled) {
         if (screenDisplayEnabled) {

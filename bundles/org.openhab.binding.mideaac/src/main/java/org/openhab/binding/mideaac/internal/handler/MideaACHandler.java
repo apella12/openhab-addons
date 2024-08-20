@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jacek Dobrowolski - Initial contribution
  * @author Justan Oldman - Last Response
- * @author Robert Eckhoff - Longer Polls and OH developer guidelines
+ * @author Bob Eckhoff - Longer Polls and OH developer guidelines
  * 
  */
 @NonNullByDefault
@@ -88,7 +88,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     private @Nullable MideaACConfiguration config;
     private @Nullable Map<String, String> properties;
 
-    // Initialize variables to allow the @NonNullByDefault
+    // Initialize variables to allow the @NonNullByDefault check
     private String ipAddress = "";
     private String ipPort = "";
     private String deviceId = "";
@@ -139,7 +139,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private final HttpClient httpClient;
 
-    // Switches to optimize logging, retries and commands
+    /*
+     * Switches to optimize logging, retries and commands
+     */
     public boolean doPoll = true;
     public boolean retry = true;
     public boolean connectionMessage = true;
@@ -177,21 +179,26 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
      * This method handles the Channels that can be set (non-read only)
      * First the Routine polling is stopped so there is no conflict
      * Then connects and authorizes (if necessary) and returns here to
-     * create the command set.
+     * create the command set which is then sent to the device.
      */
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
-
+        connectionManager.disconnect();
         getConnectionManager().cancelConnectionMonitorJob();
 
-        // Alternate to routine polling is a rule to refresh at the desired interval
+        /*
+         * Alternate to routine polling; Use rule to refresh at the desired interval
+         */
         if (command instanceof RefreshType) {
             connectionManager.connect();
             return;
         }
 
-        // This is set to skip poll, after authorization and speed up the command set execution
+        /*
+         * @param doPoll is set to skip poll after authorization and go directly
+         * to command set execution
+         */
         doPoll = false;
         connectionManager.connect();
 
@@ -241,7 +248,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     /*
-     * Supported AC modes
+     * Supported AC - Heat Pump modes
      */
     public void handleOperationalMode(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
@@ -316,7 +323,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     /*
-     * Fan Speeds vary by V2 or V3 and device. This also turns the power ON
+     * Fan Speeds vary by V2 or V3 and device. This command also turns the power ON
      */
     public void handleFanSpeed(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
@@ -510,6 +517,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    /*
+     * Sets the time (from now) that the device will turn on at it's current settings
+     */
     public void handleOnTimer(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
         int hours = 0;
@@ -546,6 +556,9 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         getConnectionManager().sendCommandAndMonitor(commandSet);
     }
 
+    /*
+     * Sets the time (from now) that the device will turn off
+     */
     public void handleOffTimer(Command command) {
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
         int hours = 0;
@@ -670,7 +683,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     /*
-     * Manage the ONLINE/OFFLINE status of the thing
+     * Manage the ONLINE/OFFLINE statuses of the thing with problems (or lack thereof)
      */
     private void markOnline() {
         if (!isOnline()) {
@@ -703,8 +716,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         /*
          * This is to space out the looping with a short (5 second) then long (30 second) pause(s).
-         * Generally a WiFi issue triggers the offline
-         * Only info log prior to first long pause.
+         * Generally a WiFi issue triggers the offline. Could be a blip or something longer term
+         * Only info log (Connection issue ..) prior to first long pause.
          */
         if (retry) {
             try {
@@ -738,7 +751,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     /*
      * Cancel the connection manager job which will keep going
      * even with the binding removed and cause warnings about
-     * trying to update Channels with the Handler disposed
+     * trying to update Thing Channels with the Handler disposed
      */
     @Override
     public void dispose() {
@@ -804,7 +817,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
      *
      * @author Jacek Dobrowolski - Initial Contribution
      * 
-     * @author Robert Eckhoff - Revised logic to reconnect with security before each poll or command
+     * @author Bob Eckhoff - Revised logic to reconnect with security before each poll or command
+     * 
+     * This gets around the issue that any command needs to be within 30 seconds of the authorization
+     * in testing this only adds 50 ms, but allows polls at longer intervals
      */
     public class ConnectionManager {
         private Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
@@ -833,6 +849,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         Runnable connectionMonitorRunnable = () -> {
             logger.debug("Connecting to {} at IP {} for Poll", thing.getUID(), ipAddress);
+            disconnect();
             connect();
         };
 
@@ -846,9 +863,10 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         }
 
         /*
-         * Rest dropped commands from initialization in MideaACHandler
+         * Reset dropped commands from initialization in MideaACHandler
          * Channel created for easy observation
-         * Dropped commands when no bytes to read after two tries.
+         * Dropped commands when no bytes to read after two tries or other
+         * byte reading problem.
          */
         public void resetDroppedCommands() {
             droppedCommands = 0;
@@ -882,7 +900,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
          * After checking if the key and token need to be updated (Default = 0 Never)
          * The socket is established with the writer and inputStream (for reading responses)
          * The device is considered connected. V2 devices will proceed to send the poll or the
-         * set command. V3 devices with proceed to authenticate
+         * set command. V3 devices will proceed to authenticate
          */
         @SuppressWarnings("null")
         protected synchronized void connect() {
@@ -1024,7 +1042,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
         /*
          * Sends the Handshake Request to the V3 device. Generally quick response
-         * Without the sleep delay the are problems in sending the Poll/Command
+         * Without the 1000 ms sleep delay there are problems in sending the Poll/Command
          * Suspect that the socket write and read streams need a moment to clear
          * as they will be reused in the SendCommand method
          */
@@ -1047,7 +1065,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                 Utils.hexStringToByteArray(config.getKey()));
                         if (success) {
                             logger.debug("Authentication successful");
-                            // altering the sleep causes write errors problems, needs to be at least 1000
+                            // Altering the sleep caused or can cause write errors problems. Use caution.
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
@@ -1099,7 +1117,6 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         public void sendCommandAndMonitor(CommandBase command) {
             sendCommand(command);
             mideaACHandler.resetDoPoll();
-            disconnect();
             if (connectionMonitorJob == null) {
                 scheduleConnectionMonitorJob();
             }

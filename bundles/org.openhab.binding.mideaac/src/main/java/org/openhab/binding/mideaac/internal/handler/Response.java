@@ -21,17 +21,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link Response} performs the decodes of the byte data stream
+ * The {@link Response} performs the byte data stream decoding
  * The original reference is
  * https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/ac/message.py#L418
  *
  * @author Jacek Dobrowolski - Initial contribution
+ * @author Bob Eckhoff - Add Java Docs, minor fixes
  */
 @NonNullByDefault
 public class Response {
     byte[] data;
-    // set @empty to match the return from an empty byte
-    float empty = (float) -22.5;
+
+    // set empty to match the return from an empty byte avoid null
+    float empty = (float) -19.0;
     private Logger logger = LoggerFactory.getLogger(Response.class);
 
     private final int version;
@@ -56,8 +58,8 @@ public class Response {
         logger.debug("TargetTemperature: {}", getTargetTemperature());
         logger.debug("OperationalMode: {}", getOperationalMode());
         logger.debug("FanSpeed: {}", getFanSpeed());
-        logger.trace("OnTimer: {}", getOnTimer());
-        logger.trace("OffTimer: {}", getOffTimer());
+        logger.debug("OnTimer: {}", getOnTimer());
+        logger.debug("OffTimer: {}", getOffTimer());
         logger.debug("SwingMode: {}", getSwingMode());
         logger.trace("CozySleep: {}", getCozySleep());
         logger.trace("Power Saving: {}", getSave());
@@ -80,9 +82,12 @@ public class Response {
         logger.trace("NaturalFan: {}", getNaturalFan());
         logger.debug("IndoorTemperature: {}", getIndoorTemperature());
         logger.debug("OutdoorTemperature: {}", getOutdoorTemperature());
-        logger.debug("Humidity: {}", getHumidity());
+        logger.trace("Humidity: {}", getHumidity());
 
-        // Log Response and Body Type for V3. V2 set at "" and 0x00
+        /*
+         * Trace Log Response and Body Type for V3. V2 set at "" and 0x00
+         * This was for future development since only 0xC0 is currently used
+         */
         if (version == 3) {
             logger.trace("Response and Body Type: {}, {}", responseType, bodyType);
             if ("notify2".equals(responseType) && bodyType == -95) { // 0xA0 = -95
@@ -102,34 +107,58 @@ public class Response {
         }
     }
 
+    /*
+     * Device On or Off
+     */
     public boolean getPowerState() {
         return (data[0x01] & 0x1) > 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getImmodeResume() {
         return (data[0x01] & 0x4) > 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getTimerMode() {
         return (data[0x01] & 0x10) > 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getPromptTone() {
         return (data[0x01] & 0x40) > 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getApplianceError() {
         return (data[0x01] & 0x80) > 0;
     }
 
+    /*
+     * Setpoint for Heat Pump
+     */
     public float getTargetTemperature() {
         return (data[0x02] & 0xf) + 16.0f + (((data[0x02] & 0x10) > 0) ? 0.5f : 0.0f);
     }
 
+    /*
+     * Cool, Heat, Fan Only, etc. See Command Base class
+     */
     public OperationalMode getOperationalMode() {
         return OperationalMode.fromId((data[0x02] & 0xe0) >> 5);
     }
 
+    /*
+     * Low, Medium, High, Auto etc. See Command Base class
+     */
     public FanSpeed getFanSpeed() {
         return FanSpeed.fromId(data[0x03] & 0x7f, getVersion());
     }
@@ -144,7 +173,7 @@ public class Response {
 
     /*
      * This is used to carry the current On Timer (last response) through
-     * subsequent Set commands.
+     * subsequent Set commands, so it is not overwritten.
      */
     public TimerData getOnTimerData() {
         int hours = 0;
@@ -165,8 +194,8 @@ public class Response {
     }
 
     /*
-     * This was a try to carry the Off timer (last response) through
-     * subsequent Set commands.
+     * This is used to carry the Off timer (last response) through
+     * subsequent Set commands, so it is not overwritten.
      */
     public TimerData getOffTimerData() {
         int hours = 0;
@@ -178,82 +207,145 @@ public class Response {
         return timer.new TimerData(status, hours, minutes);
     }
 
+    /*
+     * Status of the vertical and/or horzontal louver
+     */
     public SwingMode getSwingMode() {
         return SwingMode.fromId(data[0x07] & 0x3f, getVersion());
     }
 
+    /*
+     * Read only, not Sleep mode
+     */
     public int getCozySleep() {
         return data[0x08] & (byte) 0x03;
     }
 
+    /*
+     * Read only
+     */
     public boolean getSave() {
         return (data[0x08] & (byte) 0x08) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getLowFrequencyFan() {
         return (data[0x08] & (byte) 0x10) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getSuperFan() {
         return (data[0x08] & (byte) 0x20) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getFeelOwn() {
         return (data[0x08] & (byte) 0x80) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getChildSleepMode() {
         return (data[0x09] & (byte) 0x01) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getExchangeAir() {
         return (data[0x09] & (byte) 0x02) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getDryClean() {
         return (data[0x09] & (byte) 0x04) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getAuxHeat() {
         return (data[0x09] & (byte) 0x08) != 0;
     }
 
+    /*
+     * Ecomode status - Fan to Auto and temp to 24 C
+     */
     public boolean getEcoMode() {
         return (data[0x09] & (byte) 0x10) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getCleanUp() {
         return (data[0x09] & (byte) 0x20) != 0;
     }
 
+    /*
+     * Read only. Setpoint calcs are always in Degrees C
+     */
     public boolean getTempUnit() {
         return (data[0x09] & (byte) 0x80) != 0;
     }
 
+    /*
+     * Sleep function status. Setpoint Temp increases in first
+     * two hours of sleep by 1 degree in Cool mode
+     */
     public boolean getSleepFunction() {
         return (data[0x0a] & (byte) 0x01) != 0;
     }
 
+    /*
+     * Turbo mode status for maximum cooling or heat
+     */
     public boolean getTurboMode() {
         return (data[0x0a] & (byte) 0x02) != 0;
     }
 
+    /*
+     * If true display on indoor unit is degrees F, else C
+     */
     public boolean getFahrenheit() {
         return (data[0x0a] & (byte) 0x04) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getCatchCold() {
         return (data[0x0a] & (byte) 0x08) != 0;
     }
 
+    /*
+     * This can be set, but doesn't work on all units. Also
+     * noted in prior docs that this always returns false. (no confirmation).
+     * If it does work, LED on indoor unit is off while unit is On.
+     */
     public boolean getNightLight() {
         return (data[0x0a] & (byte) 0x10) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getPeakElec() {
         return (data[0x0a] & (byte) 0x20) != 0;
     }
 
+    /*
+     * Read only
+     */
     public boolean getNaturalFan() {
         return (data[0x0a] & (byte) 0x40) != 0;
     }
@@ -284,7 +376,11 @@ public class Response {
                 return (float) (indoorTempInteger - indoorTempDecimal);
             }
         }
-        // Not observed or tested
+
+        /*
+         * Not observed or tested, but left in from original author
+         * This was for future development since only 0xC0 is currently used
+         */
         if (data[0] == (byte) 0xa0 || data[0] == (byte) 0xa1) {
             if (data[0] == (byte) 0xa0) {
                 if ((data[1] >> 2) - 4 == 0) {
@@ -322,7 +418,8 @@ public class Response {
 
     /*
      * There is some variation in how this is handled by different
-     * AC models. This covers at least 2 versions.
+     * AC models. This covers at least 2 versions. Some models
+     * do not report outside temp when the AC is off. Returns 0.0 in that case.
      */
     public Float getOutdoorTemperature() {
         if (data[12] != (byte) 0xff) {

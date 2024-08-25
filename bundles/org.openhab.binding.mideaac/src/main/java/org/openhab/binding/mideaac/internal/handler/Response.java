@@ -82,6 +82,7 @@ public class Response {
         logger.trace("NaturalFan: {}", getNaturalFan());
         logger.debug("IndoorTemperature: {}", getIndoorTemperature());
         logger.debug("OutdoorTemperature: {}", getOutdoorTemperature());
+        logger.debug("LED Display: {}", getDisplayOn());
         logger.trace("Humidity: {}", getHumidity());
 
         /*
@@ -432,6 +433,13 @@ public class Response {
             }
         }
         return 0.0f;
+    }
+
+    /*
+     * Returns status of Device LEDs
+     */
+    public boolean getDisplayOn() {
+        return (data[14] & (byte) 0x70) != (byte) 0x70;
     }
 
     /*

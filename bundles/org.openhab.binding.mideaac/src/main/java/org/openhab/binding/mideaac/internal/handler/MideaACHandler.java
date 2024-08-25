@@ -467,7 +467,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         CommandSet commandSet = CommandSet.fromResponse(getLastResponse());
 
         if (command.equals(OnOffType.OFF)) {
-            commandSet.setScreenDisplay(false);
+            commandSet.setScreenDisplay(true);
         } else if (command.equals(OnOffType.ON)) {
             commandSet.setScreenDisplay(true);
         } else {
@@ -1239,8 +1239,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                             logger.trace("data length is {} version is {} thing is {}", data.length,
                                                     version, thing.getUID());
                                         } else {
-                                            logger.warn("invalid response received ignoring update from:{}",
-                                                    thing.getUID());
+                                            logger.warn("Error response received data {} ignoring update from:{}",
+                                                    Utils.bytesToHex(data), thing.getUID());
                                             return;
                                         }
                                     } catch (Exception ex) {
@@ -1359,6 +1359,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_TEMP_UNIT, response.getFahrenheit() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_SLEEP_FUNCTION, response.getSleepFunction() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_TURBO_MODE, response.getTurboMode() ? OnOffType.ON : OnOffType.OFF);
+            updateChannel(CHANNEL_SCREEN_DISPLAY, response.getDisplayOn() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_CATCH_COLD, response.getCatchCold() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_NIGHT_LIGHT, response.getNightLight() ? OnOffType.ON : OnOffType.OFF);
             updateChannel(CHANNEL_PEAK_ELEC, response.getPeakElec() ? OnOffType.ON : OnOffType.OFF);

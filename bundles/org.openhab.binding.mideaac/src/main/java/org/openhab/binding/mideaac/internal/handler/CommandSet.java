@@ -13,7 +13,10 @@
 package org.openhab.binding.mideaac.internal.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This {@link CommandSet} class handles the allowed changes originating from
@@ -25,6 +28,7 @@ import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
  */
 @NonNullByDefault
 public class CommandSet extends CommandBase {
+    private final Logger logger = LoggerFactory.getLogger(CommandSet.class);
 
     public CommandSet() {
         data[0x01] = (byte) 0x23;
@@ -55,7 +59,6 @@ public class CommandSet extends CommandBase {
         commandSet.setFahrenheit(response.getFahrenheit());
         commandSet.setTurboMode(response.getTurboMode());
         commandSet.setSwingMode(response.getSwingMode());
-        commandSet.setScreenDisplay(response.getNightLight());
         commandSet.setEcoMode(response.getEcoMode());
         commandSet.setSleepMode(response.getSleepFunction());
         commandSet.setOnTimer(response.getOnTimerData());
@@ -199,14 +202,37 @@ public class CommandSet extends CommandBase {
     }
 
     /*
-     * Turns the LED lights on the indoor unit off while unit is on.
+     * Toggles the LED display.
+     * This uses the request format, so needs modification, but need to keep
+     * current beep and operating state.
      */
-    public void setScreenDisplay(boolean screenDisplayEnabled) {
-        if (screenDisplayEnabled) {
-            data[0x14] |= 0x10;
-        } else {
-            data[0x14] &= (~0x10);
-        }
+    public void setScreenDisplay(boolean screenDisplayToggle) {
+        modifyBytesForDisplayOff();
+        removeExtraBytes();
+        logger.debug(" Set Bytes before crypt {}", Utils.bytesToHex(data));
+    }
+
+    private void modifyBytesForDisplayOff() {
+        data[0x01] = (byte) 0x20;
+        data[0x09] = (byte) 0x03;
+        data[0x0a] = (byte) 0x41;
+        data[0x0b] |= 0x02; // Set
+        data[0x0b] &= ~(byte) 0x80; // Clear
+        data[0x0c] = (byte) 0x00;
+        data[0x0d] = (byte) 0xff;
+        data[0x0e] = (byte) 0x02;
+        data[0x0f] = (byte) 0x00;
+        data[0x10] = (byte) 0x02;
+        data[0x11] = (byte) 0x00;
+        data[0x12] = (byte) 0x00;
+        data[0x13] = (byte) 0x00;
+        data[0x14] = (byte) 0x00;
+    }
+
+    private void removeExtraBytes() {
+        byte[] newData = new byte[data.length - 3];
+        System.arraycopy(data, 0, newData, 0, newData.length);
+        data = newData;
     }
 
     /*

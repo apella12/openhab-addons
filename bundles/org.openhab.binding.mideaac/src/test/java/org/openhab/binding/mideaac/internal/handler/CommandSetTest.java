@@ -177,4 +177,29 @@ public class CommandSetTest {
         assertEquals(time, commandSet.getOffTimer());
         assertEquals(remainder, commandSet.getOffTimer2());
     }
+
+    @Test
+    public void testSetScreenDisplayOff() {
+        CommandSet commandSet = new CommandSet();
+        commandSet.setScreenDisplay(true);
+
+        // Check the modified bytes
+        assertEquals((byte) 0x20, commandSet.data[0x01]);
+        assertEquals((byte) 0x03, commandSet.data[0x09]);
+        assertEquals((byte) 0x41, commandSet.data[0x0a]);
+        assertEquals((byte) 0x02, commandSet.data[0x0b] & 0x02); // Check if bit 1 is set
+        assertEquals((byte) 0x00, commandSet.data[0x0b] & 0x80); // Check if bit 7 is cleared
+        assertEquals((byte) 0x00, commandSet.data[0x0c]);
+        assertEquals((byte) 0xff, commandSet.data[0x0d]);
+        assertEquals((byte) 0x02, commandSet.data[0x0e]);
+        assertEquals((byte) 0x00, commandSet.data[0x0f]);
+        assertEquals((byte) 0x02, commandSet.data[0x10]);
+        assertEquals((byte) 0x00, commandSet.data[0x11]);
+        assertEquals((byte) 0x00, commandSet.data[0x12]);
+        assertEquals((byte) 0x00, commandSet.data[0x13]);
+        assertEquals((byte) 0x00, commandSet.data[0x14]);
+
+        // Check the length of the data array
+        assertEquals(31, commandSet.data.length);
+    }
 }

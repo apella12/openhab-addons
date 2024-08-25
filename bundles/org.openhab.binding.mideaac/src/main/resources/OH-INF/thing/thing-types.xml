@@ -231,8 +231,8 @@
 	<channel-type id="screenDisplay" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Screen display</label>
-		<description>Turns on and off LED display on Indoor AC unit. Doesn't work with all models, no Poll
-			confirmation either.</description>
+		<description>Status of LEDs on the device. Not all models work on LAN (only IR). No confirmation
+			possible either.</description>
 		<category>Switch</category>
 	</channel-type>
 	<channel-type id="imodeResume" advanced="true">
@@ -374,7 +374,7 @@
 	</channel-type>
 	<channel-type id="droppedCommands" advanced="true">
 		<item-type>Number</item-type>
-		<label>Dropped Commands</label>
+		<label>Dropped Command Monitor</label>
 		<description>Commands dropped due to TCP read() issues.</description>
 		<category>Number</category>
 		<state readOnly="true" pattern="%d%%"/>

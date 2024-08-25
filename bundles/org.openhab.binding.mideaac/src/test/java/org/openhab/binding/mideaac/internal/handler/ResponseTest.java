@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 public class ResponseTest {
     @org.jupnp.registry.event.Before
 
-    byte[] data = HexFormat.of().parseHex("C00042668387123C00000460FF000000000000000000F9ECDB");
+    byte[] data = HexFormat.of().parseHex("C00042668387123C00000460FF007000000000000000F9ECDB");
     private int version = 3;
     String responseType = "query";
     byte bodyType = (byte) 0xC0;
@@ -43,7 +43,7 @@ public class ResponseTest {
 
     @Test
     public void testGetImmodeResume() {
-        boolean actualImmodeResume = response.getPowerState();
+        boolean actualImmodeResume = response.getImmodeResume();
         assertEquals(false, actualImmodeResume);
     }
 
@@ -202,6 +202,11 @@ public class ResponseTest {
     @Test
     public void testGetOutdoorTemperature() {
         assertEquals(0, response.getOutdoorTemperature());
+    }
+
+    @Test
+    public void testDisplayOn() {
+        assertEquals(false, response.getDisplayOn());
     }
 
     @Test

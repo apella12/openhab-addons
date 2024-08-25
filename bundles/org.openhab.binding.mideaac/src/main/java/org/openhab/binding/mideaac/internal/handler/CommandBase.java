@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class CommandBase {
-    @SuppressWarnings("unused")
     private final Logger logger = LoggerFactory.getLogger(CommandBase.class);
 
     private static final byte[] DISCOVER_COMMAND = new byte[] { (byte) 0x5a, (byte) 0x5a, (byte) 0x01, (byte) 0x11,
@@ -234,6 +234,7 @@ public class CommandBase {
      * Pulls the elements of the Base command together
      */
     public void compose() {
+        logger.debug("Base Bytes before crypt {}", Utils.bytesToHex(data));
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
         byte[] newData1 = new byte[data.length + 1];
         System.arraycopy(data, 0, newData1, 0, data.length);

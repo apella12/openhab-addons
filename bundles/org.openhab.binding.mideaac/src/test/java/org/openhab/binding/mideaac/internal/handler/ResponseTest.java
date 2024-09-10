@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 public class ResponseTest {
     @org.jupnp.registry.event.Before
 
-    byte[] data = HexFormat.of().parseHex("C00042668387123C00000460FF007000000000000000F9ECDB");
+    byte[] data = HexFormat.of().parseHex("C00042668387123C00000460FF0C7000000000000000F9ECDB");
     private int version = 3;
     String responseType = "query";
     byte bodyType = (byte) 0xC0;
@@ -207,6 +207,11 @@ public class ResponseTest {
     @Test
     public void testDisplayOn() {
         assertEquals(false, response.getDisplayOn());
+    }
+
+    @Test
+    public void testAlternateTargetTemperature() {
+        assertEquals(24, response.getAlternateTargetTemperature());
     }
 
     @Test

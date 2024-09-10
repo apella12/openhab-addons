@@ -35,7 +35,7 @@ public class Utils {
     private static final char[] HEX_ARRAY_LOWERCASE = "0123456789abcdef".toCharArray();
     static byte[] empty = new byte[0];
 
-    /*
+    /**
      * Converts byte array to upper case hex string
      */
     public static String bytesToHex(byte[] bytes) {
@@ -48,7 +48,7 @@ public class Utils {
         return new String(hexChars);
     }
 
-    /*
+    /**
      * Converts byte array to binary string
      */
     public static String bytesToBinary(byte[] bytes) {
@@ -62,7 +62,7 @@ public class Utils {
         return s1;
     }
 
-    /*
+    /**
      * Converts byte array to lower case hex string
      */
     public static String bytesToHexLowercase(byte[] bytes) {
@@ -75,7 +75,7 @@ public class Utils {
         return new String(hexChars);
     }
 
-    /*
+    /**
      * Validates the IP address format
      */
     public static boolean validateIP(final String ip) {
@@ -84,7 +84,7 @@ public class Utils {
         return ip.matches(pattern);
     }
 
-    /*
+    /**
      * Converts hex string to a byte array
      */
     public static byte[] hexStringToByteArray(String s) {
@@ -96,7 +96,7 @@ public class Utils {
         return data;
     }
 
-    /*
+    /**
      * Adds two byte arrays together
      */
     public static byte[] concatenateArrays(byte[] a, byte[] b) {
@@ -138,7 +138,7 @@ public class Utils {
         return Base64.encode(bytes);
     }
 
-    /*
+    /**
      * Extracts 6 bits and reorders them based on signed or unsigned
      */
     public static byte[] toIntTo6ByteArray(long i, ByteOrder order) {
@@ -173,7 +173,7 @@ public class Utils {
         return sb.toString();
     }
 
-    /*
+    /**
      * Used to reverse (or unreverse) the deviceId
      */
     public static byte[] reverse(byte[] array) {

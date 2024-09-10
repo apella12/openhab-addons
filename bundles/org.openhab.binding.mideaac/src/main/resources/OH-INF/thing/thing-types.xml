@@ -45,6 +45,7 @@
 			<channel id="naturalFan" typeId="naturalFan"/>
 			<channel id="humidity" typeId="humidity"/>
 			<channel id="screenDisplay" typeId="screenDisplay"/>
+			<channel id="alternate-target-temperature" typeId="alternate-target-temperature"/>
 			<channel id="droppedCommands" typeId="droppedCommands"/>
 		</channels>
 
@@ -92,12 +93,6 @@
 				<label>Password</label>
 				<description>Password for cloud account chosen in Cloud Provider.</description>
 				<default></default>
-			</parameter>
-			<parameter name="reauth" type="text" required="false">
-				<context>reauth</context>
-				<label>Re-authentication interval</label>
-				<description>Request new token after X hours (never - set 0).</description>
-				<default>0</default>
 			</parameter>
 			<parameter name="token" type="text" required="false">
 				<context>token</context>
@@ -371,6 +366,13 @@
 		<description>Humidity measured in the room by the indoor unit.</description>
 		<category>Humidity</category>
 		<state readOnly="true" pattern="%d%%"/>
+	</channel-type>
+	<channel-type id="alternate-target-temperature" advanced="true">
+		<item-type>Number:Temperature</item-type>
+		<label>Alternate Target Temperature</label>
+		<description>Alternate Target Temperature (Read Only).</description>
+		<category>Temperature</category>
+		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
 	<channel-type id="droppedCommands" advanced="true">
 		<item-type>Number</item-type>

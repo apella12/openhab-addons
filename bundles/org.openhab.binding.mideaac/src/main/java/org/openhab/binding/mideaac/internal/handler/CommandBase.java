@@ -194,7 +194,7 @@ public class CommandBase {
         return DISCOVER_COMMAND;
     }
 
-    /*
+    /**
      * Byte Array structure for commands
      */
     @SuppressWarnings("deprecation")
@@ -230,7 +230,7 @@ public class CommandBase {
         data[0x02] = (byte) 0xAC;
     }
 
-    /*
+    /**
      * Pulls the elements of the Base command together
      */
     public void compose() {

@@ -70,6 +70,7 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_INDOOR_TEMPERATURE = "indoorTemperature";
     public static final String CHANNEL_OUTDOOR_TEMPERATURE = "outdoorTemperature";
     public static final String CHANNEL_HUMIDITY = "humidity";
+    public static final String CHANNEL_ALTERNATE_TARGET_TEMPERATURE = "alternate-target-temperature";
     public static final String CHANNEL_SCREEN_DISPLAY = "screenDisplay";
     public static final String DROPPED_COMMANDS = "droppedCommands";
 

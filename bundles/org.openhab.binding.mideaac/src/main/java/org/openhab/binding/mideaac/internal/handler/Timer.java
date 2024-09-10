@@ -34,7 +34,7 @@ public class Timer {
         this.minutes = minutes;
     }
 
-    /*
+    /**
      * Timer format for the trace log
      */
     public String toString() {
@@ -45,7 +45,7 @@ public class Timer {
         }
     }
 
-    /*
+    /**
      * Timer format of the OH channel
      */
     public String toChannel() {
@@ -56,7 +56,7 @@ public class Timer {
         }
     }
 
-    /*
+    /**
      * This splits the On or off timer channels command back to hours and minutes
      * so the AC start and stop timers can be set
      */
@@ -70,7 +70,7 @@ public class Timer {
         }
     }
 
-    /*
+    /**
      * This allows the continuity of the current timer settings
      * when new commands on other channels are set.
      */

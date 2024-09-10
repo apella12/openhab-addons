@@ -74,20 +74,6 @@ public class MideaACConfiguration {
         this.email = email;
     }
 
-    private int reauth;
-
-    /**
-     * @param reauth interval to get new key
-     *            and token. Get/Set. 0 = never
-     */
-    public Integer getReauth() {
-        return reauth;
-    }
-
-    public void setReauth(Integer reauth) {
-        this.reauth = reauth;
-    }
-
     private String password = "";
 
     /**

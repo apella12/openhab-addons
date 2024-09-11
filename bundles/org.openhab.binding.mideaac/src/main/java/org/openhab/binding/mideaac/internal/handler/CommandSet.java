@@ -209,7 +209,7 @@ public class CommandSet extends CommandBase {
     public void setScreenDisplay(boolean screenDisplayToggle) {
         modifyBytesForDisplayOff();
         removeExtraBytes();
-        logger.debug(" Set Bytes before crypt {}", Utils.bytesToHex(data));
+        logger.trace(" Set Bytes before crypt {}", Utils.bytesToHex(data));
     }
 
     private void modifyBytesForDisplayOff() {

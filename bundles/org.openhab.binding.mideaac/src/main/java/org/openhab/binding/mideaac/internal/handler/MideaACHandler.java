@@ -1341,7 +1341,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             updateChannel(CHANNEL_OUTDOOR_TEMPERATURE,
                     new QuantityType<Temperature>(response.getOutdoorTemperature(), SIUnits.CELSIUS));
             updateChannel(CHANNEL_ALTERNATE_TARGET_TEMPERATURE,
-                    new QuantityType<Temperature>(response.getOutdoorTemperature(), SIUnits.CELSIUS));
+                    new QuantityType<Temperature>(response.getAlternateTargetTemperature(), SIUnits.CELSIUS));
             updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getHumidity()));
         }
 

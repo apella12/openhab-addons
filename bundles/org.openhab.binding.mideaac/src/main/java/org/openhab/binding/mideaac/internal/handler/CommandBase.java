@@ -234,7 +234,7 @@ public class CommandBase {
      * Pulls the elements of the Base command together
      */
     public void compose() {
-        logger.debug("Base Bytes before crypt {}", Utils.bytesToHex(data));
+        logger.trace("Base Bytes before crypt {}", Utils.bytesToHex(data));
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
         byte[] newData1 = new byte[data.length + 1];
         System.arraycopy(data, 0, newData1, 0, data.length);

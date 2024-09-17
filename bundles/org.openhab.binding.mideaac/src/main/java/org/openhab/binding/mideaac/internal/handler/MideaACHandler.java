@@ -1151,7 +1151,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                                 logger.trace("Bytes in HEX, decoded and with header: length: {}, data: {}", data.length,
                                         Utils.bytesToHex(data));
-                                byte bodyType2 = data[0x1];
+                                byte bodyType2 = data[0xa];
 
                                 // data[3]: Device Type - 0xAC = AC
                                 // https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea_devices.py#L96
@@ -1188,12 +1188,12 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                                     default:
                                         logger.error("Invalid response type: {}", data[0x9]);
                                 }
-                                logger.trace("Response Type: {} and bodyType:{}", responseType, data[0x1]);
+                                logger.trace("Response Type: {} and bodyType:{}", responseType, bodyType2);
 
                                 // The response data from the appliance includes a packet header which we don't want
                                 data = Arrays.copyOfRange(data, 10, data.length);
                                 byte bodyType = data[0x0];
-                                logger.trace("Response Type expected: {} and bodyType2:{}", responseType, bodyType2);
+                                logger.trace("Response Type expected: {} and bodyType:{}", responseType, bodyType);
                                 logger.trace("Bytes in HEX, decoded and stripped without header: length: {}, data: {}",
                                         data.length, Utils.bytesToHex(data));
                                 logger.debug(
@@ -1202,20 +1202,23 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
                                 if (data.length > 0) {
                                     if (data.length < 21) {
-                                        logger.error("Response data is {} long minimum is 21!", data.length);
+                                        logger.warn("Response data is {} long minimum is 21!", data.length);
+                                        return;
+                                    }
+                                    if (bodyType != -64) {
+                                        if (bodyType == 30) {
+                                            logger.warn("Error response 0x1E received {}, data {} from:{}", bodyType,
+                                                    Utils.bytesToHex(data), thing.getUID());
+                                            return;
+                                        }
+                                        logger.warn("Unexpected response bodyType {}", bodyType);
                                         return;
                                     }
                                     lastResponse = new Response(data, getVersion(), responseType, bodyType);
                                     try {
-                                        if (bodyType != 30) {
-                                            processMessage(lastResponse);
-                                            logger.trace("data length is {} version is {} thing is {}", data.length,
-                                                    version, thing.getUID());
-                                        } else {
-                                            logger.warn("Error response received data {} ignoring update from:{}",
-                                                    Utils.bytesToHex(data), thing.getUID());
-                                            return;
-                                        }
+                                        processMessage(lastResponse);
+                                        logger.trace("data length is {} version is {} thing is {}", data.length,
+                                                version, thing.getUID());
                                     } catch (Exception ex) {
                                         logger.warn("Error processing response: {}", ex.getMessage());
                                     }

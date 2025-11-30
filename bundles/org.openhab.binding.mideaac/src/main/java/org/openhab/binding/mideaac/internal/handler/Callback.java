@@ -32,7 +32,7 @@ public interface Callback {
      *
      * @param response The standard response from the device used to update channels.
      */
-    void updateChannels(Response response);
+    void updateChannels(DeviceResponse response);
 
     /**
      * Updates channels with a capabilities response (0xB5).

@@ -89,7 +89,7 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
 
     private final Callback callbackLambda = new Callback() {
         @Override
-        public void updateChannels(Response response) {
+        public void updateChannels(DeviceResponse response) {
             MideaACHandler.this.updateChannels(response);
         }
 
@@ -165,38 +165,81 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
             return;
         }
         try {
-            Response lastresponse = connectionManager.getLastResponse();
+            DeviceResponse lastresponse = connectionManager.getLastResponse();
             if (channelUID.getId().equals(CHANNEL_POWER)) {
                 connectionManager.sendCommand(CommandHelper.handlePower(command, lastresponse), callbackLambda);
             } else if (channelUID.getId().equals(CHANNEL_OPERATIONAL_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleOperationalMode(command, lastresponse),
-                        callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleOperationalMode(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_TARGET_TEMPERATURE)) {
-                connectionManager.sendCommand(CommandHelper.handleTargetTemperature(command, lastresponse),
-                        callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleTargetTemperature(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_FAN_SPEED)) {
                 connectionManager.sendCommand(CommandHelper.handleFanSpeed(command, lastresponse, config.version),
                         callbackLambda);
             } else if (channelUID.getId().equals(CHANNEL_ECO_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleEcoMode(command, lastresponse), callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleEcoMode(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_TURBO_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleTurboMode(command, lastresponse), callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleTurboMode(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_SWING_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleSwingMode(command, lastresponse, config.version),
-                        callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleSwingMode(command, ac, config.version),
+                            callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_SCREEN_DISPLAY)) {
-                connectionManager.sendCommand(CommandHelper.handleScreenDisplay(command, lastresponse), callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleScreenDisplay(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_TEMPERATURE_UNIT)) {
-                connectionManager.sendCommand(CommandHelper.handleTempUnit(command, lastresponse), callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleTempUnit(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_SLEEP_FUNCTION)) {
-                connectionManager.sendCommand(CommandHelper.handleSleepFunction(command, lastresponse), callbackLambda);
+                if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleSleepFunction(command, ac), callbackLambda);
+                }
             } else if (channelUID.getId().equals(CHANNEL_ON_TIMER)) {
                 connectionManager.sendCommand(CommandHelper.handleOnTimer(command, lastresponse), callbackLambda);
             } else if (channelUID.getId().equals(CHANNEL_OFF_TIMER)) {
                 connectionManager.sendCommand(CommandHelper.handleOffTimer(command, lastresponse), callbackLambda);
             } else if (channelUID.getId().equals(CHANNEL_MAXIMUM_HUMIDITY)) {
-                connectionManager.sendCommand(CommandHelper.handleMaximumHumidity(command, lastresponse),
-                        callbackLambda);
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1MaximumHumidity(command, dehumidifier),
+                            callbackLambda);
+                } else if (lastresponse instanceof Response ac) {
+                    connectionManager.sendCommand(CommandHelper.handleMaximumHumidity(command, ac), callbackLambda);
+                } else {
+                    logger.debug("Unsupported response");
+                }
+            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_MODE)) {
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1OperationalMode(command, dehumidifier),
+                            callbackLambda);
+                }
+            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_SWING)) {
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1Swing(command, dehumidifier), callbackLambda);
+                }
+            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_CHILD_LOCK)) {
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1ChildLock(command, dehumidifier),
+                            callbackLambda);
+                }
+            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_TANK_SETPOINT)) {
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1TankSetpoint(command, dehumidifier),
+                            callbackLambda);
+                }
+            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_ANION)) {
+                if (lastresponse instanceof A1Response dehumidifier) {
+                    connectionManager.sendCommand(CommandHelper.handleA1Anion(command, dehumidifier), callbackLambda);
+                }
             }
         } catch (MideaConnectionException | MideaAuthenticationException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
@@ -340,14 +383,14 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
                             CommandSet additionalCommand = new CommandSet();
                             additionalCommand.getAdditionalCapabilities();
                             this.connectionManager.sendCommand(additionalCommand, this);
-                        } catch (Exception e) {
-                            logger.debug("AC additional capabilities not returned {}", e.getMessage());
+                        } catch (Exception ex) {
+                            logger.debug("AC additional capabilities not returned {}", ex.getMessage());
                         }
                     }, 2, TimeUnit.SECONDS);
                 }
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 // Will not affect AC device readiness, just log the issue
-                logger.debug("AC capabilities not returned {}", e.getMessage());
+                logger.debug("AC capabilities not returned {}", ex.getMessage());
             }
         });
     }
@@ -432,39 +475,63 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
     }
 
     @Override
-    public void updateChannels(Response response) {
+    public void updateChannels(DeviceResponse response) {
         updateChannel(CHANNEL_POWER, OnOffType.from(response.getPowerState()));
-        updateChannel(CHANNEL_APPLIANCE_ERROR, OnOffType.from(response.getApplianceError()));
-        updateChannel(CHANNEL_OPERATIONAL_MODE, new StringType(response.getOperationalMode().toString()));
         updateChannel(CHANNEL_FAN_SPEED, new StringType(response.getFanSpeed().toString()));
         updateChannel(CHANNEL_ON_TIMER, new StringType(response.getOnTimer().toChannel()));
         updateChannel(CHANNEL_OFF_TIMER, new StringType(response.getOffTimer().toChannel()));
-        updateChannel(CHANNEL_SWING_MODE, new StringType(response.getSwingMode().toString()));
-        updateChannel(CHANNEL_AUXILIARY_HEAT, OnOffType.from(response.getAuxHeat()));
-        updateChannel(CHANNEL_ECO_MODE, OnOffType.from(response.getEcoMode()));
-        updateChannel(CHANNEL_TEMPERATURE_UNIT, OnOffType.from(response.getFahrenheit()));
-        updateChannel(CHANNEL_SLEEP_FUNCTION, OnOffType.from(response.getSleepFunction()));
-        updateChannel(CHANNEL_TURBO_MODE, OnOffType.from(response.getTurboMode()));
-        updateChannel(CHANNEL_SCREEN_DISPLAY, OnOffType.from(response.getDisplayOn()));
-        updateChannel(CHANNEL_FILTER_STATUS, OnOffType.from(response.getFilterStatus()));
-        updateChannel(CHANNEL_MAXIMUM_HUMIDITY, new DecimalType(response.getMaximumHumidity()));
+        // AC specific channels
+        if (response instanceof Response ac) {
+            updateChannel(CHANNEL_APPLIANCE_ERROR, OnOffType.from(ac.getApplianceError()));
+            updateChannel(CHANNEL_OPERATIONAL_MODE, new StringType(ac.getOperationalMode().toString()));
+            updateChannel(CHANNEL_SWING_MODE, new StringType(ac.getSwingMode().toString()));
+            updateChannel(CHANNEL_AUXILIARY_HEAT, OnOffType.from(ac.getAuxHeat()));
+            updateChannel(CHANNEL_ECO_MODE, OnOffType.from(ac.getEcoMode()));
+            updateChannel(CHANNEL_TEMPERATURE_UNIT, OnOffType.from(ac.getFahrenheit()));
+            updateChannel(CHANNEL_SLEEP_FUNCTION, OnOffType.from(ac.getSleepFunction()));
+            updateChannel(CHANNEL_TURBO_MODE, OnOffType.from(ac.getTurboMode()));
+            updateChannel(CHANNEL_SCREEN_DISPLAY, OnOffType.from(ac.getDisplayOn()));
+            updateChannel(CHANNEL_FILTER_STATUS, OnOffType.from(ac.getFilterStatus()));
+            updateChannel(CHANNEL_MAXIMUM_HUMIDITY, new DecimalType(ac.getMaximumHumidity()));
 
-        QuantityType<Temperature> targetTemperature = new QuantityType<Temperature>(response.getTargetTemperature(),
-                SIUnits.CELSIUS);
-        QuantityType<Temperature> outdoorTemperature = new QuantityType<Temperature>(response.getOutdoorTemperature(),
-                SIUnits.CELSIUS);
-        QuantityType<Temperature> indoorTemperature = new QuantityType<Temperature>(response.getIndoorTemperature(),
-                SIUnits.CELSIUS);
+            QuantityType<Temperature> targetTemperature = new QuantityType<Temperature>(ac.getTargetTemperature(),
+                    SIUnits.CELSIUS);
+            QuantityType<Temperature> outdoorTemperature = new QuantityType<Temperature>(ac.getOutdoorTemperature(),
+                    SIUnits.CELSIUS);
+            QuantityType<Temperature> indoorTemperature = new QuantityType<Temperature>(ac.getIndoorTemperature(),
+                    SIUnits.CELSIUS);
 
-        if (imperialUnits) {
-            targetTemperature = Objects.requireNonNull(targetTemperature.toUnit(ImperialUnits.FAHRENHEIT));
-            indoorTemperature = Objects.requireNonNull(indoorTemperature.toUnit(ImperialUnits.FAHRENHEIT));
-            outdoorTemperature = Objects.requireNonNull(outdoorTemperature.toUnit(ImperialUnits.FAHRENHEIT));
+            if (imperialUnits) {
+                targetTemperature = Objects.requireNonNull(targetTemperature.toUnit(ImperialUnits.FAHRENHEIT));
+                indoorTemperature = Objects.requireNonNull(indoorTemperature.toUnit(ImperialUnits.FAHRENHEIT));
+                outdoorTemperature = Objects.requireNonNull(outdoorTemperature.toUnit(ImperialUnits.FAHRENHEIT));
+            }
+
+            updateChannel(CHANNEL_TARGET_TEMPERATURE, targetTemperature);
+            updateChannel(CHANNEL_INDOOR_TEMPERATURE, indoorTemperature);
+            updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, outdoorTemperature);
         }
 
-        updateChannel(CHANNEL_TARGET_TEMPERATURE, targetTemperature);
-        updateChannel(CHANNEL_INDOOR_TEMPERATURE, indoorTemperature);
-        updateChannel(CHANNEL_OUTDOOR_TEMPERATURE, outdoorTemperature);
+        if (response instanceof A1Response dehumidifier) {
+            updateChannel(CHANNEL_DEHUMIDIFIER_MODE, new StringType(dehumidifier.getA1OperationalMode().toString()));
+            updateChannel(CHANNEL_MAXIMUM_HUMIDITY, new DecimalType(dehumidifier.getMaximumHumidity()));
+            updateChannel(CHANNEL_HUMIDITY, new DecimalType(dehumidifier.getCurrentHumidity()));
+            updateChannel(CHANNEL_DEHUMIDIFIER_ANION, OnOffType.from(dehumidifier.getA1Anion()));
+            updateChannel(CHANNEL_DEHUMIDIFIER_CHILD_LOCK, OnOffType.from(dehumidifier.getA1ChildLock()));
+            updateChannel(CHANNEL_DEHUMIDIFIER_TANK, new DecimalType(dehumidifier.getTank()));
+            updateChannel(CHANNEL_DEHUMIDIFIER_TANK_SETPOINT, new DecimalType(dehumidifier.getTankSetpoint()));
+            updateChannel(CHANNEL_DEHUMIDIFIER_SWING, OnOffType.from(dehumidifier.getA1SwingMode()));
+
+            QuantityType<Temperature> indoorTemperature = new QuantityType<Temperature>(
+                    dehumidifier.getIndoorTemperature(), SIUnits.CELSIUS);
+
+            if (imperialUnits) {
+                indoorTemperature = Objects.requireNonNull(indoorTemperature.toUnit(ImperialUnits.FAHRENHEIT));
+            }
+
+            updateChannel(CHANNEL_INDOOR_TEMPERATURE, indoorTemperature);
+
+        }
     }
 
     // Handle capabilities responses
@@ -594,8 +661,8 @@ public class MideaACHandler extends BaseThingHandler implements DiscoveryHandler
         Object propertySSID = Objects.requireNonNull(discoveryProps.get(PROPERTY_SSID));
         properties.put(PROPERTY_SSID, propertySSID.toString());
 
-        Object propertyType = Objects.requireNonNull(discoveryProps.get(PROPERTY_TYPE));
-        properties.put(PROPERTY_TYPE, propertyType.toString());
+        Object propertyType = Objects.requireNonNull(discoveryProps.get(CONFIG_TYPE));
+        properties.put(CONFIG_TYPE, propertyType.toString());
 
         updateProperties(properties);
         initialize();

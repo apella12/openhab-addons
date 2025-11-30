@@ -56,21 +56,32 @@ public class CommandSet extends CommandBase {
      * @param response response from last poll or set command
      * @return commandSet
      */
-    public static CommandSet fromResponse(Response response) {
+    public static CommandSet fromResponse(DeviceResponse response) {
         CommandSet commandSet = new CommandSet();
 
         commandSet.setPowerState(response.getPowerState());
-        commandSet.setTargetTemperature(response.getTargetTemperature());
-        commandSet.setOperationalMode(response.getOperationalMode());
         commandSet.setFanSpeed(response.getFanSpeed());
-        commandSet.setFahrenheit(response.getFahrenheit());
-        commandSet.setTurboMode(response.getTurboMode());
-        commandSet.setSwingMode(response.getSwingMode());
-        commandSet.setEcoMode(response.getEcoMode());
-        commandSet.setSleepMode(response.getSleepFunction());
         commandSet.setOnTimer(response.getOnTimerData());
         commandSet.setOffTimer(response.getOffTimerData());
-        commandSet.setMaximumHumidity(response.getMaximumHumidity());
+        if (response instanceof Response ac) {
+            commandSet.setTargetTemperature(ac.getTargetTemperature());
+            commandSet.setOperationalMode(ac.getOperationalMode());
+            commandSet.setMaximumHumidity(ac.getMaximumHumidity());
+            commandSet.setFahrenheit(ac.getFahrenheit());
+            commandSet.setTurboMode(ac.getTurboMode());
+            commandSet.setSwingMode(ac.getSwingMode());
+            commandSet.setEcoMode(ac.getEcoMode());
+            commandSet.setSleepMode(ac.getSleepFunction());
+        }
+        if (response instanceof A1Response dehumidifier) {
+            commandSet.setA1OperationalMode(dehumidifier.getA1OperationalMode());
+            commandSet.setA1MaximumHumidity(dehumidifier.getMaximumHumidity());
+            commandSet.setA1ChildLock(dehumidifier.getA1ChildLock());
+            commandSet.setA1SwingMode(dehumidifier.getA1SwingMode());
+            commandSet.setA1Anion(dehumidifier.getA1Anion());
+            commandSet.setTankSetpoint(dehumidifier.getTankSetpoint());
+            commandSet.setPromptTone(dehumidifier.getPromptTone());
+        }
         return commandSet;
     }
 
@@ -129,8 +140,18 @@ public class CommandSet extends CommandBase {
     }
 
     /**
+     * Manual, Continuous, Auto, etc. See Command Base class
+     * 
+     * @param mode Manual, Continuous, Auto, etc.
+     */
+    public void setA1OperationalMode(A1OperationalMode mode) {
+        data[0x0c] &= ~(byte) 0x0f;
+        data[0x0c] |= (byte) mode.getId();
+    }
+
+    /**
      * Clear, then set the temperature bits, including the 0.5 bit
-     * This is all degrees C
+     * This is all in degrees C
      * 
      * @param temperature target temperature
      */
@@ -180,6 +201,11 @@ public class CommandSet extends CommandBase {
         }
     }
 
+    public void setTankSetpoint(int tankSetpoint) {
+        data[0x19] &= ~(byte) 0xff;
+        data[0x19] |= tankSetpoint;
+    }
+
     /**
      * If unit supports, set the vertical and/or horzontal louver
      * 
@@ -188,6 +214,19 @@ public class CommandSet extends CommandBase {
     public void setSwingMode(SwingMode mode) {
         data[0x11] &= ~0x3f; // Clear the mode bits
         data[0x11] |= mode.getId() & 0x3f;
+    }
+
+    /**
+     * Swing mode setter for Dehumidifier
+     * 
+     * @param mode sets swing mode
+     */
+    public void setA1SwingMode(boolean swingModeEnabled) {
+        if (!swingModeEnabled) {
+            data[0x1d] &= ~0x20;
+        } else {
+            data[0x1d] |= 0x20;
+        }
     }
 
     /**
@@ -210,6 +249,32 @@ public class CommandSet extends CommandBase {
             data[0x14] |= 0x01;
         } else {
             data[0x14] &= (~0x01);
+        }
+    }
+
+    /**
+     * Child Lock setter for Dehumidifier
+     * 
+     * @param childLockEnabled sets child lock true or false
+     */
+    public void setA1ChildLock(boolean childLockEnabled) {
+        if (!childLockEnabled) {
+            data[0x12] &= ~0x80;
+        } else {
+            data[0x12] |= 0x80;
+        }
+    }
+
+    /**
+     * Anion setter for Dehumidifier
+     * 
+     * @param anoinEnabled sets anion true or false
+     */
+    public void setA1Anion(boolean anionEnabled) {
+        if (!anionEnabled) {
+            data[0x13] &= ~0x40;
+        } else {
+            data[0x13] |= 0x40;
         }
     }
 
@@ -515,12 +580,23 @@ public class CommandSet extends CommandBase {
     }
 
     /**
-     * Sets the Maximum Humidity for Dry Mode
+     * Sets the Target Humidity for AC Dry Mode
+     * if supported
      * 
      * @param humidity
      */
     public void setMaximumHumidity(int humidity) {
         data[0x1D] &= ~(byte) 0xff;
         data[0x1D] |= humidity;
+    }
+
+    /**
+     * Sets the Target Humidity for dehumidifier
+     * 
+     * @param humidity
+     */
+    public void setA1MaximumHumidity(int humidity) {
+        data[0x11] &= ~(byte) 0xff;
+        data[0x11] |= humidity;
     }
 }

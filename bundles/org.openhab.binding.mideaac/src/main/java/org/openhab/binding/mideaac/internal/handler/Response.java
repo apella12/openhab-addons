@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author Bob Eckhoff - Add Java Docs, minor fixes
  */
 @NonNullByDefault
-public class Response {
+public class Response implements DeviceResponse {
     byte[] data;
 
     // set empty to match the return from an empty byte avoid null
@@ -245,7 +245,7 @@ public class Response {
      * 
      * @return Indoor temperature
      */
-    public Float getIndoorTemperature() {
+    public float getIndoorTemperature() {
         double indoorTempInteger;
         double indoorTempDecimal;
 
@@ -309,10 +309,10 @@ public class Response {
     }
 
     /**
-     * This returns the maximum humidity for Dry mode, if supported
+     * This returns the target humidity for Dry mode, if supported
      * Possibly an add-on sensor is required in some cases
      * 
-     * @return Maximum Humidity in Dry Mode
+     * @return Target Humidity in Dry Mode
      */
     public int getMaximumHumidity() {
         return (data[19] & (byte) 0x7f);

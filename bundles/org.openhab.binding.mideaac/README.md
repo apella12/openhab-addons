@@ -68,7 +68,7 @@ Note:  After discovery, the thing properties dropdown on the Thing UI page will 
 | on-timer             | String             | Sets the future time to turn on the AC.                                                                |           | Yes      |
 | off-timer            | String             | Sets the future time to turn off the AC.                                                               |           | Yes      |
 | screen-display       | Switch             | If device supports across LAN, turns off the LED display.                                              |           | Yes      |
-| maximum-humidity     | Number             | If device supports, allows setting the maximum humidity in DRY mode                                    |           | Yes
+| maximum-humidity     | Number             | If device supports, allows setting the maximum humidity in DRY mode                                    |           | Yes      |
 | humidity             | Number             | If device supports, the indoor room humidity.                                                          | Yes       | Yes      |
 | energy-consumption   | Number             | If device supports, cumulative Kilowatt-Hours usage                                                    | Yes       | Yes      |
 | current-draw         | Number             | If device supports, instantaneous amperage usage                                                       | Yes       | Yes      |

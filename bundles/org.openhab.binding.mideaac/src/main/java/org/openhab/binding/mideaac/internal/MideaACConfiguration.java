@@ -41,6 +41,11 @@ public class MideaACConfiguration {
     public String deviceId = "0";
 
     /**
+     * Device Type for other than default Midea AC
+     */
+    public String type = "ac";
+
+    /**
      * Cloud Account email
      */
     public String email = "nethome+us@mailinator.com";

@@ -37,9 +37,11 @@ public class MideaACBindingConstants {
     /**
      * Thing Type
      */
-    public static final ThingTypeUID THING_TYPE_MIDEAAC = new ThingTypeUID(BINDING_ID, "ac");
+    public static final ThingTypeUID THING_TYPE_AC = new ThingTypeUID(BINDING_ID, "ac");
+    public static final ThingTypeUID THING_TYPE_DEHUMIDIFIER = new ThingTypeUID(BINDING_ID, "a1");
 
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_TYPE_MIDEAAC);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
+            .unmodifiableSet(Set.of(THING_TYPE_AC, THING_TYPE_DEHUMIDIFIER));
 
     /**
      * List of all channel IDS
@@ -48,11 +50,17 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_APPLIANCE_ERROR = "appliance-error";
     public static final String CHANNEL_TARGET_TEMPERATURE = "target-temperature";
     public static final String CHANNEL_OPERATIONAL_MODE = "operational-mode";
+    public static final String CHANNEL_DEHUMIDIFIER_MODE = "dehumidifier-mode";
     public static final String CHANNEL_FAN_SPEED = "fan-speed";
     public static final String CHANNEL_ON_TIMER = "on-timer";
     public static final String CHANNEL_OFF_TIMER = "off-timer";
     public static final String CHANNEL_SWING_MODE = "swing-mode";
+    public static final String CHANNEL_DEHUMIDIFIER_SWING = "dehumidifier-swing";
     public static final String CHANNEL_AUXILIARY_HEAT = "auxiliary-heat";
+    public static final String CHANNEL_DEHUMIDIFIER_CHILD_LOCK = "dehumidifier-child-lock";
+    public static final String CHANNEL_DEHUMIDIFIER_ANION = "dehumidifier-anion";
+    public static final String CHANNEL_DEHUMIDIFIER_TANK = "dehumidifier-tank";
+    public static final String CHANNEL_DEHUMIDIFIER_TANK_SETPOINT = "dehumidifier-tank-setpoint";
     public static final String CHANNEL_ECO_MODE = "eco-mode";
     public static final String CHANNEL_TEMPERATURE_UNIT = "temperature-unit";
     public static final String CHANNEL_SLEEP_FUNCTION = "sleep-function";
@@ -80,6 +88,7 @@ public class MideaACBindingConstants {
     public static final String CONFIG_IP_ADDRESS = "ipAddress";
     public static final String CONFIG_IP_PORT = "ipPort";
     public static final String CONFIG_DEVICEID = "deviceId";
+    public static final String CONFIG_TYPE = "type";
     public static final String CONFIG_CLOUD = "cloud";
     public static final String CONFIG_EMAIL = "email";
     public static final String CONFIG_PASSWORD = "password";
@@ -96,7 +105,6 @@ public class MideaACBindingConstants {
     // Properties from LAN Discovery
     public static final String PROPERTY_SN = "sn";
     public static final String PROPERTY_SSID = "ssid";
-    public static final String PROPERTY_TYPE = "type";
 
     // Capabilities properties discoverable
     public static final String PROPERTY_ANION = "anion";

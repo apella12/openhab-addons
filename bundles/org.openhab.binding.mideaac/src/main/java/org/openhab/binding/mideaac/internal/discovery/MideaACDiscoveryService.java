@@ -316,10 +316,16 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             logger.debug("Type: '{}'", mSmartType);
 
             String thingName = createThingName(packet.getAddress().getAddress(), mSmartId);
-            ThingUID thingUID = new ThingUID(THING_TYPE_MIDEAAC, thingName.toLowerCase());
+            // choose thing type based on discovered device type/version
+            ThingUID thingUID;
+            if ("ac".equalsIgnoreCase(mSmartType)) {
+                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
+            } else {
+                thingUID = new ThingUID(THING_TYPE_DEHUMIDIFIER, thingName.toLowerCase());
+            }
 
             return DiscoveryResultBuilder.create(thingUID).withLabel(thingName)
-                    .withRepresentationProperty(CONFIG_IP_ADDRESS).withThingType(THING_TYPE_MIDEAAC)
+                    .withRepresentationProperty(CONFIG_IP_ADDRESS)
                     .withProperties(collectProperties(ipAddress, mSmartVersion, mSmartId, mSmartPort, mSmartSN,
                             mSmartSSID, mSmartType, new TreeMap<>(), // Placeholder for capabilities
                             new TreeMap<>())) // Placeholder for numericCapabilities
@@ -365,10 +371,10 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         properties.put(CONFIG_IP_ADDRESS, ipAddress);
         properties.put(CONFIG_IP_PORT, port);
         properties.put(CONFIG_DEVICEID, id);
+        properties.put(CONFIG_TYPE, type);
         properties.put(CONFIG_VERSION, version);
         properties.put(PROPERTY_SN, sn);
         properties.put(PROPERTY_SSID, ssid);
-        properties.put(PROPERTY_TYPE, type);
 
         // Default empty maps for boolean and numeric capabilities
         if (capabilities != null) {

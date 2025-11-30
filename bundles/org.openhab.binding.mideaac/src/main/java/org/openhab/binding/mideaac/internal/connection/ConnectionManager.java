@@ -30,9 +30,11 @@ import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
+import org.openhab.binding.mideaac.internal.handler.A1Response;
 import org.openhab.binding.mideaac.internal.handler.Callback;
 import org.openhab.binding.mideaac.internal.handler.CommandBase;
 import org.openhab.binding.mideaac.internal.handler.CommandSet;
+import org.openhab.binding.mideaac.internal.handler.DeviceResponse;
 import org.openhab.binding.mideaac.internal.handler.EnergyResponse;
 import org.openhab.binding.mideaac.internal.handler.HumidityResponse;
 import org.openhab.binding.mideaac.internal.handler.Packet;
@@ -68,7 +70,7 @@ public class ConnectionManager {
     private String token;
     private final String cloud;
     private final String deviceId;
-    private Response lastResponse;
+    private DeviceResponse lastResponse;
     private CloudProvider cloudProvider;
     private Security security;
     private final int version;
@@ -123,7 +125,7 @@ public class ConnectionManager {
      * 
      * @return byte array of last response
      */
-    public Response getLastResponse() {
+    public DeviceResponse getLastResponse() {
         return this.lastResponse;
     }
 
@@ -522,6 +524,19 @@ public class ConnectionManager {
                     }
                 } catch (Exception ex) {
                     logger.debug("Poll response exception: {}", ex.getMessage());
+                    throw new MideaException(ex);
+                }
+                return;
+
+            case (byte) 0xC8:
+                lastResponse = new A1Response(data, 4); // Version 4 for Dehumidifier to override fan speed
+                try {
+                    logger.trace("Data length is {}, version is {}, IP address is {}", data.length, version, ipAddress);
+                    if (callback != null) {
+                        callback.updateChannels(lastResponse);
+                    }
+                } catch (Exception ex) {
+                    logger.debug(" Dehumidifer Poll response exception: {}", ex.getMessage());
                     throw new MideaException(ex);
                 }
                 return;

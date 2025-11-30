@@ -16,13 +16,15 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.mideaac.internal.MideaACConfiguration;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link CommandBase} has the discover command and the routine poll command
+ * The {@link CommandBase} has the discover command, the routine poll command
+ * and the enums for Operational Modes, Swing Modes, and Fan Speeds.
  *
  * @author Jacek Dobrowolski - Initial contribution
  * @author Bob Eckhoff - Add Java Docs, minor fixes
@@ -45,7 +47,90 @@ public class CommandBase {
     protected byte[] data;
 
     /**
-     * Operational Modes
+     * Returns the command to discover devices.
+     * Command is defined above
+     *
+     * @return discover command
+     */
+    public static byte[] discover() {
+        return DISCOVER_COMMAND;
+    }
+
+    /**
+     * Byte Array structure for Base commands
+     */
+    public CommandBase() {
+        data = new byte[] { (byte) 0xaa,
+                // request is 0x20; setting is 0x23 - This is the message length
+                (byte) 0x20,
+                // device type
+                (byte) 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                // request is 0x03; setting is 0x02
+                (byte) 0x03,
+                // Byte0 - Data request/response type: 0x41 - check status; 0x40 - Set up
+                (byte) 0x41,
+                // Byte1
+                (byte) 0x81,
+                // Byte2 - operational_mode
+                0x00,
+                // Byte3
+                (byte) 0xff,
+                // Byte4
+                0x03,
+                // Byte5
+                (byte) 0xff,
+                // Byte6
+                0x00,
+                // Byte7 - Room Temperature Request: 0x02 - indoor_temperature, 0x03 - outdoor_temperature
+                // when set, this is swing_mode
+                0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                // Message ID
+                0x00 };
+        LocalDateTime now = LocalDateTime.now();
+        data[data.length - 1] = (byte) now.getSecond();
+        // Set device type from configuration- for other than default Midea AC
+        MideaACConfiguration config = new MideaACConfiguration();
+        String deviceType = config.type;
+        byte[] parsed = HexUtils.hexToBytes(deviceType);
+        data[0x02] = parsed[0];
+    }
+
+    /**
+     * Pulls the elements of the Base command together
+     */
+    public void compose() {
+        logger.trace("Base Bytes before crypt {}", HexUtils.bytesToHex(data));
+        byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
+        byte[] newData1 = new byte[data.length + 1];
+        System.arraycopy(data, 0, newData1, 0, data.length);
+        newData1[data.length] = crc8;
+        data = newData1;
+        byte chksum = checksum(Arrays.copyOfRange(data, 1, data.length));
+        byte[] newData2 = new byte[data.length + 1];
+        System.arraycopy(data, 0, newData2, 0, data.length);
+        newData2[data.length] = chksum;
+        data = newData2;
+    }
+
+    /**
+     * Gets byte array
+     * 
+     * @return data array
+     */
+    public byte[] getBytes() {
+        return data;
+    }
+
+    private static byte checksum(byte[] bytes) {
+        int sum = 0;
+        for (byte value : bytes) {
+            sum = (byte) (sum + value);
+        }
+        return (byte) ((255 - (sum % 256)) + 1);
+    }
+
+    /**
+     * Operational Modes for AC Device
      */
     public enum OperationalMode {
         AUTO(1),
@@ -87,7 +172,50 @@ public class CommandBase {
     }
 
     /**
+     * Operational Modes for Dehumidifier
+     */
+    public enum A1OperationalMode {
+        MANUAL(1),
+        CONTINUOUS(2),
+        AUTO(3),
+        CLOTHES_DRY(4),
+        SHOES_DRY(5),
+        UNKNOWN(0);
+
+        private final int value;
+
+        private A1OperationalMode(int value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets Operational Mode value
+         *
+         * @return value
+         */
+        public int getId() {
+            return value;
+        }
+
+        /**
+         * Provides Operational Mode Common name
+         *
+         * @param id integer from byte response
+         * @return type
+         */
+        public static A1OperationalMode fromId(int id) {
+            for (A1OperationalMode type : values()) {
+                if (type.getId() == id) {
+                    return type;
+                }
+            }
+            return UNKNOWN;
+        }
+    }
+
+    /**
      * Converts byte value to the Swing Mode label by version
+     * for AC devices.
      * Two versions of V3, Supported Swing or Non-Supported (4)
      * V2 set without leading 3, but reports with it (1)
      */
@@ -180,6 +308,15 @@ public class CommandBase {
         SILENT3(30, 3),
         UNKNOWN3(0, 3),
 
+        // Dehumidifer version
+        AUTO4(102, 4),
+        HIGH4(80, 4),
+        MEDIUM4(60, 4),
+        LOW4(40, 4),
+        LOWEST4(1, 4),
+        OFF4(127, 4),
+        UNKNOWN4(0, 4),
+
         UNKNOWN(0, 0);
 
         private final int value;
@@ -228,86 +365,7 @@ public class CommandBase {
         @Override
         public String toString() {
             // Drops the trailing 2 or 3 from the fan speed
-            return super.toString().replace("2", "").replace("3", "");
+            return super.toString().replace("2", "").replace("3", "").replace("4", "");
         }
-    }
-
-    /**
-     * Returns the command to discover devices.
-     * Command is defined above
-     *
-     * @return discover command
-     */
-    public static byte[] discover() {
-        return DISCOVER_COMMAND;
-    }
-
-    /**
-     * Byte Array structure for Base commands
-     */
-    public CommandBase() {
-        data = new byte[] { (byte) 0xaa,
-                // request is 0x20; setting is 0x23 - This is the message length
-                (byte) 0x20,
-                // device type
-                (byte) 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                // request is 0x03; setting is 0x02
-                (byte) 0x03,
-                // Byte0 - Data request/response type: 0x41 - check status; 0x40 - Set up
-                (byte) 0x41,
-                // Byte1
-                (byte) 0x81,
-                // Byte2 - operational_mode
-                0x00,
-                // Byte3
-                (byte) 0xff,
-                // Byte4
-                0x03,
-                // Byte5
-                (byte) 0xff,
-                // Byte6
-                0x00,
-                // Byte7 - Room Temperature Request: 0x02 - indoor_temperature, 0x03 - outdoor_temperature
-                // when set, this is swing_mode
-                0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                // Message ID
-                0x00 };
-        LocalDateTime now = LocalDateTime.now();
-        data[data.length - 1] = (byte) now.getSecond();
-        data[0x02] = (byte) 0xAC;
-    }
-
-    /**
-     * Pulls the elements of the Base command together
-     */
-    public void compose() {
-        logger.trace("Base Bytes before crypt {}", HexUtils.bytesToHex(data));
-        byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
-        byte[] newData1 = new byte[data.length + 1];
-        System.arraycopy(data, 0, newData1, 0, data.length);
-        newData1[data.length] = crc8;
-        data = newData1;
-        byte chksum = checksum(Arrays.copyOfRange(data, 1, data.length));
-        byte[] newData2 = new byte[data.length + 1];
-        System.arraycopy(data, 0, newData2, 0, data.length);
-        newData2[data.length] = chksum;
-        data = newData2;
-    }
-
-    /**
-     * Gets byte array
-     * 
-     * @return data array
-     */
-    public byte[] getBytes() {
-        return data;
-    }
-
-    private static byte checksum(byte[] bytes) {
-        int sum = 0;
-        for (byte value : bytes) {
-            sum = (byte) (sum + value);
-        }
-        return (byte) ((255 - (sum % 256)) + 1);
     }
 }

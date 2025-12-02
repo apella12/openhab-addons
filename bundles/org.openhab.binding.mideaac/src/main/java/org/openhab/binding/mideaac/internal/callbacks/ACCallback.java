@@ -10,10 +10,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.callbacks;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesResponse;
+import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.responses.EnergyResponse;
+import org.openhab.binding.mideaac.internal.responses.HumidityResponse;
+import org.openhab.binding.mideaac.internal.responses.Response;
+import org.openhab.binding.mideaac.internal.responses.TemperatureResponse;
 
 /**
  * The {@link Response} performs the polling byte data stream decoding
@@ -26,19 +31,21 @@ import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesRes
  * @author Bob Eckhoff - added additional Callbacks after Response
  */
 @NonNullByDefault
-public interface Callback {
+public interface ACCallback extends Callback {
     /**
      * Updates channels with a standard response (0xC0).
      *
      * @param response The standard response from the device used to update channels.
      */
-    void updateChannels(DeviceResponse response);
+    @Override
+    void updateChannels(Response response);
 
     /**
      * Updates channels with a capabilities response (0xB5).
      *
      * @param capabilitiesResponse The capabilities response from the device used to update properties.
      */
+    @Override
     void updateChannels(CapabilitiesResponse capabilitiesResponse);
 
     /**
@@ -46,6 +53,7 @@ public interface Callback {
      *
      * @param energyResponse The Energy response from the device used to update energy.
      */
+    @Override
     void updateChannels(EnergyResponse energyResponse);
 
     /**
@@ -53,6 +61,7 @@ public interface Callback {
      *
      * @param energyResponse The Energy response from a humidity Poll used to update humidity.
      */
+    @Override
     void updateHumidityFromEnergy(EnergyResponse energyResponse);
 
     /**
@@ -60,6 +69,7 @@ public interface Callback {
      *
      * @param humidityResponse The unsolicited (0xA0) response from the device used to update properties.
      */
+    @Override
     void updateChannels(HumidityResponse humidityResponse);
 
     /**
@@ -67,5 +77,10 @@ public interface Callback {
      *
      * @param temperatureResponse The unsolicited (0xA1) response from the device used to update properties.
      */
+    @Override
     void updateChannels(TemperatureResponse temperatureResponse);
+
+    default void updateChannels(A1Response a1Response) {
+        // No implementation needed for AC
+    }
 }

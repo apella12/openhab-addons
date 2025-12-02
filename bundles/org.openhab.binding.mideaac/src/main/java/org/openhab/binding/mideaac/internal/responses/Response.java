@@ -10,12 +10,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.responses;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.handler.Timer;
 import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Bob Eckhoff - Add Java Docs, minor fixes
  */
 @NonNullByDefault
-public class Response implements DeviceResponse {
+public class Response {
     byte[] data;
 
     // set empty to match the return from an empty byte avoid null

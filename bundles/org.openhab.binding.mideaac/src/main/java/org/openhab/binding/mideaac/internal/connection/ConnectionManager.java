@@ -26,21 +26,20 @@ import java.util.HexFormat;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
+import org.openhab.binding.mideaac.internal.callbacks.Callback;
 import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
-import org.openhab.binding.mideaac.internal.handler.A1Response;
-import org.openhab.binding.mideaac.internal.handler.Callback;
 import org.openhab.binding.mideaac.internal.handler.CommandBase;
 import org.openhab.binding.mideaac.internal.handler.CommandSet;
-import org.openhab.binding.mideaac.internal.handler.DeviceResponse;
-import org.openhab.binding.mideaac.internal.handler.EnergyResponse;
-import org.openhab.binding.mideaac.internal.handler.HumidityResponse;
 import org.openhab.binding.mideaac.internal.handler.Packet;
-import org.openhab.binding.mideaac.internal.handler.Response;
-import org.openhab.binding.mideaac.internal.handler.TemperatureResponse;
 import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesResponse;
+import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.responses.EnergyResponse;
+import org.openhab.binding.mideaac.internal.responses.HumidityResponse;
+import org.openhab.binding.mideaac.internal.responses.Response;
+import org.openhab.binding.mideaac.internal.responses.TemperatureResponse;
 import org.openhab.binding.mideaac.internal.security.Decryption8370Result;
 import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.binding.mideaac.internal.security.Security.MsgType;
@@ -70,7 +69,8 @@ public class ConnectionManager {
     private String token;
     private final String cloud;
     private final String deviceId;
-    private DeviceResponse lastResponse;
+    private Response lastResponse;
+    private A1Response lastA1Response;
     private CloudProvider cloudProvider;
     private Security security;
     private final int version;
@@ -112,6 +112,8 @@ public class ConnectionManager {
         this.promptTone = promptTone;
         this.lastResponse = new Response(HexFormat.of().parseHex("C00042667F7F003C0000046066000000000000000000F9ECDB"),
                 version);
+        this.lastA1Response = new A1Response(
+                HexFormat.of().parseHex("C80104507F7F003700000000000000001E64000000003A67C2"), version);
         this.cloudProvider = CloudProvider.getCloudProvider(cloud);
         this.security = new Security(cloudProvider);
     }
@@ -119,15 +121,6 @@ public class ConnectionManager {
     private Socket socket = new Socket();
     private InputStream inputStream = new ByteArrayInputStream(new byte[0]);
     private DataOutputStream writer = new DataOutputStream(System.out);
-
-    /**
-     * Gets last response
-     * 
-     * @return byte array of last response
-     */
-    public DeviceResponse getLastResponse() {
-        return this.lastResponse;
-    }
 
     /**
      * The socket is established with the writer and inputStream (for reading responses)
@@ -529,11 +522,11 @@ public class ConnectionManager {
                 return;
 
             case (byte) 0xC8:
-                lastResponse = new A1Response(data, 4); // Version 4 for Dehumidifier to override fan speed
+                lastA1Response = new A1Response(data, 4); // Version 4 for Dehumidifier to override fan speed
                 try {
                     logger.trace("Data length is {}, version is {}, IP address is {}", data.length, version, ipAddress);
                     if (callback != null) {
-                        callback.updateChannels(lastResponse);
+                        callback.updateChannels(lastA1Response);
                     }
                 } catch (Exception ex) {
                     logger.debug(" Dehumidifer Poll response exception: {}", ex.getMessage());
@@ -561,7 +554,7 @@ public class ConnectionManager {
             inputStream.close();
             socket.close();
         } catch (IOException e) {
-            logger.warn("IOException closing connection to device at {}: {}", ipAddress, e.getMessage(), e);
+            logger.warn("IOException closing connection to device at {}: {}", ipAddress, e.getMessage());
         }
         socket = null;
         inputStream = null;
@@ -606,6 +599,14 @@ public class ConnectionManager {
             String message = e.getMessage();
             logger.debug("Write error {}", message);
         }
+    }
+
+    public Response getLastResponse() {
+        return lastResponse;
+    }
+
+    public A1Response getLastA1Response() {
+        return lastA1Response;
     }
 
     /**

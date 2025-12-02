@@ -10,11 +10,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.responses;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.A1OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
+import org.openhab.binding.mideaac.internal.handler.Timer;
 import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * @author Gaël L'hopital - Initial contribution
  */
 @NonNullByDefault
-public class A1Response implements DeviceResponse {
+public class A1Response {
     private Logger logger = LoggerFactory.getLogger(A1Response.class);
     private byte[] data;
     private int version;

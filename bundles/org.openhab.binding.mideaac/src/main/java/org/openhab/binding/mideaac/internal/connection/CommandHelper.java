@@ -15,16 +15,15 @@ package org.openhab.binding.mideaac.internal.connection;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.A1Response;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.A1OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
 import org.openhab.binding.mideaac.internal.handler.CommandSet;
-import org.openhab.binding.mideaac.internal.handler.DeviceResponse;
-import org.openhab.binding.mideaac.internal.handler.Response;
 import org.openhab.binding.mideaac.internal.handler.Timer;
 import org.openhab.binding.mideaac.internal.handler.Timer.TimeParser;
+import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
@@ -61,6 +60,7 @@ public class CommandHelper {
 
     private static final StringType FAN_SPEED_OFF = new StringType("OFF");
     private static final StringType FAN_SPEED_SILENT = new StringType("SILENT");
+    private static final StringType FAN_SPEED_LOWEST = new StringType("LOWEST");
     private static final StringType FAN_SPEED_LOW = new StringType("LOW");
     private static final StringType FAN_SPEED_MEDIUM = new StringType("MEDIUM");
     private static final StringType FAN_SPEED_HIGH = new StringType("HIGH");
@@ -73,11 +73,29 @@ public class CommandHelper {
     private static final StringType SWING_MODE_BOTH = new StringType("BOTH");
 
     /**
-     * Device Power ON OFF
+     * Device Power ON OFF for AC units
      * 
      * @param command On or Off
      */
-    public static CommandSet handlePower(Command command, DeviceResponse lastResponse)
+    public static CommandSet handlePower(Command command, Response lastResponse) throws UnsupportedOperationException {
+        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+
+        if (command.equals(OnOffType.OFF)) {
+            commandSet.setPowerState(false);
+        } else if (command.equals(OnOffType.ON)) {
+            commandSet.setPowerState(true);
+        } else {
+            throw new UnsupportedOperationException(String.format("Unknown power command: {}", command));
+        }
+        return commandSet;
+    }
+
+    /**
+     * Device Power ON OFF for A1 Dehumidifier
+     * 
+     * @param command On or Off
+     */
+    public static CommandSet handlePower(Command command, A1Response lastResponse)
             throws UnsupportedOperationException {
         CommandSet commandSet = CommandSet.fromResponse(lastResponse);
 
@@ -165,7 +183,7 @@ public class CommandHelper {
      * 
      * @param command Fan Speed Auto, Low, High, etc.
      */
-    public static CommandSet handleFanSpeed(Command command, DeviceResponse lastResponse, int version)
+    public static CommandSet handleFanSpeed(Command command, Response lastResponse, int version)
             throws UnsupportedOperationException {
         CommandSet commandSet = CommandSet.fromResponse(lastResponse);
 
@@ -209,6 +227,37 @@ public class CommandHelper {
                 } else if (version == 3) {
                     commandSet.setFanSpeed(FanSpeed.AUTO3);
                 }
+            } else {
+                throw new UnsupportedOperationException(String.format("Unknown fan speed command: {}", command));
+            }
+        }
+        return commandSet;
+    }
+
+    /**
+     * Fan Speeds vary by V2 or V3 and device - See capabilities.
+     * This command also turns the power ON
+     * 
+     * @param command Fan Speed Auto, Low, High, etc.
+     */
+    public static CommandSet handleFanSpeed(Command command, A1Response lastResponse)
+            throws UnsupportedOperationException {
+        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+
+        if (command instanceof StringType) {
+            commandSet.setPowerState(true);
+            if (command.equals(FAN_SPEED_OFF)) {
+                commandSet.setPowerState(false);
+            } else if (command.equals(FAN_SPEED_LOWEST)) {
+                commandSet.setFanSpeed(FanSpeed.LOWEST4);
+            } else if (command.equals(FAN_SPEED_LOW)) {
+                commandSet.setFanSpeed(FanSpeed.LOW4);
+            } else if (command.equals(FAN_SPEED_MEDIUM)) {
+                commandSet.setFanSpeed(FanSpeed.MEDIUM4);
+            } else if (command.equals(FAN_SPEED_HIGH)) {
+                commandSet.setFanSpeed(FanSpeed.HIGH4);
+            } else if (command.equals(FAN_SPEED_AUTO)) {
+                commandSet.setFanSpeed(FanSpeed.AUTO4);
             } else {
                 throw new UnsupportedOperationException(String.format("Unknown fan speed command: {}", command));
             }
@@ -464,7 +513,48 @@ public class CommandHelper {
      * 
      * @param command Sets On Timer
      */
-    public static CommandSet handleOnTimer(Command command, DeviceResponse lastResponse) {
+    public static CommandSet handleOnTimer(Command command, Response lastResponse) {
+        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        TimeParser timeParser = timer.new TimeParser();
+        if (command instanceof StringType) {
+            String timeString = ((StringType) command).toString();
+            if (!timeString.matches("\\d{2}:\\d{2}")) {
+                logger.debug("Invalid time format. Expected HH:MM.");
+                commandSet.setOnTimer(false, hours, minutes);
+            } else {
+                int[] timeParts = timeParser.parseTime(timeString);
+                boolean on = true;
+                hours = timeParts[0];
+                minutes = timeParts[1];
+                // Validate minutes and hours
+                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                    hours = 0;
+                    minutes = 0;
+                }
+                if (hours == 0 && minutes == 0) {
+                    commandSet.setOnTimer(false, hours, minutes);
+                } else {
+                    commandSet.setOnTimer(on, hours, minutes);
+                }
+            }
+        } else {
+            logger.debug("Command must be of type StringType: {}", command);
+            commandSet.setOnTimer(false, hours, minutes);
+        }
+
+        return commandSet;
+    }
+
+    /**
+     * Sets the time (from now) that the device will turn on at it's current settings
+     * 
+     * @param command Sets On Timer
+     */
+    public static CommandSet handleOnTimer(Command command, A1Response lastResponse) {
         CommandSet commandSet = CommandSet.fromResponse(lastResponse);
         int hours = 0;
         int minutes = 0;
@@ -505,7 +595,48 @@ public class CommandHelper {
      * 
      * @param command Sets Off Timer
      */
-    public static CommandSet handleOffTimer(Command command, DeviceResponse lastResponse) {
+    public static CommandSet handleOffTimer(Command command, Response lastResponse) {
+        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        int hours = 0;
+        int minutes = 0;
+        Timer timer = new Timer(true, hours, minutes);
+        TimeParser timeParser = timer.new TimeParser();
+        if (command instanceof StringType) {
+            String timeString = ((StringType) command).toString();
+            if (!timeString.matches("\\d{2}:\\d{2}")) {
+                logger.debug("Invalid time format. Expected HH:MM.");
+                commandSet.setOffTimer(false, hours, minutes);
+            } else {
+                int[] timeParts = timeParser.parseTime(timeString);
+                boolean on = true;
+                hours = timeParts[0];
+                minutes = timeParts[1];
+                // Validate minutes and hours
+                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
+                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
+                    hours = 0;
+                    minutes = 0;
+                }
+                if (hours == 0 && minutes == 0) {
+                    commandSet.setOffTimer(false, hours, minutes);
+                } else {
+                    commandSet.setOffTimer(on, hours, minutes);
+                }
+            }
+        } else {
+            logger.debug("Command must be of type StringType: {}", command);
+            commandSet.setOffTimer(false, hours, minutes);
+        }
+
+        return commandSet;
+    }
+
+    /**
+     * Sets the time (from now) that the device will turn off
+     * 
+     * @param command Sets Off Timer
+     */
+    public static CommandSet handleOffTimer(Command command, A1Response lastResponse) {
         CommandSet commandSet = CommandSet.fromResponse(lastResponse);
         int hours = 0;
         int minutes = 0;

@@ -14,6 +14,8 @@ package org.openhab.binding.mideaac.internal.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
+import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,32 +58,48 @@ public class CommandSet extends CommandBase {
      * @param response response from last poll or set command
      * @return commandSet
      */
-    public static CommandSet fromResponse(DeviceResponse response) {
+    // Common mapping for AC
+    public static CommandSet fromResponse(Response ac) {
         CommandSet commandSet = new CommandSet();
 
-        commandSet.setPowerState(response.getPowerState());
-        commandSet.setFanSpeed(response.getFanSpeed());
-        commandSet.setOnTimer(response.getOnTimerData());
-        commandSet.setOffTimer(response.getOffTimerData());
-        if (response instanceof Response ac) {
-            commandSet.setTargetTemperature(ac.getTargetTemperature());
-            commandSet.setOperationalMode(ac.getOperationalMode());
-            commandSet.setMaximumHumidity(ac.getMaximumHumidity());
-            commandSet.setFahrenheit(ac.getFahrenheit());
-            commandSet.setTurboMode(ac.getTurboMode());
-            commandSet.setSwingMode(ac.getSwingMode());
-            commandSet.setEcoMode(ac.getEcoMode());
-            commandSet.setSleepMode(ac.getSleepFunction());
-        }
-        if (response instanceof A1Response dehumidifier) {
-            commandSet.setA1OperationalMode(dehumidifier.getA1OperationalMode());
-            commandSet.setA1MaximumHumidity(dehumidifier.getMaximumHumidity());
-            commandSet.setA1ChildLock(dehumidifier.getA1ChildLock());
-            commandSet.setA1SwingMode(dehumidifier.getA1SwingMode());
-            commandSet.setA1Anion(dehumidifier.getA1Anion());
-            commandSet.setTankSetpoint(dehumidifier.getTankSetpoint());
-            commandSet.setPromptTone(dehumidifier.getPromptTone());
-        }
+        // Common fields
+        commandSet.setPowerState(ac.getPowerState());
+        commandSet.setFanSpeed(ac.getFanSpeed());
+        commandSet.setOnTimer(ac.getOnTimerData());
+        commandSet.setOffTimer(ac.getOffTimerData());
+
+        // AC-specific fields
+        commandSet.setTargetTemperature(ac.getTargetTemperature());
+        commandSet.setOperationalMode(ac.getOperationalMode());
+        commandSet.setMaximumHumidity(ac.getMaximumHumidity());
+        commandSet.setFahrenheit(ac.getFahrenheit());
+        commandSet.setTurboMode(ac.getTurboMode());
+        commandSet.setSwingMode(ac.getSwingMode());
+        commandSet.setEcoMode(ac.getEcoMode());
+        commandSet.setSleepMode(ac.getSleepFunction());
+
+        return commandSet;
+    }
+
+    // Common mapping for Dehumidifier
+    public static CommandSet fromResponse(A1Response dh) {
+        CommandSet commandSet = new CommandSet();
+
+        // Common fields
+        commandSet.setPowerState(dh.getPowerState());
+        commandSet.setFanSpeed(dh.getFanSpeed());
+        commandSet.setOnTimer(dh.getOnTimerData());
+        commandSet.setOffTimer(dh.getOffTimerData());
+
+        // DH-specific fields
+        commandSet.setA1OperationalMode(dh.getA1OperationalMode());
+        commandSet.setA1MaximumHumidity(dh.getMaximumHumidity());
+        commandSet.setA1ChildLock(dh.getA1ChildLock());
+        commandSet.setA1SwingMode(dh.getA1SwingMode());
+        commandSet.setA1Anion(dh.getA1Anion());
+        commandSet.setTankSetpoint(dh.getTankSetpoint());
+        commandSet.setPromptTone(dh.getPromptTone());
+
         return commandSet;
     }
 

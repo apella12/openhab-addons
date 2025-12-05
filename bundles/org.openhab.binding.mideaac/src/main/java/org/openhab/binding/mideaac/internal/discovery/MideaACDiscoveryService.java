@@ -31,8 +31,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
-import org.openhab.binding.mideaac.internal.handler.CommandBase;
-import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilityParser;
+import org.openhab.binding.mideaac.internal.commands.CommandBase;
+import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilityParser;
 import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
@@ -359,7 +359,9 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * @param port Port of the device
      * @param sn Serial number of the device
      * @param ssid Serial id converted with StandardCharsets.UTF_8
-     * @param type Type of device (ac)
+     * @param type Type of device (ac) or (a1) humidifier
+     * @param numericCapabilities Map of numeric capabilities
+     * @param capabilities Map of boolean capabilities
      * @return Map with properties
      */
     private Map<String, Object> collectProperties(String ipAddress, String version, String id, String port, String sn,
@@ -371,7 +373,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
         properties.put(CONFIG_IP_ADDRESS, ipAddress);
         properties.put(CONFIG_IP_PORT, port);
         properties.put(CONFIG_DEVICEID, id);
-        properties.put(CONFIG_TYPE, type);
+        properties.put(CONFIG_DEVICE_TYPE, type);
         properties.put(CONFIG_VERSION, version);
         properties.put(PROPERTY_SN, sn);
         properties.put(PROPERTY_SSID, ssid);

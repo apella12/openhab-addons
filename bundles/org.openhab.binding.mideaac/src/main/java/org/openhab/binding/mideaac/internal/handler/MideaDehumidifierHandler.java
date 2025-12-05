@@ -22,7 +22,7 @@ import javax.measure.quantity.Temperature;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.mideaac.internal.callbacks.HumidifierCallback;
-import org.openhab.binding.mideaac.internal.connection.CommandHelper;
+import org.openhab.binding.mideaac.internal.commands.A1CommandHelper;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
@@ -66,7 +66,7 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
     @Override
     protected void refreshDeviceState() {
         try {
-            connectionManager.getStatus(this); // 'this' is your Callback
+            connectionManager.getStatus(this);
         } catch (MideaAuthenticationException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
         } catch (MideaConnectionException e) {
@@ -84,25 +84,25 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
         try {
             A1Response lastresponse = connectionManager.getLastA1Response();
             if (channelUID.getId().equals(CHANNEL_POWER)) {
-                connectionManager.sendCommand(CommandHelper.handlePower(command, lastresponse), this);
-            } else if (channelUID.getId().equals(CHANNEL_FAN_SPEED)) {
-                connectionManager.sendCommand(CommandHelper.handleFanSpeed(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handlePower(command, lastresponse), this);
+            } else if (channelUID.getId().equals(CHANNEL_FAN_SPEED_DH)) {
+                connectionManager.sendCommand(A1CommandHelper.handleA1FanSpeed(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_ON_TIMER)) {
-                connectionManager.sendCommand(CommandHelper.handleOnTimer(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleOnTimer(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_OFF_TIMER)) {
-                connectionManager.sendCommand(CommandHelper.handleOffTimer(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleOffTimer(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_MAXIMUM_HUMIDITY)) {
-                connectionManager.sendCommand(CommandHelper.handleA1MaximumHumidity(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1MaximumHumidity(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleA1OperationalMode(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1OperationalMode(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_SWING)) {
-                connectionManager.sendCommand(CommandHelper.handleA1Swing(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1Swing(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_CHILD_LOCK)) {
-                connectionManager.sendCommand(CommandHelper.handleA1ChildLock(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1ChildLock(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_TANK_SETPOINT)) {
-                connectionManager.sendCommand(CommandHelper.handleA1TankSetpoint(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1TankSetpoint(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_ANION)) {
-                connectionManager.sendCommand(CommandHelper.handleA1Anion(command, lastresponse), this);
+                connectionManager.sendCommand(A1CommandHelper.handleA1Anion(command, lastresponse), this);
             }
         } catch (MideaConnectionException | MideaAuthenticationException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
@@ -113,6 +113,10 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
 
     @Override
     public void updateChannels(A1Response response) {
+        updateChannel(CHANNEL_POWER, OnOffType.from(response.getPowerState()));
+        updateChannel(CHANNEL_FAN_SPEED_DH, new StringType(response.getA1FanSpeed().toString()));
+        updateChannel(CHANNEL_ON_TIMER, new StringType(response.getOnTimer().toChannel()));
+        updateChannel(CHANNEL_OFF_TIMER, new StringType(response.getOffTimer().toChannel()));
         updateChannel(CHANNEL_DEHUMIDIFIER_MODE, new StringType(response.getA1OperationalMode().toString()));
         updateChannel(CHANNEL_MAXIMUM_HUMIDITY, new DecimalType(response.getMaximumHumidity()));
         updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getCurrentHumidity()));

@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.commands;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -90,7 +90,7 @@ public class CommandBase {
         data[data.length - 1] = (byte) now.getSecond();
         // Set device type from configuration- for other than default Midea AC
         MideaACConfiguration config = new MideaACConfiguration();
-        String deviceType = config.type;
+        String deviceType = config.deviceType;
         byte[] parsed = HexUtils.hexToBytes(deviceType);
         data[0x02] = parsed[0];
     }
@@ -308,15 +308,6 @@ public class CommandBase {
         SILENT3(30, 3),
         UNKNOWN3(0, 3),
 
-        // Dehumidifer version
-        AUTO4(102, 4),
-        HIGH4(80, 4),
-        MEDIUM4(60, 4),
-        LOW4(40, 4),
-        LOWEST4(1, 4),
-        OFF4(127, 4),
-        UNKNOWN4(0, 4),
-
         UNKNOWN(0, 0);
 
         private final int value;
@@ -366,6 +357,52 @@ public class CommandBase {
         public String toString() {
             // Drops the trailing 2 or 3 from the fan speed
             return super.toString().replace("2", "").replace("3", "").replace("4", "");
+        }
+    }
+
+    /**
+     * Converts byte value to the Fan Speed for Dehumidifier
+     * 
+     */
+    public enum A1FanSpeed {
+
+        AUTO(102),
+        HIGH(80),
+        MEDIUM(60),
+        LOW(40),
+        LOWEST(1),
+        OFF(127),
+        UNKNOWN(0);
+
+        private final int value;
+
+        private A1FanSpeed(int value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets Fan Speed value
+         * 
+         * @return value
+         */
+        public int getId() {
+            return value;
+        }
+
+        /**
+         * Returns Fan Speed high, medium, low, etc
+         * 
+         * @param id integer from byte response
+         * @param version version
+         * @return type
+         */
+        public static A1FanSpeed fromId(int id) {
+            for (A1FanSpeed type : values()) {
+                if (type.getId() == id) {
+                    return type;
+                }
+            }
+            return UNKNOWN;
         }
     }
 }

@@ -15,8 +15,6 @@ package org.openhab.binding.mideaac.internal.handler;
 import static org.openhab.binding.mideaac.internal.MideaACBindingConstants.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -27,16 +25,17 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.mideaac.internal.callbacks.ACCallback;
-import org.openhab.binding.mideaac.internal.connection.CommandHelper;
+import org.openhab.binding.mideaac.internal.commands.ACCommandHelper;
+import org.openhab.binding.mideaac.internal.commands.ACCommandSet;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
-import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesResponse;
-import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilityParser;
 import org.openhab.binding.mideaac.internal.responses.EnergyResponse;
 import org.openhab.binding.mideaac.internal.responses.HumidityResponse;
 import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.binding.mideaac.internal.responses.TemperatureResponse;
+import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesResponse;
+import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilityParser;
 import org.openhab.core.i18n.UnitProvider;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -49,6 +48,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +65,7 @@ import org.slf4j.LoggerFactory;
 public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
     private final Logger logger = LoggerFactory.getLogger(MideaACHandler.class);
     private final boolean imperialUnits;
-    private Map<String, String> properties = new HashMap<>();
     private @Nullable ScheduledFuture<?> scheduledEnergyUpdate;
-
-    // Create variable for connection manager
 
     /**
      * Initial creation of the Midea AC Handler
@@ -89,7 +86,6 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
     @Override
     public void initialize() {
         super.initialize(); // common plumbing
-        properties = new HashMap<>(getThing().getProperties());
         startEnergyScheduler(); // AC-specific
     }
 
@@ -106,7 +102,7 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
 
     private void energyUpdate() {
         try {
-            CommandSet energyUpdate = new CommandSet();
+            ACCommandSet energyUpdate = new ACCommandSet();
             energyUpdate.energyPoll();
             connectionManager.sendCommand(energyUpdate, this);
         } catch (Exception e) {
@@ -139,36 +135,56 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
     protected void handleDeviceCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
 
+        if (command instanceof RefreshType) {
+            try {
+                connectionManager.getStatus(this);
+                // Read only Energy and Humidity channels not updated with routine poll
+                ACCommandSet energyUpdate = new ACCommandSet();
+                energyUpdate.energyPoll();
+                connectionManager.sendCommand(energyUpdate, this);
+                ACCommandSet humidityUpdate = new ACCommandSet();
+                humidityUpdate.humidityPoll();
+                connectionManager.sendCommand(humidityUpdate, this);
+            } catch (MideaAuthenticationException e) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
+            } catch (MideaConnectionException | MideaException e) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+            } catch (IOException e) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+            }
+            return;
+        }
+
         try {
             Response lastresponse = connectionManager.getLastResponse();
             if (channelUID.getId().equals(CHANNEL_POWER)) {
-                connectionManager.sendCommand(CommandHelper.handlePower(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handlePower(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_OPERATIONAL_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleOperationalMode(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleOperationalMode(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_TARGET_TEMPERATURE)) {
-                connectionManager.sendCommand(CommandHelper.handleTargetTemperature(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleTargetTemperature(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_FAN_SPEED)) {
-                connectionManager.sendCommand(CommandHelper.handleFanSpeed(command, lastresponse, config.version),
+                connectionManager.sendCommand(ACCommandHelper.handleFanSpeed(command, lastresponse, config.version),
                         this);
             } else if (channelUID.getId().equals(CHANNEL_ECO_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleEcoMode(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleEcoMode(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_TURBO_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleTurboMode(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleTurboMode(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_SWING_MODE)) {
-                connectionManager.sendCommand(CommandHelper.handleSwingMode(command, lastresponse, config.version),
+                connectionManager.sendCommand(ACCommandHelper.handleSwingMode(command, lastresponse, config.version),
                         this);
             } else if (channelUID.getId().equals(CHANNEL_SCREEN_DISPLAY)) {
-                connectionManager.sendCommand(CommandHelper.handleScreenDisplay(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleScreenDisplay(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_TEMPERATURE_UNIT)) {
-                connectionManager.sendCommand(CommandHelper.handleTempUnit(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleTempUnit(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_SLEEP_FUNCTION)) {
-                connectionManager.sendCommand(CommandHelper.handleSleepFunction(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleSleepFunction(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_ON_TIMER)) {
-                connectionManager.sendCommand(CommandHelper.handleOnTimer(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleOnTimer(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_OFF_TIMER)) {
-                connectionManager.sendCommand(CommandHelper.handleOffTimer(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleOffTimer(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_MAXIMUM_HUMIDITY)) {
-                connectionManager.sendCommand(CommandHelper.handleMaximumHumidity(command, lastresponse), this);
+                connectionManager.sendCommand(ACCommandHelper.handleMaximumHumidity(command, lastresponse), this);
             }
         } catch (MideaConnectionException | MideaAuthenticationException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
@@ -188,7 +204,7 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
 
         scheduler.execute(() -> {
             try {
-                CommandSet initializationCommand = new CommandSet();
+                ACCommandSet initializationCommand = new ACCommandSet();
                 initializationCommand.getCapabilities();
                 this.connectionManager.sendCommand(initializationCommand, this);
 
@@ -198,7 +214,7 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
                 if (parser.hasAdditionalCapabilities()) {
                     scheduler.schedule(() -> {
                         try {
-                            CommandSet additionalCommand = new CommandSet();
+                            ACCommandSet additionalCommand = new ACCommandSet();
                             additionalCommand.getAdditionalCapabilities();
                             this.connectionManager.sendCommand(additionalCommand, this);
                         } catch (Exception ex) {

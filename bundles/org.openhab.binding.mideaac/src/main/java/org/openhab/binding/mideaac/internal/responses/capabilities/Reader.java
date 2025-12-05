@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.mideaac.internal.handler.capabilities;
+package org.openhab.binding.mideaac.internal.responses.capabilities;
 
 import java.util.function.Predicate;
 

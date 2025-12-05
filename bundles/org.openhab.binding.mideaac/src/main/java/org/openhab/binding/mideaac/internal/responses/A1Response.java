@@ -13,10 +13,10 @@
 package org.openhab.binding.mideaac.internal.responses;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.A1OperationalMode;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
-import org.openhab.binding.mideaac.internal.handler.Timer;
-import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.A1FanSpeed;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.A1OperationalMode;
+import org.openhab.binding.mideaac.internal.commands.Timer;
+import org.openhab.binding.mideaac.internal.commands.Timer.TimerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,22 +31,20 @@ import org.slf4j.LoggerFactory;
 public class A1Response {
     private Logger logger = LoggerFactory.getLogger(A1Response.class);
     private byte[] data;
-    private int version;
 
     /**
      * Response class Parameters
      *
      * @param data byte array from device
      */
-    public A1Response(byte[] data, int version) {
+    public A1Response(byte[] data) {
         this.data = data;
-        this.version = version;
 
         if (logger.isDebugEnabled()) {
             logger.debug("Power State: {}", getPowerState());
             logger.debug("Maximum Humidity: {}", getMaximumHumidity());
             logger.debug("Operational Mode: {}", getA1OperationalMode());
-            logger.debug("Fan Speed: {}", getFanSpeed());
+            logger.debug("Fan Speed: {}", getA1FanSpeed());
             logger.debug("Child Lock: {}", getA1ChildLock());
             logger.debug("Anion: {}", getA1Anion());
             logger.debug("Tank: {}", getTank());
@@ -90,8 +88,8 @@ public class A1Response {
      *
      * @return Lowest, Low, Medium, High, Auto etc.
      */
-    public FanSpeed getFanSpeed() {
-        return FanSpeed.fromId(data[0x03] & 0x7f, version);
+    public A1FanSpeed getA1FanSpeed() {
+        return A1FanSpeed.fromId(data[0x03] & 0x7f);
     }
 
     /**

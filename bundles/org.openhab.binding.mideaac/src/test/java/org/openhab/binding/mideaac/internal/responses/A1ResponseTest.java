@@ -18,7 +18,7 @@ import java.util.HexFormat;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.mideaac.internal.handler.CommandBase;
+import org.openhab.binding.mideaac.internal.commands.CommandBase;
 
 /**
  * The {@link A1ResponseTest} tests the methods in the Response class
@@ -31,8 +31,7 @@ public class A1ResponseTest {
     @org.jupnp.registry.event.Before
 
     byte[] data = HexFormat.of().parseHex("C80104507F7F003700000000000000001E64000000003A67C2");
-    private int version = 4;
-    A1Response response = new A1Response(data, version);
+    A1Response response = new A1Response(data);
 
     /**
      * Power State Test
@@ -57,8 +56,8 @@ public class A1ResponseTest {
      */
     @Test
     public void testGetFanSpeed() {
-        CommandBase.FanSpeed fanSpeed = response.getFanSpeed();
-        assertEquals(CommandBase.FanSpeed.HIGH4, fanSpeed);
+        CommandBase.A1FanSpeed fanSpeed = response.getA1FanSpeed();
+        assertEquals(CommandBase.A1FanSpeed.HIGH, fanSpeed);
     }
 
     /**

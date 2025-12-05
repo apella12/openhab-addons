@@ -10,11 +10,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.commands;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.Timer.TimerData;
-import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.commands.Timer.TimerData;
 import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -22,25 +21,24 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This {@link CommandSet} class handles the allowed changes originating from
- * the items linked to the Midea AC channels. Not all devices
+ * the items linked to the Midea device channels. Not all devices
  * support all commands. The general process is to clear the
- * bit(s) the set them to the commanded value.
+ * bit(s) the set them to the command value and change message type to command.
  *
  * @author Jacek Dobrowolski - Initial contribution
  * @author Bob Eckhoff - Add Java Docs, Timer Display LED and capabilities
  */
 @NonNullByDefault
-public class CommandSet extends CommandBase {
-    private final Logger logger = LoggerFactory.getLogger(CommandSet.class);
+public class ACCommandSet extends CommandBase {
+    private final Logger logger = LoggerFactory.getLogger(ACCommandSet.class);
 
     /**
      * Byte array structure for Command set
      */
-    public CommandSet() {
+    public ACCommandSet() {
         data[0x01] = (byte) 0x23;
-        data[0x09] = (byte) 0x02;
-        // Set up Mode
-        data[0x0a] = (byte) 0x40;
+        data[0x09] = (byte) 0x02; // Setting Mode
+        data[0x0a] = (byte) 0x40; // Command Message
 
         byte[] extra = { 0x00, 0x00, 0x00 };
         byte[] newData = new byte[data.length + 3];
@@ -58,15 +56,16 @@ public class CommandSet extends CommandBase {
      * @param response response from last poll or set command
      * @return commandSet
      */
-    // Common mapping for AC
-    public static CommandSet fromResponse(Response ac) {
-        CommandSet commandSet = new CommandSet();
+    // Controllable items for AC
+    public static ACCommandSet fromResponse(Response ac) {
+        ACCommandSet commandSet = new ACCommandSet();
 
         // Common fields
         commandSet.setPowerState(ac.getPowerState());
         commandSet.setFanSpeed(ac.getFanSpeed());
         commandSet.setOnTimer(ac.getOnTimerData());
         commandSet.setOffTimer(ac.getOffTimerData());
+        commandSet.setPromptTone(ac.getPromptTone());
 
         // AC-specific fields
         commandSet.setTargetTemperature(ac.getTargetTemperature());
@@ -81,32 +80,10 @@ public class CommandSet extends CommandBase {
         return commandSet;
     }
 
-    // Common mapping for Dehumidifier
-    public static CommandSet fromResponse(A1Response dh) {
-        CommandSet commandSet = new CommandSet();
-
-        // Common fields
-        commandSet.setPowerState(dh.getPowerState());
-        commandSet.setFanSpeed(dh.getFanSpeed());
-        commandSet.setOnTimer(dh.getOnTimerData());
-        commandSet.setOffTimer(dh.getOffTimerData());
-
-        // DH-specific fields
-        commandSet.setA1OperationalMode(dh.getA1OperationalMode());
-        commandSet.setA1MaximumHumidity(dh.getMaximumHumidity());
-        commandSet.setA1ChildLock(dh.getA1ChildLock());
-        commandSet.setA1SwingMode(dh.getA1SwingMode());
-        commandSet.setA1Anion(dh.getA1Anion());
-        commandSet.setTankSetpoint(dh.getTankSetpoint());
-        commandSet.setPromptTone(dh.getPromptTone());
-
-        return commandSet;
-    }
-
     /**
-     * Causes indoor evaporator to beep when Set command received
+     * Causes Midea device to beep when Set command received
      * 
-     * @param feedbackEnabled will indoor unit beep
+     * @param feedbackEnabled Beep On or Off
      */
     public void setPromptTone(boolean feedbackEnabled) {
         if (!feedbackEnabled) {
@@ -155,16 +132,6 @@ public class CommandSet extends CommandBase {
      */
     public int getOperationalMode() {
         return data[0x0c] &= (byte) 0xe0;
-    }
-
-    /**
-     * Manual, Continuous, Auto, etc. See Command Base class
-     * 
-     * @param mode Manual, Continuous, Auto, etc.
-     */
-    public void setA1OperationalMode(A1OperationalMode mode) {
-        data[0x0c] &= ~(byte) 0x0f;
-        data[0x0c] |= (byte) mode.getId();
     }
 
     /**
@@ -219,11 +186,6 @@ public class CommandSet extends CommandBase {
         }
     }
 
-    public void setTankSetpoint(int tankSetpoint) {
-        data[0x19] &= ~(byte) 0xff;
-        data[0x19] |= tankSetpoint;
-    }
-
     /**
      * If unit supports, set the vertical and/or horzontal louver
      * 
@@ -235,20 +197,7 @@ public class CommandSet extends CommandBase {
     }
 
     /**
-     * Swing mode setter for Dehumidifier
-     * 
-     * @param mode sets swing mode
-     */
-    public void setA1SwingMode(boolean swingModeEnabled) {
-        if (!swingModeEnabled) {
-            data[0x1d] &= ~0x20;
-        } else {
-            data[0x1d] |= 0x20;
-        }
-    }
-
-    /**
-     * For Testing assertion get Swing result
+     * For Testing assertion get AC Swing result
      * 
      * @return swing mode
      */
@@ -267,32 +216,6 @@ public class CommandSet extends CommandBase {
             data[0x14] |= 0x01;
         } else {
             data[0x14] &= (~0x01);
-        }
-    }
-
-    /**
-     * Child Lock setter for Dehumidifier
-     * 
-     * @param childLockEnabled sets child lock true or false
-     */
-    public void setA1ChildLock(boolean childLockEnabled) {
-        if (!childLockEnabled) {
-            data[0x12] &= ~0x80;
-        } else {
-            data[0x12] |= 0x80;
-        }
-    }
-
-    /**
-     * Anion setter for Dehumidifier
-     * 
-     * @param anoinEnabled sets anion true or false
-     */
-    public void setA1Anion(boolean anionEnabled) {
-        if (!anionEnabled) {
-            data[0x13] &= ~0x40;
-        } else {
-            data[0x13] |= 0x40;
         }
     }
 
@@ -606,15 +529,5 @@ public class CommandSet extends CommandBase {
     public void setMaximumHumidity(int humidity) {
         data[0x1D] &= ~(byte) 0xff;
         data[0x1D] |= humidity;
-    }
-
-    /**
-     * Sets the Target Humidity for dehumidifier
-     * 
-     * @param humidity
-     */
-    public void setA1MaximumHumidity(int humidity) {
-        data[0x11] &= ~(byte) 0xff;
-        data[0x11] |= humidity;
     }
 }

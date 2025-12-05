@@ -132,6 +132,12 @@
 				<default>true</default>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="deviceType" type="text" required="true">
+				<label>Device Type</label>
+				<description>ac or a1(dehumidifier) discoverable</description>
+				<default>ac</default>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 
 	</thing-type>

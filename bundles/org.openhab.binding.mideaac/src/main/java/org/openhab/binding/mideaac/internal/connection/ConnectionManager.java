@@ -28,18 +28,19 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.callbacks.Callback;
 import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
+import org.openhab.binding.mideaac.internal.commands.A1CommandSet;
+import org.openhab.binding.mideaac.internal.commands.ACCommandSet;
+import org.openhab.binding.mideaac.internal.commands.CommandBase;
+import org.openhab.binding.mideaac.internal.commands.Packet;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
-import org.openhab.binding.mideaac.internal.handler.CommandBase;
-import org.openhab.binding.mideaac.internal.handler.CommandSet;
-import org.openhab.binding.mideaac.internal.handler.Packet;
-import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesResponse;
 import org.openhab.binding.mideaac.internal.responses.A1Response;
 import org.openhab.binding.mideaac.internal.responses.EnergyResponse;
 import org.openhab.binding.mideaac.internal.responses.HumidityResponse;
 import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.binding.mideaac.internal.responses.TemperatureResponse;
+import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesResponse;
 import org.openhab.binding.mideaac.internal.security.Decryption8370Result;
 import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.binding.mideaac.internal.security.Security.MsgType;
@@ -113,7 +114,7 @@ public class ConnectionManager {
         this.lastResponse = new Response(HexFormat.of().parseHex("C00042667F7F003C0000046066000000000000000000F9ECDB"),
                 version);
         this.lastA1Response = new A1Response(
-                HexFormat.of().parseHex("C80104507F7F003700000000000000001E64000000003A67C2"), version);
+                HexFormat.of().parseHex("C80104507F7F003700000000000000001E64000000003A67C2"));
         this.cloudProvider = CloudProvider.getCloudProvider(cloud);
         this.security = new Security(cloudProvider);
     }
@@ -317,9 +318,14 @@ public class ConnectionManager {
             throws MideaConnectionException, MideaAuthenticationException, MideaException, IOException {
         ensureConnected();
 
-        if (command instanceof CommandSet cmdSet) {
+        if (command instanceof ACCommandSet cmdSet) {
             cmdSet.setPromptTone(promptTone);
         }
+
+        if (command instanceof A1CommandSet cmdSet) {
+            cmdSet.setPromptTone(promptTone);
+        }
+
         Packet packet = new Packet(command, deviceId, security);
         packet.compose();
 
@@ -522,9 +528,9 @@ public class ConnectionManager {
                 return;
 
             case (byte) 0xC8:
-                lastA1Response = new A1Response(data, 4); // Version 4 for Dehumidifier to override fan speed
+                lastA1Response = new A1Response(data);
                 try {
-                    logger.trace("Data length is {}, version is {}, IP address is {}", data.length, version, ipAddress);
+                    logger.trace("Data length is {}, dehumidifier, IP address is {}", data.length, ipAddress);
                     if (callback != null) {
                         callback.updateChannels(lastA1Response);
                     }

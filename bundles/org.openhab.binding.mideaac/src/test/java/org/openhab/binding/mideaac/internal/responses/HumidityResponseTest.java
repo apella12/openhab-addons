@@ -18,7 +18,7 @@ import java.util.HexFormat;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.mideaac.internal.handler.CommandBase;
+import org.openhab.binding.mideaac.internal.commands.CommandBase;
 
 /**
  * The {@link HumidityResponseTest} tests the methods in the HumidityResponse class

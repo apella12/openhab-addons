@@ -41,9 +41,9 @@ public class MideaACConfiguration {
     public String deviceId = "0";
 
     /**
-     * Device Type for other than default Midea AC
+     * Device Type. Default Midea AC
      */
-    public String type = "ac";
+    public String deviceType = "ac";
 
     /**
      * Cloud Account email

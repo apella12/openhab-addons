@@ -59,7 +59,7 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
     private final HttpClient httpClient;
 
     protected MideaACConfiguration config = new MideaACConfiguration();
-    private Map<String, String> properties = new HashMap<>();
+    protected Map<String, String> properties = new HashMap<>();
     // Default parameters are the same as in the MideaACConfiguration class
     protected ConnectionManager connectionManager = new ConnectionManager("", 6444, 4, "", "", "", "", "", "", 0,
             false);
@@ -88,6 +88,7 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
     @Override
     public void initialize() {
         config = getConfigAs(MideaACConfiguration.class);
+        properties = editProperties();
 
         // 1) Ensure discovery/config is valid or start discovery and exit early
         if (!ensureConfigOrStartDiscovery()) {
@@ -103,7 +104,7 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
 
         initConnectionManagerFromConfig();
 
-        requestCapabilitiesIfMissing(); // abstract hook
+        requestCapabilitiesIfMissing(); // abstract hook, uses protected properties and config
 
         startSchedulers();
     }
@@ -273,8 +274,8 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
         Object propertySSID = Objects.requireNonNull(discoveryProps.get(PROPERTY_SSID));
         properties.put(PROPERTY_SSID, propertySSID.toString());
 
-        Object propertyType = Objects.requireNonNull(discoveryProps.get(CONFIG_TYPE));
-        properties.put(CONFIG_TYPE, propertyType.toString());
+        Object propertyType = Objects.requireNonNull(discoveryProps.get(CONFIG_DEVICE_TYPE));
+        properties.put(CONFIG_DEVICE_TYPE, propertyType.toString());
 
         updateProperties(properties);
         initialize();

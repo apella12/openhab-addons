@@ -251,21 +251,21 @@
 			</options>
 		</state>
 	</channel-type>
-	<channel-type id="fan-speed">
+	<channel-type id="fan-speed-dh">
 		<item-type>String</item-type>
 		<label>Fan Speed</label>
-		<description>Fan speeds: SILENT, LOW, MEDIUM, HIGH, FULL, AUTO.</description>
+		<description>Fan speeds: OFF, LOWEST, LOW, MEDIUM, HIGH, AUTO.</description>
 		<tags>
 			<tag>Control</tag>
 			<tag>Airflow</tag>
 		</tags>
 		<state>
 			<options>
-				<option value="SILENT">SILENT</option>
+				<option value="OFF">OFF</option>
+				<option value="LOWEST">LOWEST</option>
 				<option value="LOW">LOW</option>
 				<option value="MEDIUM">MEDIUM</option>
 				<option value="HIGH">HIGH</option>
-				<option value="FULL">FULL</option>
 				<option value="AUTO">AUTO</option>
 			</options>
 		</state>

@@ -10,24 +10,25 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.handler;
+package org.openhab.binding.mideaac.internal.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.A1OperationalMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.FanSpeed;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.OperationalMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.SwingMode;
 
 /**
- * The {@link CommandSetTest} tests the methods in the CommandSet class
+ * The {@link ACCommandSetTest} tests the methods in the ACCommandSet class
  * for correctness.
  *
  * @author Bob Eckhoff - Initial contribution
  */
 @NonNullByDefault
-public class CommandSetTest {
+public class ACCommandSetTest {
 
     /**
      * Power State Test
@@ -36,7 +37,7 @@ public class CommandSetTest {
     public void setPowerStateTest() {
         boolean status = true;
         boolean status1 = true;
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.setPowerState(status);
         assertEquals(status1, commandSet.getPowerState());
     }
@@ -46,7 +47,7 @@ public class CommandSetTest {
      */
     @Test
     public void testsetTargetTemperature() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         // Device is limited to 0.5 degree C increments. Check rounding too
 
         // Test case 1
@@ -78,15 +79,27 @@ public class CommandSetTest {
     }
 
     /**
-     * Swing Mode test
+     * AC Swing Mode test
      */
     @Test
     public void testHandleSwingMode() {
         SwingMode mode = SwingMode.VERTICAL3;
         int mode1 = 60;
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.setSwingMode(mode);
         assertEquals(mode1, commandSet.getSwingMode());
+    }
+
+    /**
+     * Dehumidifier swing Mode test
+     * (added for completeness to test A1CommandSet)
+     */
+    @Test
+    public void testHandleA1SwingMode() {
+        boolean mode1 = true;
+        A1CommandSet commandSet = new A1CommandSet();
+        commandSet.setA1SwingMode(mode1);
+        assertEquals(mode1, commandSet.getA1SwingMode());
     }
 
     /**
@@ -96,21 +109,34 @@ public class CommandSetTest {
     public void testHandleFanSpeedCommand() {
         FanSpeed speed = FanSpeed.AUTO3;
         int speed1 = 102;
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.setFanSpeed(speed);
         assertEquals(speed1, commandSet.getFanSpeed());
     }
 
     /**
-     * Operational mode test
+     * AC Operational mode test
      */
     @Test
     public void testHandleOperationalMode() {
         OperationalMode mode = OperationalMode.COOL;
         int mode1 = 64;
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.setOperationalMode(mode);
         assertEquals(mode1, commandSet.getOperationalMode());
+    }
+
+    /**
+     * Dehumidifier Operational mode test
+     * (added for completeness to test A1CommandSet)
+     */
+    @Test
+    public void testHandleA1OperationalMode() {
+        A1OperationalMode mode = A1OperationalMode.AUTO;
+        int mode1 = 3;
+        A1CommandSet commandSet = new A1CommandSet();
+        commandSet.setA1OperationalMode(mode);
+        assertEquals(mode1, commandSet.getA1OperationalMode());
     }
 
     /**
@@ -118,7 +144,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOnTimer() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = true;
         int hours = 3;
         int minutes = 59;
@@ -135,7 +161,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOnTimer2() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = false;
         int hours = 3;
         int minutes = 60;
@@ -151,7 +177,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOnTimer3() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = true;
         int hours = 0;
         int minutes = 14;
@@ -167,7 +193,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOffTimer() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = true;
         int hours = 3;
         int minutes = 59;
@@ -184,7 +210,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOffTimer2() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = false;
         int hours = 3;
         int minutes = 60;
@@ -200,7 +226,7 @@ public class CommandSetTest {
      */
     @Test
     public void testHandleOffTimer3() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         boolean on = true;
         int hours = 0;
         int minutes = 14;
@@ -216,7 +242,7 @@ public class CommandSetTest {
      */
     @Test
     public void testSetScreenDisplayOff() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.setScreenDisplay(true);
 
         // Check the modified bytes
@@ -244,7 +270,7 @@ public class CommandSetTest {
      */
     @Test
     public void testEnergyPoll() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.energyPoll();
 
         // Check the modified bytes
@@ -272,7 +298,7 @@ public class CommandSetTest {
      */
     @Test
     public void testCapabilities() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.getCapabilities();
 
         // Check the modified bytes
@@ -292,7 +318,7 @@ public class CommandSetTest {
      */
     @Test
     public void testAdditionalCapabilities() {
-        CommandSet commandSet = new CommandSet();
+        ACCommandSet commandSet = new ACCommandSet();
         commandSet.getAdditionalCapabilities();
 
         // Check the modified bytes

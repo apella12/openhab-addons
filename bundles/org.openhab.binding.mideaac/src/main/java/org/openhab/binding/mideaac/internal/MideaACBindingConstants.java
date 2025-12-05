@@ -52,6 +52,7 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_OPERATIONAL_MODE = "operational-mode";
     public static final String CHANNEL_DEHUMIDIFIER_MODE = "dehumidifier-mode";
     public static final String CHANNEL_FAN_SPEED = "fan-speed";
+    public static final String CHANNEL_FAN_SPEED_DH = "fan-speed-dh";
     public static final String CHANNEL_ON_TIMER = "on-timer";
     public static final String CHANNEL_OFF_TIMER = "off-timer";
     public static final String CHANNEL_SWING_MODE = "swing-mode";
@@ -88,7 +89,7 @@ public class MideaACBindingConstants {
     public static final String CONFIG_IP_ADDRESS = "ipAddress";
     public static final String CONFIG_IP_PORT = "ipPort";
     public static final String CONFIG_DEVICEID = "deviceId";
-    public static final String CONFIG_TYPE = "type";
+    public static final String CONFIG_DEVICE_TYPE = "deviceType";
     public static final String CONFIG_CLOUD = "cloud";
     public static final String CONFIG_EMAIL = "email";
     public static final String CONFIG_PASSWORD = "password";

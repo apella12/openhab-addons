@@ -13,12 +13,12 @@
 package org.openhab.binding.mideaac.internal.callbacks;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.capabilities.CapabilitiesResponse;
 import org.openhab.binding.mideaac.internal.responses.A1Response;
 import org.openhab.binding.mideaac.internal.responses.EnergyResponse;
 import org.openhab.binding.mideaac.internal.responses.HumidityResponse;
 import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.binding.mideaac.internal.responses.TemperatureResponse;
+import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesResponse;
 
 /**
  * 

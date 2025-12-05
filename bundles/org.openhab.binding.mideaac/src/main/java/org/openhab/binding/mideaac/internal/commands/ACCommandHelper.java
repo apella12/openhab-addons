@@ -10,19 +10,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mideaac.internal.connection;
+package org.openhab.binding.mideaac.internal.commands;
 
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.A1OperationalMode;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
-import org.openhab.binding.mideaac.internal.handler.CommandSet;
-import org.openhab.binding.mideaac.internal.handler.Timer;
-import org.openhab.binding.mideaac.internal.handler.Timer.TimeParser;
-import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.FanSpeed;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.OperationalMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.commands.Timer.TimeParser;
 import org.openhab.binding.mideaac.internal.responses.Response;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -41,8 +37,8 @@ import org.slf4j.LoggerFactory;
  */
 
 @NonNullByDefault
-public class CommandHelper {
-    private static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
+public class ACCommandHelper {
+    private static Logger logger = LoggerFactory.getLogger(ACCommandHelper.class);
 
     private static final StringType OPERATIONAL_MODE_OFF = new StringType("OFF");
     private static final StringType OPERATIONAL_MODE_AUTO = new StringType("AUTO");
@@ -51,16 +47,8 @@ public class CommandHelper {
     private static final StringType OPERATIONAL_MODE_HEAT = new StringType("HEAT");
     private static final StringType OPERATIONAL_MODE_FAN_ONLY = new StringType("FAN_ONLY");
 
-    private static final StringType HUMIDIFIER_MODE_OFF = new StringType("OFF");
-    private static final StringType HUMIDIFIER_MODE_MANUAL = new StringType("MANUAL");
-    private static final StringType HUMIDIFIER_MODE_CONTINUOUS = new StringType("CONTINUOUS");
-    private static final StringType HUMIDIFIER_MODE_AUTO = new StringType("AUTO");
-    private static final StringType HUMIDIFIER_MODE_CLOTHES_DRY = new StringType("CLOTHES_DRY");
-    private static final StringType HUMIDIFIER_MODE_SHOES_DRY = new StringType("SHOES_DRY");
-
     private static final StringType FAN_SPEED_OFF = new StringType("OFF");
     private static final StringType FAN_SPEED_SILENT = new StringType("SILENT");
-    private static final StringType FAN_SPEED_LOWEST = new StringType("LOWEST");
     private static final StringType FAN_SPEED_LOW = new StringType("LOW");
     private static final StringType FAN_SPEED_MEDIUM = new StringType("MEDIUM");
     private static final StringType FAN_SPEED_HIGH = new StringType("HIGH");
@@ -77,27 +65,9 @@ public class CommandHelper {
      * 
      * @param command On or Off
      */
-    public static CommandSet handlePower(Command command, Response lastResponse) throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command.equals(OnOffType.OFF)) {
-            commandSet.setPowerState(false);
-        } else if (command.equals(OnOffType.ON)) {
-            commandSet.setPowerState(true);
-        } else {
-            throw new UnsupportedOperationException(String.format("Unknown power command: {}", command));
-        }
-        return commandSet;
-    }
-
-    /**
-     * Device Power ON OFF for A1 Dehumidifier
-     * 
-     * @param command On or Off
-     */
-    public static CommandSet handlePower(Command command, A1Response lastResponse)
+    public static ACCommandSet handlePower(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setPowerState(false);
@@ -114,9 +84,9 @@ public class CommandHelper {
      * 
      * @param command Operational Modes AUTO, COOL, DRY, HEAT, FAN_ONLY, OFF
      */
-    public static CommandSet handleOperationalMode(Command command, Response lastResponse)
+    public static ACCommandSet handleOperationalMode(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof StringType) {
             if (command.equals(OPERATIONAL_MODE_OFF)) {
@@ -139,7 +109,7 @@ public class CommandHelper {
     }
 
     // Some devices might support 16.0 degrees C
-    // Could try override if capabilities show it.
+    // Could try override if capabilities show it (future).
     private static float limitTargetTemperatureToRange(float temperatureInCelsius) {
         if (temperatureInCelsius < 17.0f) {
             return 17.0f;
@@ -159,9 +129,9 @@ public class CommandHelper {
      * 
      * @param command Target Temperature
      */
-    public static CommandSet handleTargetTemperature(Command command, Response lastResponse)
+    public static ACCommandSet handleTargetTemperature(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof DecimalType decimalCommand) {
             logger.debug("Handle Target Temperature as DecimalType in degrees C");
@@ -183,9 +153,9 @@ public class CommandHelper {
      * 
      * @param command Fan Speed Auto, Low, High, etc.
      */
-    public static CommandSet handleFanSpeed(Command command, Response lastResponse, int version)
+    public static ACCommandSet handleFanSpeed(Command command, Response lastResponse, int version)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof StringType) {
             commandSet.setPowerState(true);
@@ -235,46 +205,15 @@ public class CommandHelper {
     }
 
     /**
-     * Fan Speeds vary by V2 or V3 and device - See capabilities.
-     * This command also turns the power ON
-     * 
-     * @param command Fan Speed Auto, Low, High, etc.
-     */
-    public static CommandSet handleFanSpeed(Command command, A1Response lastResponse)
-            throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command instanceof StringType) {
-            commandSet.setPowerState(true);
-            if (command.equals(FAN_SPEED_OFF)) {
-                commandSet.setPowerState(false);
-            } else if (command.equals(FAN_SPEED_LOWEST)) {
-                commandSet.setFanSpeed(FanSpeed.LOWEST4);
-            } else if (command.equals(FAN_SPEED_LOW)) {
-                commandSet.setFanSpeed(FanSpeed.LOW4);
-            } else if (command.equals(FAN_SPEED_MEDIUM)) {
-                commandSet.setFanSpeed(FanSpeed.MEDIUM4);
-            } else if (command.equals(FAN_SPEED_HIGH)) {
-                commandSet.setFanSpeed(FanSpeed.HIGH4);
-            } else if (command.equals(FAN_SPEED_AUTO)) {
-                commandSet.setFanSpeed(FanSpeed.AUTO4);
-            } else {
-                throw new UnsupportedOperationException(String.format("Unknown fan speed command: {}", command));
-            }
-        }
-        return commandSet;
-    }
-
-    /**
      * Swing Mode for V2 and V3 AC units.
      * Modes supported depends on the device - See capabilities
      * Power is turned on when swing mode is changed
      * 
      * @param command Swing Mode
      */
-    public static CommandSet handleSwingMode(Command command, Response lastResponse, int version)
+    public static ACCommandSet handleSwingMode(Command command, Response lastResponse, int version)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         commandSet.setPowerState(true);
 
@@ -318,9 +257,9 @@ public class CommandHelper {
      * 
      * @param command Eco Mode
      */
-    public static CommandSet handleEcoMode(Command command, Response lastResponse)
+    public static ACCommandSet handleEcoMode(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setEcoMode(false);
@@ -334,103 +273,14 @@ public class CommandHelper {
     }
 
     /**
-     * Supported Midea Humidifier modes
-     * 
-     * @param command Modes MANUAL, CONTINUOUS, AUTO, CLOTHES_DRY, SHOES_DRY, OFF
-     */
-    public static CommandSet handleA1OperationalMode(Command command, A1Response lastResponse)
-            throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command instanceof StringType) {
-            if (command.equals(HUMIDIFIER_MODE_OFF)) {
-                commandSet.setPowerState(false);
-            } else if (command.equals(HUMIDIFIER_MODE_MANUAL)) {
-                commandSet.setA1OperationalMode(A1OperationalMode.MANUAL);
-            } else if (command.equals(HUMIDIFIER_MODE_CONTINUOUS)) {
-                commandSet.setA1OperationalMode(A1OperationalMode.CONTINUOUS);
-            } else if (command.equals(HUMIDIFIER_MODE_AUTO)) {
-                commandSet.setA1OperationalMode(A1OperationalMode.AUTO);
-            } else if (command.equals(HUMIDIFIER_MODE_CLOTHES_DRY)) {
-                commandSet.setA1OperationalMode(A1OperationalMode.CLOTHES_DRY);
-            } else if (command.equals(HUMIDIFIER_MODE_SHOES_DRY)) {
-                commandSet.setA1OperationalMode(A1OperationalMode.SHOES_DRY);
-            } else {
-                throw new UnsupportedOperationException(String.format("Unknown operational mode command: {}", command));
-            }
-        }
-        return commandSet;
-    }
-
-    /**
-     * Handle A1 Dehumidifier Swing Mode
-     * 
-     * @param command Swing Mode
-     */
-    public static CommandSet handleA1Swing(Command command, A1Response lastResponse)
-            throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command.equals(OnOffType.OFF)) {
-            commandSet.setA1SwingMode(false);
-        } else if (command.equals(OnOffType.ON)) {
-            commandSet.setA1SwingMode(true);
-        } else {
-            throw new UnsupportedOperationException(String.format("Unknown Swing mode command: {}", command));
-        }
-
-        return commandSet;
-    }
-
-    /**
-     * Handle A1 Dehumidifier Child Lock
-     * 
-     * @param command Child Lock
-     */
-    public static CommandSet handleA1ChildLock(Command command, A1Response lastResponse)
-            throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command.equals(OnOffType.OFF)) {
-            commandSet.setA1ChildLock(false);
-        } else if (command.equals(OnOffType.ON)) {
-            commandSet.setA1ChildLock(true);
-        } else {
-            throw new UnsupportedOperationException(String.format("Unknown Child Lock command: {}", command));
-        }
-
-        return commandSet;
-    }
-
-    /**
-     * Handle A1 Dehumidifier Anion
-     * 
-     * @param command Anoin
-     */
-    public static CommandSet handleA1Anion(Command command, A1Response lastResponse)
-            throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command.equals(OnOffType.OFF)) {
-            commandSet.setA1Anion(false);
-        } else if (command.equals(OnOffType.ON)) {
-            commandSet.setA1Anion(true);
-        } else {
-            throw new UnsupportedOperationException(String.format("Unknown Anion command: {}", command));
-        }
-
-        return commandSet;
-    }
-
-    /**
      * Turbo mode is only with Heat or Cool to quickly change
      * Room temperature. Power is turned on.
      * 
      * @param command Turbo mode - Fast cooling or Heating
      */
-    public static CommandSet handleTurboMode(Command command, Response lastResponse)
+    public static ACCommandSet handleTurboMode(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         commandSet.setPowerState(true);
 
@@ -450,9 +300,9 @@ public class CommandHelper {
      * 
      * @param command Screen Display Toggle to ON or Off - One command
      */
-    public static CommandSet handleScreenDisplay(Command command, Response lastResponse)
+    public static ACCommandSet handleScreenDisplay(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setScreenDisplay(true);
@@ -470,9 +320,9 @@ public class CommandHelper {
      * 
      * @param command Temp unit on the indoor evaporator
      */
-    public static CommandSet handleTempUnit(Command command, Response lastResponse)
+    public static ACCommandSet handleTempUnit(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setFahrenheit(false);
@@ -491,9 +341,9 @@ public class CommandHelper {
      * 
      * @param command Sleep function
      */
-    public static CommandSet handleSleepFunction(Command command, Response lastResponse)
+    public static ACCommandSet handleSleepFunction(Command command, Response lastResponse)
             throws UnsupportedOperationException {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         commandSet.setPowerState(true);
 
@@ -513,49 +363,8 @@ public class CommandHelper {
      * 
      * @param command Sets On Timer
      */
-    public static CommandSet handleOnTimer(Command command, Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-        int hours = 0;
-        int minutes = 0;
-        Timer timer = new Timer(true, hours, minutes);
-        TimeParser timeParser = timer.new TimeParser();
-        if (command instanceof StringType) {
-            String timeString = ((StringType) command).toString();
-            if (!timeString.matches("\\d{2}:\\d{2}")) {
-                logger.debug("Invalid time format. Expected HH:MM.");
-                commandSet.setOnTimer(false, hours, minutes);
-            } else {
-                int[] timeParts = timeParser.parseTime(timeString);
-                boolean on = true;
-                hours = timeParts[0];
-                minutes = timeParts[1];
-                // Validate minutes and hours
-                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
-                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
-                    hours = 0;
-                    minutes = 0;
-                }
-                if (hours == 0 && minutes == 0) {
-                    commandSet.setOnTimer(false, hours, minutes);
-                } else {
-                    commandSet.setOnTimer(on, hours, minutes);
-                }
-            }
-        } else {
-            logger.debug("Command must be of type StringType: {}", command);
-            commandSet.setOnTimer(false, hours, minutes);
-        }
-
-        return commandSet;
-    }
-
-    /**
-     * Sets the time (from now) that the device will turn on at it's current settings
-     * 
-     * @param command Sets On Timer
-     */
-    public static CommandSet handleOnTimer(Command command, A1Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+    public static ACCommandSet handleOnTimer(Command command, Response lastResponse) {
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
         int hours = 0;
         int minutes = 0;
         Timer timer = new Timer(true, hours, minutes);
@@ -595,49 +404,8 @@ public class CommandHelper {
      * 
      * @param command Sets Off Timer
      */
-    public static CommandSet handleOffTimer(Command command, Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-        int hours = 0;
-        int minutes = 0;
-        Timer timer = new Timer(true, hours, minutes);
-        TimeParser timeParser = timer.new TimeParser();
-        if (command instanceof StringType) {
-            String timeString = ((StringType) command).toString();
-            if (!timeString.matches("\\d{2}:\\d{2}")) {
-                logger.debug("Invalid time format. Expected HH:MM.");
-                commandSet.setOffTimer(false, hours, minutes);
-            } else {
-                int[] timeParts = timeParser.parseTime(timeString);
-                boolean on = true;
-                hours = timeParts[0];
-                minutes = timeParts[1];
-                // Validate minutes and hours
-                if (minutes < 0 || minutes > 59 || hours > 24 || hours < 0) {
-                    logger.debug("Invalid hours (24 max) and or minutes (59 max)");
-                    hours = 0;
-                    minutes = 0;
-                }
-                if (hours == 0 && minutes == 0) {
-                    commandSet.setOffTimer(false, hours, minutes);
-                } else {
-                    commandSet.setOffTimer(on, hours, minutes);
-                }
-            }
-        } else {
-            logger.debug("Command must be of type StringType: {}", command);
-            commandSet.setOffTimer(false, hours, minutes);
-        }
-
-        return commandSet;
-    }
-
-    /**
-     * Sets the time (from now) that the device will turn off
-     * 
-     * @param command Sets Off Timer
-     */
-    public static CommandSet handleOffTimer(Command command, A1Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+    public static ACCommandSet handleOffTimer(Command command, Response lastResponse) {
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
         int hours = 0;
         int minutes = 0;
         Timer timer = new Timer(true, hours, minutes);
@@ -677,8 +445,8 @@ public class CommandHelper {
      * 
      * @param command Target Humidity
      */
-    public static CommandSet handleMaximumHumidity(Command command, Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
+    public static ACCommandSet handleMaximumHumidity(Command command, Response lastResponse) {
+        ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof DecimalType decimalCommand) {
             int humidity = decimalCommand.intValue();
@@ -700,53 +468,5 @@ public class CommandHelper {
         }
 
         return humidity;
-    }
-
-    /**
-     * Sets the Target Humidity for Dehumidifier
-     * 
-     * @param command Target Humidity
-     */
-    public static CommandSet handleA1MaximumHumidity(Command command, A1Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command instanceof DecimalType decimalCommand) {
-            int humidity = decimalCommand.intValue();
-            commandSet.setMaximumHumidity(limitA1HumidityToRange(humidity));
-        } else {
-            logger.debug("Unknown target humidity command: {}", command);
-        }
-
-        return commandSet;
-    }
-
-    // Limit Humidity to range
-    private static int limitA1HumidityToRange(int humidity) {
-        if (humidity < 35) {
-            return 35;
-        }
-        if (humidity > 85) {
-            return 85;
-        }
-
-        return humidity;
-    }
-
-    /**
-     * Sets Tank setpoint for the Dehumidifier
-     * 
-     * @param command Tank Setpoint
-     */
-    public static CommandSet handleA1TankSetpoint(Command command, A1Response lastResponse) {
-        CommandSet commandSet = CommandSet.fromResponse(lastResponse);
-
-        if (command instanceof DecimalType decimalCommand) {
-            int setpoint = decimalCommand.intValue();
-            commandSet.setTankSetpoint(setpoint);
-        } else {
-            logger.debug("Unknown target humidity command: {}", command);
-        }
-
-        return commandSet;
     }
 }

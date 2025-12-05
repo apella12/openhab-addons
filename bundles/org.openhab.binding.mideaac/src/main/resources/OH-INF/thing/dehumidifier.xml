@@ -15,7 +15,7 @@
 			<channel id="dehumidifier-mode" typeId="dehumidifier-mode"/>
 			<channel id="maximum-humidity" typeId="maximum-humidity"/>
 			<channel id="humidity" typeId="humidity"/>
-			<channel id="fan-speed" typeId="fan-speed"/>
+			<channel id="fan-speed-dh" typeId="fan-speed-dh"/>
 			<channel id="dehumidifier-swing" typeId="dehumidifier-swing"/>
 			<channel id="indoor-temperature" typeId="indoor-temperature"/>
 			<channel id="dehumidifier-tank" typeId="dehumidifier-tank"/>
@@ -120,6 +120,12 @@
 				<label>Energy Response Decode Method</label>
 				<description>Binary-Coded Decimal (BCD) = true. Big-endian = false.</description>
 				<default>true</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="deviceType" type="text" required="true">
+				<label>Device Type</label>
+				<description>ac or a1(dehumidifier) discoverable</description>
+				<default>a1</default>
 				<advanced>true</advanced>
 			</parameter>
 		</config-description>

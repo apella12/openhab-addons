@@ -13,9 +13,9 @@
 package org.openhab.binding.mideaac.internal.responses;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.FanSpeed;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.OperationalMode;
-import org.openhab.binding.mideaac.internal.handler.CommandBase.SwingMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.FanSpeed;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.OperationalMode;
+import org.openhab.binding.mideaac.internal.commands.CommandBase.SwingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

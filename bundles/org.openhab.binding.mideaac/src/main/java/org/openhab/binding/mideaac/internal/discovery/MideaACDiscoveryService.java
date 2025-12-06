@@ -57,7 +57,8 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     private static int discoveryTimeoutSeconds = 10;
     private final int receiveJobTimeout = 20000;
     private final int udpPacketTimeout = receiveJobTimeout - 50;
-    private final String mideaacNamePrefix = "MideaAC";
+    private final String mideaACNamePrefix = "MideaAC";
+    private final String mideaDHNamePrefix = "Dehumidifier";
     /**
      * UDP port1 to send command.
      */
@@ -315,7 +316,8 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             mSmartType = mSmartSSID.split("_")[1];
             logger.debug("Type: '{}'", mSmartType);
 
-            String thingName = createThingName(packet.getAddress().getAddress(), mSmartId);
+            String thingName = createThingName(packet.getAddress().getAddress(), mSmartId,
+                    "a1".equalsIgnoreCase(mSmartType) ? mideaDHNamePrefix : mideaACNamePrefix);
             // choose thing type based on discovered device type/version
             ThingUID thingUID;
             if ("ac".equalsIgnoreCase(mSmartType)) {
@@ -335,7 +337,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             return null;
         } else {
             logger.debug(
-                    "Midea AC device was detected, but the retrieved data is incomplete or not supported. Device not registered");
+                    "Mideaac device was detected, but the retrieved data is incomplete or not supported. Device not registered");
             return null;
         }
     }
@@ -345,8 +347,8 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * 
      * @return the name for the device
      */
-    private String createThingName(final byte[] byteIP, String id) {
-        return mideaacNamePrefix + "-" + Byte.toUnsignedInt(byteIP[3]) + "-" + id;
+    private String createThingName(final byte[] byteIP, String id, String mideaNamePrefix) {
+        return mideaNamePrefix + "-" + Byte.toUnsignedInt(byteIP[3]) + "-" + id;
     }
 
     /**

@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The {@link AbstractMideaHandler} is responsible for initializing the devices
- * and handling commands, which are sent to one of the channels.
+ * and passing commands to specific device handlers.
  *
  * @author Bob Eckhoff - Initial contribution
  */
@@ -226,7 +226,7 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (command instanceof RefreshType) {
             // delegate refresh to subclass
-            refreshDeviceState();
+            refreshDeviceStateAll();
             return;
         }
         try {
@@ -241,6 +241,9 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
 
     /** Subclasses implement device state refresh */
     protected abstract void refreshDeviceState();
+
+    /** Subclasses implement full device state refresh for RefreshType */
+    protected abstract void refreshDeviceStateAll();
 
     /** Utility for updating a single channel state */
     protected void updateChannel(String channelId, State state) {

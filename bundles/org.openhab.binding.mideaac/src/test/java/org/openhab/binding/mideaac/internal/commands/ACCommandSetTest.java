@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.mideaac.internal.commands.CommandBase.A1OperationalMode;
 import org.openhab.binding.mideaac.internal.commands.CommandBase.FanSpeed;
 import org.openhab.binding.mideaac.internal.commands.CommandBase.OperationalMode;
 import org.openhab.binding.mideaac.internal.commands.CommandBase.SwingMode;
@@ -91,18 +90,6 @@ public class ACCommandSetTest {
     }
 
     /**
-     * Dehumidifier swing Mode test
-     * (added for completeness to test A1CommandSet)
-     */
-    @Test
-    public void testHandleA1SwingMode() {
-        boolean mode1 = true;
-        A1CommandSet commandSet = new A1CommandSet();
-        commandSet.setA1SwingMode(mode1);
-        assertEquals(mode1, commandSet.getA1SwingMode());
-    }
-
-    /**
      * Fan Speed test
      */
     @Test
@@ -124,19 +111,6 @@ public class ACCommandSetTest {
         ACCommandSet commandSet = new ACCommandSet();
         commandSet.setOperationalMode(mode);
         assertEquals(mode1, commandSet.getOperationalMode());
-    }
-
-    /**
-     * Dehumidifier Operational mode test
-     * (added for completeness to test A1CommandSet)
-     */
-    @Test
-    public void testHandleA1OperationalMode() {
-        A1OperationalMode mode = A1OperationalMode.AUTO;
-        int mode1 = 3;
-        A1CommandSet commandSet = new A1CommandSet();
-        commandSet.setA1OperationalMode(mode);
-        assertEquals(mode1, commandSet.getA1OperationalMode());
     }
 
     /**

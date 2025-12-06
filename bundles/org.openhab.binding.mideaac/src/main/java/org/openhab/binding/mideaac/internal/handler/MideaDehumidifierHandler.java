@@ -43,8 +43,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MideaDehumidifierHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link MideaDehumidifierHandler} is responsible for handling commands, and
+ * updating the dehumidifier thing's status and channels based on responses
+ * from the device.
  *
  * @author Bob Eckhoff - Initial contribution
  */
@@ -60,6 +61,11 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
 
     @Override
     protected void requestCapabilitiesIfMissing() {
+        // no-op for dehumidifier
+    }
+
+    @Override
+    protected void refreshDeviceStateAll() {
         // no-op for dehumidifier
     }
 
@@ -85,7 +91,7 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
             A1Response lastresponse = connectionManager.getLastA1Response();
             if (channelUID.getId().equals(CHANNEL_POWER)) {
                 connectionManager.sendCommand(A1CommandHelper.handlePower(command, lastresponse), this);
-            } else if (channelUID.getId().equals(CHANNEL_FAN_SPEED_DH)) {
+            } else if (channelUID.getId().equals(CHANNEL_DH_FAN_SPEED)) {
                 connectionManager.sendCommand(A1CommandHelper.handleA1FanSpeed(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_ON_TIMER)) {
                 connectionManager.sendCommand(A1CommandHelper.handleOnTimer(command, lastresponse), this);
@@ -114,7 +120,7 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
     @Override
     public void updateChannels(A1Response response) {
         updateChannel(CHANNEL_POWER, OnOffType.from(response.getPowerState()));
-        updateChannel(CHANNEL_FAN_SPEED_DH, new StringType(response.getA1FanSpeed().toString()));
+        updateChannel(CHANNEL_DH_FAN_SPEED, new StringType(response.getA1FanSpeed().toString()));
         updateChannel(CHANNEL_ON_TIMER, new StringType(response.getOnTimer().toChannel()));
         updateChannel(CHANNEL_OFF_TIMER, new StringType(response.getOffTimer().toChannel()));
         updateChannel(CHANNEL_DEHUMIDIFIER_MODE, new StringType(response.getA1OperationalMode().toString()));

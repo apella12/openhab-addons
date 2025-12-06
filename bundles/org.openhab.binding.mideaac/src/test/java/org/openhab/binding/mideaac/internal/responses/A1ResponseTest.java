@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.openhab.binding.mideaac.internal.commands.CommandBase;
 
 /**
- * The {@link A1ResponseTest} tests the methods in the Response class
- * against an example response string.
+ * The {@link A1ResponseTest} tests the methods in the A1Response class
+ * against an example A1response string.
  *
  * @author Bob Eckhoff - Initial contribution
  */

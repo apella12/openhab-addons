@@ -27,7 +27,7 @@ import org.openhab.core.thing.ThingTypeUID;
  * used across the whole binding.
  *
  * @author Jacek Dobrowolski - Initial contribution
- * @author Bob Eckhoff - OH naming conventions and capability properties
+ * @author Bob Eckhoff - OH naming conventions, capability properties and dehumidifier additions
  */
 @NonNullByDefault
 public class MideaACBindingConstants {
@@ -44,7 +44,7 @@ public class MideaACBindingConstants {
             .unmodifiableSet(Set.of(THING_TYPE_AC, THING_TYPE_DEHUMIDIFIER));
 
     /**
-     * List of all channel IDS
+     * List of all channel IDS for all Devices
      */
     public static final String CHANNEL_POWER = "power";
     public static final String CHANNEL_APPLIANCE_ERROR = "appliance-error";
@@ -52,16 +52,16 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_OPERATIONAL_MODE = "operational-mode";
     public static final String CHANNEL_DEHUMIDIFIER_MODE = "dehumidifier-mode";
     public static final String CHANNEL_FAN_SPEED = "fan-speed";
-    public static final String CHANNEL_FAN_SPEED_DH = "fan-speed-dh";
+    public static final String CHANNEL_DH_FAN_SPEED = "dh-fan-speed";
     public static final String CHANNEL_ON_TIMER = "on-timer";
     public static final String CHANNEL_OFF_TIMER = "off-timer";
     public static final String CHANNEL_SWING_MODE = "swing-mode";
     public static final String CHANNEL_DEHUMIDIFIER_SWING = "dehumidifier-swing";
     public static final String CHANNEL_AUXILIARY_HEAT = "auxiliary-heat";
-    public static final String CHANNEL_DEHUMIDIFIER_CHILD_LOCK = "dehumidifier-child-lock";
-    public static final String CHANNEL_DEHUMIDIFIER_ANION = "dehumidifier-anion";
+    public static final String CHANNEL_DEHUMIDIFIER_CHILD_LOCK = "dh-child-lock";
+    public static final String CHANNEL_DEHUMIDIFIER_ANION = "dh-anion";
     public static final String CHANNEL_DEHUMIDIFIER_TANK = "dehumidifier-tank";
-    public static final String CHANNEL_DEHUMIDIFIER_TANK_SETPOINT = "dehumidifier-tank-setpoint";
+    public static final String CHANNEL_DEHUMIDIFIER_TANK_SETPOINT = "dh-tank-setpoint";
     public static final String CHANNEL_ECO_MODE = "eco-mode";
     public static final String CHANNEL_TEMPERATURE_UNIT = "temperature-unit";
     public static final String CHANNEL_SLEEP_FUNCTION = "sleep-function";
@@ -84,7 +84,7 @@ public class MideaACBindingConstants {
     public static final String CHARSET = "US-ASCII";
 
     /**
-     * List of all AC thing properties
+     * List of all thing properties
      */
     public static final String CONFIG_IP_ADDRESS = "ipAddress";
     public static final String CONFIG_IP_PORT = "ipPort";

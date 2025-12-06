@@ -20,13 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This {@link CommandSet} class handles the allowed changes originating from
+ * This {@link ACCommandSet} class handles the allowed changes originating from
  * the items linked to the Midea device channels. Not all devices
  * support all commands. The general process is to clear the
  * bit(s) the set them to the command value and change message type to command.
  *
  * @author Jacek Dobrowolski - Initial contribution
- * @author Bob Eckhoff - Add Java Docs, Timer Display LED and capabilities
+ * @author Bob Eckhoff - Add Java Docs, Timer, Display LED, Capabilities, Energy Poll
  */
 @NonNullByDefault
 public class ACCommandSet extends CommandBase {

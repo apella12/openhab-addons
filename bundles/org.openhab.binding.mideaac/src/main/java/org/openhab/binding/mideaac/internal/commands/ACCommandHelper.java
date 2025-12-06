@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link CommandHelper} is a static class that is able to translate {@link Command} to {@link CommandSet}
+ * The {@link ACCommandHelper} is a static class that is able to translate {@link Command} to {@link ACCommandSet}
  *
  * @author Leo Siepel - Initial contribution
  */
@@ -40,14 +40,12 @@ import org.slf4j.LoggerFactory;
 public class ACCommandHelper {
     private static Logger logger = LoggerFactory.getLogger(ACCommandHelper.class);
 
-    private static final StringType OPERATIONAL_MODE_OFF = new StringType("OFF");
     private static final StringType OPERATIONAL_MODE_AUTO = new StringType("AUTO");
     private static final StringType OPERATIONAL_MODE_COOL = new StringType("COOL");
     private static final StringType OPERATIONAL_MODE_DRY = new StringType("DRY");
     private static final StringType OPERATIONAL_MODE_HEAT = new StringType("HEAT");
     private static final StringType OPERATIONAL_MODE_FAN_ONLY = new StringType("FAN_ONLY");
 
-    private static final StringType FAN_SPEED_OFF = new StringType("OFF");
     private static final StringType FAN_SPEED_SILENT = new StringType("SILENT");
     private static final StringType FAN_SPEED_LOW = new StringType("LOW");
     private static final StringType FAN_SPEED_MEDIUM = new StringType("MEDIUM");
@@ -82,16 +80,14 @@ public class ACCommandHelper {
     /**
      * Supported AC - Heat Pump modes
      * 
-     * @param command Operational Modes AUTO, COOL, DRY, HEAT, FAN_ONLY, OFF
+     * @param command Operational Modes AUTO, COOL, DRY, HEAT, FAN_ONLY
      */
     public static ACCommandSet handleOperationalMode(Command command, Response lastResponse)
             throws UnsupportedOperationException {
         ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof StringType) {
-            if (command.equals(OPERATIONAL_MODE_OFF)) {
-                commandSet.setPowerState(false);
-            } else if (command.equals(OPERATIONAL_MODE_AUTO)) {
+            if (command.equals(OPERATIONAL_MODE_AUTO)) {
                 commandSet.setOperationalMode(OperationalMode.AUTO);
             } else if (command.equals(OPERATIONAL_MODE_COOL)) {
                 commandSet.setOperationalMode(OperationalMode.COOL);
@@ -149,7 +145,6 @@ public class ACCommandHelper {
 
     /**
      * Fan Speeds vary by V2 or V3 and device - See capabilities.
-     * This command also turns the power ON
      * 
      * @param command Fan Speed Auto, Low, High, etc.
      */
@@ -158,10 +153,7 @@ public class ACCommandHelper {
         ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
 
         if (command instanceof StringType) {
-            commandSet.setPowerState(true);
-            if (command.equals(FAN_SPEED_OFF)) {
-                commandSet.setPowerState(false);
-            } else if (command.equals(FAN_SPEED_SILENT)) {
+            if (command.equals(FAN_SPEED_SILENT)) {
                 if (version == 2) {
                     commandSet.setFanSpeed(FanSpeed.SILENT2);
                 } else if (version == 3) {
@@ -207,15 +199,12 @@ public class ACCommandHelper {
     /**
      * Swing Mode for V2 and V3 AC units.
      * Modes supported depends on the device - See capabilities
-     * Power is turned on when swing mode is changed
      * 
      * @param command Swing Mode
      */
     public static ACCommandSet handleSwingMode(Command command, Response lastResponse, int version)
             throws UnsupportedOperationException {
         ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
-
-        commandSet.setPowerState(true);
 
         if (command instanceof StringType) {
             if (command.equals(SWING_MODE_OFF)) {
@@ -251,7 +240,7 @@ public class ACCommandHelper {
     }
 
     /**
-     * For Eco Mode on the AC
+     * For Eco Mode on the AC Power turned ON
      * Must be set in Cool mode. Fan will switch to Auto
      * and temp will be 24 C or 75 F on unit (75.2 F in OH)
      * 
@@ -260,6 +249,8 @@ public class ACCommandHelper {
     public static ACCommandSet handleEcoMode(Command command, Response lastResponse)
             throws UnsupportedOperationException {
         ACCommandSet commandSet = ACCommandSet.fromResponse(lastResponse);
+
+        commandSet.setPowerState(true);
 
         if (command.equals(OnOffType.OFF)) {
             commandSet.setEcoMode(false);
@@ -441,7 +432,7 @@ public class ACCommandHelper {
     }
 
     /**
-     * Sets the Target Humidity for Dry Mode
+     * Sets the Target Humidity for Dry Mode (if supported)
      * 
      * @param command Target Humidity
      */

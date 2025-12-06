@@ -26,6 +26,7 @@ import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesR
  * The {@link EnergyResponse} performs the energy byte stream data decoding
  * The {@link HumidityResponse} performs decoding of unsolicited message 0xA0
  * The {@link TemperatureResponse} performs decoding of unsolicited message 0xA1
+ * The {@link A1Response} performs decoding of standard humidifier message 0xC8
  * 
  * @author Leo Siepel - Initial contribution
  * @author Bob Eckhoff - added additional Callbacks after Response

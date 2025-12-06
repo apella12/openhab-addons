@@ -15,16 +15,16 @@
 			<channel id="dehumidifier-mode" typeId="dehumidifier-mode"/>
 			<channel id="maximum-humidity" typeId="maximum-humidity"/>
 			<channel id="humidity" typeId="humidity"/>
-			<channel id="fan-speed-dh" typeId="fan-speed-dh"/>
+			<channel id="dh-fan-speed" typeId="dh-fan-speed"/>
 			<channel id="dehumidifier-swing" typeId="dehumidifier-swing"/>
 			<channel id="indoor-temperature" typeId="indoor-temperature"/>
 			<channel id="dehumidifier-tank" typeId="dehumidifier-tank"/>
-			<channel id="dehumidifier-tank-setpoint" typeId="dehumidifier-tank-setpoint"/>
+			<channel id="dh-tank-setpoint" typeId="dh-tank-setpoint"/>
 
 			<channel id="on-timer" typeId="on-timer"/>
 			<channel id="off-timer" typeId="off-timer"/>
-			<channel id="dehumidifier-anion" typeId="dehumidifier-anion"/>
-			<channel id="dehumidifier-child-lock" typeId="dehumidifier-child-lock"/>
+			<channel id="dh-anion" typeId="dh-anion"/>
+			<channel id="dh-child-lock" typeId="dh-child-lock"/>
 		</channels>
 
 		<representation-property>ipAddress</representation-property>

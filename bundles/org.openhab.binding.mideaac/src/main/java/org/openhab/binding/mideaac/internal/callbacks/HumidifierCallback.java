@@ -22,8 +22,7 @@ import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesR
 
 /**
  * 
- * @author Leo Siepel - Initial contribution
- * @author Bob Eckhoff - added additional Callbacks after Response
+ * @author Bob Eckhoff - Initial contribution
  */
 @NonNullByDefault
 public interface HumidifierCallback extends Callback {

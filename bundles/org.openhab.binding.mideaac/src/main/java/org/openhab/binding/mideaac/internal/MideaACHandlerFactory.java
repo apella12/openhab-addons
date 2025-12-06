@@ -34,6 +34,7 @@ import org.osgi.service.component.annotations.Reference;
  * handlers.
  *
  * @author Jacek Dobrowolski - Initial contribution
+ * @author Bob Eckhoff - OH addons changes, added Dehumidifier handler
  */
 @NonNullByDefault
 @Component(configurationPid = "binding.mideaac", service = ThingHandlerFactory.class)

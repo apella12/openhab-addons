@@ -17,13 +17,14 @@ import org.openhab.binding.mideaac.internal.commands.Timer.TimerData;
 import org.openhab.binding.mideaac.internal.responses.A1Response;
 
 /**
- * This {@link CommandSet} class handles the allowed changes originating from
+ * This {@link A1CommandSet} class handles the allowed changes originating from
  * the items linked to the Midea device channels. Not all devices
  * support all commands. The general process is to clear the
  * bit(s) the set them to the command value and change message type to command.
  *
  * @author Jacek Dobrowolski - Initial contribution
  * @author Bob Eckhoff - Add Java Docs, Timer Display LED and capabilities
+ * @author Bob Eckhoff - Separated Dehumidifier commands
  */
 @NonNullByDefault
 public class A1CommandSet extends CommandBase {

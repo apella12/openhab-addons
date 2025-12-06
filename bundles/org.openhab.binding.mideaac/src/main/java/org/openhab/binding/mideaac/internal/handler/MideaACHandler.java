@@ -48,7 +48,6 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +59,8 @@ import org.slf4j.LoggerFactory;
  * @author Justan Oldman - Last Response added
  * @author Bob Eckhoff - Longer Polls, OH developer guidelines added other messages
  * @author Leo Siepel - Refactored class, improved separation of concerns
+ * @author Bob Eckhoff - Energy scheduling, humidity via energy poll added, separated AC
+ *         and Dehumidifier handlers
  */
 @NonNullByDefault
 public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
@@ -124,36 +125,42 @@ public class MideaACHandler extends AbstractMideaHandler implements ACCallback {
         return;
     }
 
+    @Override
+    protected void refreshDeviceStateAll() {
+        try {
+            connectionManager.getStatus(this);
+            humidityUpdate();
+            energyUpdate();
+        } catch (MideaAuthenticationException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
+        } catch (MideaConnectionException | MideaException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        } catch (IOException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        }
+        return;
+    }
+
+    private void humidityUpdate() {
+        try {
+            ACCommandSet humidityUpdate = new ACCommandSet();
+            humidityUpdate.humidityPoll();
+            connectionManager.sendCommand(humidityUpdate, this);
+        } catch (Exception e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
+        }
+    }
+
     /**
      * This method handles the AC Channels that can be set (non-read only)
      * The command set is formed using the previous command to only
      * change the item requested and leave the others the same.
      * The command set which is then sent to the device via the connectionManager.
-     * For a Refresh both regular and energy polls are triggerred.
+     * For a Refresh both regular and energy and humidity polls are triggerred.
      */
     @Override
     protected void handleDeviceCommand(ChannelUID channelUID, Command command) {
         logger.debug("Handling channelUID {} with command {}", channelUID.getId(), command.toString());
-
-        if (command instanceof RefreshType) {
-            try {
-                connectionManager.getStatus(this);
-                // Read only Energy and Humidity channels not updated with routine poll
-                ACCommandSet energyUpdate = new ACCommandSet();
-                energyUpdate.energyPoll();
-                connectionManager.sendCommand(energyUpdate, this);
-                ACCommandSet humidityUpdate = new ACCommandSet();
-                humidityUpdate.humidityPoll();
-                connectionManager.sendCommand(humidityUpdate, this);
-            } catch (MideaAuthenticationException e) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
-            } catch (MideaConnectionException | MideaException e) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
-            } catch (IOException e) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
-            }
-            return;
-        }
 
         try {
             Response lastresponse = connectionManager.getLastResponse();

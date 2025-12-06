@@ -27,8 +27,7 @@ import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilitiesR
  * The {@link HumidityResponse} performs decoding of unsolicited message 0xA0
  * The {@link TemperatureResponse} performs decoding of unsolicited message 0xA1
  * 
- * @author Leo Siepel - Initial contribution
- * @author Bob Eckhoff - added additional Callbacks after Response
+ * @author Bob Eckhoff - Initial contribution
  */
 @NonNullByDefault
 public interface ACCallback extends Callback {

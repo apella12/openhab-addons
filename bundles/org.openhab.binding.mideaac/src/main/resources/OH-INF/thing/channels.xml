@@ -251,7 +251,7 @@
 			</options>
 		</state>
 	</channel-type>
-	<channel-type id="fan-speed-dh">
+	<channel-type id="dh-fan-speed">
 		<item-type>String</item-type>
 		<label>Fan Speed</label>
 		<description>Fan speeds: OFF, LOWEST, LOW, MEDIUM, HIGH, AUTO.</description>
@@ -279,7 +279,7 @@
 		</tags>
 		<state readOnly="true" pattern="%d%%"/>
 	</channel-type>
-	<channel-type id="dehumidifier-tank-setpoint">
+	<channel-type id="dh-tank-setpoint">
 		<item-type>Number</item-type>
 		<label>Dehumidifier Tank Setpoint</label>
 		<tags>
@@ -327,7 +327,7 @@
 		</tags>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
-	<channel-type id="dehumidifier-child-lock" advanced="true">
+	<channel-type id="dh-child-lock" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Child Lock</label>
 		<description>Lock Controls. </description>
@@ -337,10 +337,10 @@
 			<tag>Humidity</tag>
 		</tags>
 	</channel-type>
-	<channel-type id="dehumidifier-anion" advanced="true">
+	<channel-type id="dh-anion" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Anion</label>
-		<description>Eco mode, Cool only, Temp: min. 24C, Fan: AUTO. </description>
+		<description>Anion</description>
 		<category>Switch</category>
 		<tags>
 			<tag>Switch</tag>

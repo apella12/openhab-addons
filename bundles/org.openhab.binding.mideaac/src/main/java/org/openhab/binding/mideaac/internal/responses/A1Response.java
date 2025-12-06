@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * https://github.com/georgezhao2010/midea_ac_lan/blob/06fc4b582a012bbbfd6bd5942c92034270eca0eb/custom_components/midea_ac_lan/midea/devices/a1/message.py#L418
  *
  * @author Gaël L'hopital - Initial contribution
+ * @author Bob Eckhoff - OH addons changes, logging, TimerData addition
  */
 @NonNullByDefault
 public class A1Response {

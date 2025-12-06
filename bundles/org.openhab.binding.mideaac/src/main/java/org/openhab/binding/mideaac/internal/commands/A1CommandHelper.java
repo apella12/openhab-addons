@@ -25,16 +25,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link CommandHelper} is a static class that is able to translate {@link Command} to {@link CommandSet}
+ * The {@link A1CommandHelper} is a static class that is able to translate {@link Command} to {@link A1CommandSet}
+ * for Midea Dehumidifier devices.
  *
- * @author Leo Siepel - Initial contribution
+ * @author Bob Eckhoff - Initial contribution
  */
 
 @NonNullByDefault
 public class A1CommandHelper {
     private static Logger logger = LoggerFactory.getLogger(A1CommandHelper.class);
 
-    private static final StringType HUMIDIFIER_MODE_OFF = new StringType("OFF");
     private static final StringType HUMIDIFIER_MODE_MANUAL = new StringType("MANUAL");
     private static final StringType HUMIDIFIER_MODE_CONTINUOUS = new StringType("CONTINUOUS");
     private static final StringType HUMIDIFIER_MODE_AUTO = new StringType("AUTO");
@@ -101,16 +101,14 @@ public class A1CommandHelper {
     /**
      * Supported Midea Humidifier modes
      * 
-     * @param command Modes MANUAL, CONTINUOUS, AUTO, CLOTHES_DRY, SHOES_DRY, OFF
+     * @param command Modes MANUAL, CONTINUOUS, AUTO, CLOTHES_DRY, SHOES_DRY
      */
     public static A1CommandSet handleA1OperationalMode(Command command, A1Response lastResponse)
             throws UnsupportedOperationException {
         A1CommandSet commandSet = A1CommandSet.fromResponse(lastResponse);
 
         if (command instanceof StringType) {
-            if (command.equals(HUMIDIFIER_MODE_OFF)) {
-                commandSet.setPowerState(false);
-            } else if (command.equals(HUMIDIFIER_MODE_MANUAL)) {
+            if (command.equals(HUMIDIFIER_MODE_MANUAL)) {
                 commandSet.setA1OperationalMode(A1OperationalMode.MANUAL);
             } else if (command.equals(HUMIDIFIER_MODE_CONTINUOUS)) {
                 commandSet.setA1OperationalMode(A1OperationalMode.CONTINUOUS);

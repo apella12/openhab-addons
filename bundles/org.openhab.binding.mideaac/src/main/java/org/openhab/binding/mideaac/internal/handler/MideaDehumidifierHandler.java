@@ -16,17 +16,21 @@ import static org.openhab.binding.mideaac.internal.MideaACBindingConstants.*;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.mideaac.internal.callbacks.HumidifierCallback;
-import org.openhab.binding.mideaac.internal.commands.A1CommandHelper;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
-import org.openhab.binding.mideaac.internal.responses.A1Response;
+import org.openhab.binding.mideaac.internal.devices.a1.A1CommandHelper;
+import org.openhab.binding.mideaac.internal.devices.a1.A1Response;
+import org.openhab.binding.mideaac.internal.devices.ac.ACCommandSet;
+import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilitiesResponse;
+import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilityParser;
 import org.openhab.core.i18n.UnitProvider;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -61,7 +65,35 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
 
     @Override
     protected void requestCapabilitiesIfMissing() {
-        // no-op for dehumidifier
+        if (properties.containsKey("humidityAutoSet")) {
+            return;
+        }
+
+        scheduler.execute(() -> {
+            try {
+                ACCommandSet initializationCommand = new ACCommandSet();
+                initializationCommand.getCapabilities();
+                this.connectionManager.sendCommand(initializationCommand, this);
+
+                // Check if additional capabilities are available and fetch them if so
+                CapabilityParser parser = new CapabilityParser();
+                logger.debug("additional capabilities {}", parser.hasAdditionalCapabilities());
+                if (parser.hasAdditionalCapabilities()) {
+                    scheduler.schedule(() -> {
+                        try {
+                            ACCommandSet additionalCommand = new ACCommandSet();
+                            additionalCommand.getAdditionalCapabilities();
+                            this.connectionManager.sendCommand(additionalCommand, this);
+                        } catch (Exception ex) {
+                            logger.debug("Humidifier additional capabilities not returned {}", ex.getMessage());
+                        }
+                    }, 2, TimeUnit.SECONDS);
+                }
+            } catch (Exception ex) {
+                // Will not affect dehumidifier readiness, just log the issue
+                logger.debug("Dehumidifier capabilities not returned {}", ex.getMessage());
+            }
+        });
     }
 
     @Override
@@ -103,11 +135,11 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
                 connectionManager.sendCommand(A1CommandHelper.handleA1OperationalMode(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_SWING)) {
                 connectionManager.sendCommand(A1CommandHelper.handleA1Swing(command, lastresponse), this);
-            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_CHILD_LOCK)) {
+            } else if (channelUID.getId().equals(CHANNEL_CHILD_LOCK)) {
                 connectionManager.sendCommand(A1CommandHelper.handleA1ChildLock(command, lastresponse), this);
             } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_TANK_SETPOINT)) {
                 connectionManager.sendCommand(A1CommandHelper.handleA1TankSetpoint(command, lastresponse), this);
-            } else if (channelUID.getId().equals(CHANNEL_DEHUMIDIFIER_ANION)) {
+            } else if (channelUID.getId().equals(CHANNEL_ANION)) {
                 connectionManager.sendCommand(A1CommandHelper.handleA1Anion(command, lastresponse), this);
             }
         } catch (MideaConnectionException | MideaAuthenticationException e) {
@@ -126,8 +158,8 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
         updateChannel(CHANNEL_DEHUMIDIFIER_MODE, new StringType(response.getA1OperationalMode().toString()));
         updateChannel(CHANNEL_MAXIMUM_HUMIDITY, new DecimalType(response.getMaximumHumidity()));
         updateChannel(CHANNEL_HUMIDITY, new DecimalType(response.getCurrentHumidity()));
-        updateChannel(CHANNEL_DEHUMIDIFIER_ANION, OnOffType.from(response.getA1Anion()));
-        updateChannel(CHANNEL_DEHUMIDIFIER_CHILD_LOCK, OnOffType.from(response.getA1ChildLock()));
+        updateChannel(CHANNEL_ANION, OnOffType.from(response.getA1Anion()));
+        updateChannel(CHANNEL_CHILD_LOCK, OnOffType.from(response.getA1ChildLock()));
         updateChannel(CHANNEL_DEHUMIDIFIER_TANK, new DecimalType(response.getTank()));
         updateChannel(CHANNEL_DEHUMIDIFIER_TANK_SETPOINT, new DecimalType(response.getTankSetpoint()));
         updateChannel(CHANNEL_DEHUMIDIFIER_SWING, OnOffType.from(response.getA1SwingMode()));
@@ -140,5 +172,44 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
         }
 
         updateChannel(CHANNEL_INDOOR_TEMPERATURE, indoorTemperature);
+    }
+
+    // Handle capabilities responses
+    @Override
+    public void updateChannels(CapabilitiesResponse capabilitiesResponse) {
+        CapabilityParser parser = new CapabilityParser();
+        parser.parse(capabilitiesResponse.getRawData());
+
+        properties = editProperties();
+
+        parser.getCapabilities().forEach((capabilityId, capabilityMap) -> {
+            capabilityMap.forEach((key, value) -> {
+                properties.put(key, String.valueOf(value));
+            });
+        });
+
+        parser.getNumericCapabilities().forEach((capabilityId, temperatureMap) -> {
+            temperatureMap.forEach((key, value) -> {
+                properties.put(key, String.valueOf(value));
+            });
+        });
+
+        // Defaults if FAN_SPEED_CONTROL is missing from response
+        if (!properties.containsKey("fanLow")) {
+            properties.put("fanLow", "true - default");
+        }
+        if (!properties.containsKey("fanMedium")) {
+            properties.put("fanMedium", "true - default");
+        }
+        if (!properties.containsKey("fanHigh")) {
+            properties.put("fanHigh", "true - default");
+        }
+        if (!properties.containsKey("fanAuto")) {
+            properties.put("fanAuto", "true - default");
+        }
+
+        updateProperties(properties);
+
+        logger.debug("Capabilities and temperature settings parsed and stored in properties: {}", properties);
     }
 }

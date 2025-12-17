@@ -61,6 +61,86 @@
 			</options>
 		</state>
 	</channel-type>
+	<channel-type id="dh-fan-speed">
+		<item-type>String</item-type>
+		<label>Fan Speed</label>
+		<description>Fan speeds: OFF, LOWEST, LOW, MEDIUM, HIGH, AUTO.</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Airflow</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="OFF">OFF</option>
+				<option value="LOWEST">LOWEST</option>
+				<option value="LOW">LOW</option>
+				<option value="MEDIUM">MEDIUM</option>
+				<option value="HIGH">HIGH</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="cc-fan-speed">
+		<item-type>String</item-type>
+		<label>Fan Speed</label>
+		<description>Fan speeds: ONE through SEVEN plus AUTO.</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Airflow</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="ONE">ONE</option>
+				<option value="TWO">TWO</option>
+				<option value="THREE">THREE</option>
+				<option value="FOUR">FOUR</option>
+				<option value="FIVE">FIVE</option>
+				<option value="SIX">SIX</option>
+				<option value="SEVEN">SEVEN</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="swing-angle-horizontal">
+		<item-type>String</item-type>
+		<label>Swing Angle Horizontal</label>
+		<description>Swing Angle Horizontal: Closed, Positions 1 - 5 plus Auto.</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Airflow</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="CLOSE">CLOSE</option>
+				<option value="POSITION_1">POSITION_1</option>
+				<option value="POSITION_2">POSITION_2</option>
+				<option value="POSITION_3">POSITION_3</option>
+				<option value="POSITION_4">POSITION_4</option>
+				<option value="POSITION_5">POSITION_5</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="swing-angle-vertical">
+		<item-type>String</item-type>
+		<label>Swing Angle Vertical</label>
+		<description>Swing Angle Vertical: Closed, Positions 1 - 5 plus Auto.</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Airflow</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="CLOSE">CLOSE</option>
+				<option value="POSITION_1">POSITION_1</option>
+				<option value="POSITION_2">POSITION_2</option>
+				<option value="POSITION_3">POSITION_3</option>
+				<option value="POSITION_4">POSITION_4</option>
+				<option value="POSITION_5">POSITION_5</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
 	<channel-type id="swing-mode">
 		<item-type>String</item-type>
 		<label>Swing Mode</label>
@@ -92,6 +172,17 @@
 		<item-type>Switch</item-type>
 		<label>Turbo Mode</label>
 		<description>Turbo mode, "Boost" in Midea Air app, long press "+" on IR Remote Controller. Only works in COOL and HEAT
+			mode.</description>
+		<category>Switch</category>
+		<tags>
+			<tag>Switch</tag>
+			<tag>Airconditioning</tag>
+		</tags>
+	</channel-type>
+	<channel-type id="silent-mode">
+		<item-type>Switch</item-type>
+		<label>Silent Mode</label>
+		<description>Silent Mode
 			mode.</description>
 		<category>Switch</category>
 		<tags>
@@ -200,6 +291,38 @@
 		</tags>
 		<state readOnly="true"/>
 	</channel-type>
+	<channel-type id="cc-auxiliary-heat" advanced="true">
+		<item-type>String</item-type>
+		<label>Auxiliary Heat</label>
+		<description>Auxiliary Heat settings (ON, OFF or AUTO)</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Heating</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="OFF">OFF</option>
+				<option value="ON">ON</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="purifier-mode" advanced="true">
+		<item-type>String</item-type>
+		<label>Purifier Mode</label>
+		<description>Purifier Modes (ON, OFF or AUTO)</description>
+		<tags>
+			<tag>Control</tag>
+			<tag>Heating</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="OFF">OFF</option>
+				<option value="ON">ON</option>
+				<option value="AUTO">AUTO</option>
+			</options>
+		</state>
+	</channel-type>
 	<channel-type id="energy-consumption" advanced="true">
 		<item-type>Number</item-type>
 		<label>Kilowatt Hours</label>
@@ -248,25 +371,6 @@
 				<option value="CONTINUOUS">CONTINUOUS</option>
 				<option value="CLOTHES_DRY">CLOTHES DRY</option>
 				<option value="SHOE_DRY">SHOE DRY</option>
-			</options>
-		</state>
-	</channel-type>
-	<channel-type id="dh-fan-speed">
-		<item-type>String</item-type>
-		<label>Fan Speed</label>
-		<description>Fan speeds: OFF, LOWEST, LOW, MEDIUM, HIGH, AUTO.</description>
-		<tags>
-			<tag>Control</tag>
-			<tag>Airflow</tag>
-		</tags>
-		<state>
-			<options>
-				<option value="OFF">OFF</option>
-				<option value="LOWEST">LOWEST</option>
-				<option value="LOW">LOW</option>
-				<option value="MEDIUM">MEDIUM</option>
-				<option value="HIGH">HIGH</option>
-				<option value="AUTO">AUTO</option>
 			</options>
 		</state>
 	</channel-type>
@@ -327,7 +431,7 @@
 		</tags>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
-	<channel-type id="dh-child-lock" advanced="true">
+	<channel-type id="child-lock" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Child Lock</label>
 		<description>Lock Controls. </description>
@@ -337,10 +441,9 @@
 			<tag>Humidity</tag>
 		</tags>
 	</channel-type>
-	<channel-type id="dh-anion" advanced="true">
+	<channel-type id="anion" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Anion</label>
-		<description>Anion</description>
 		<category>Switch</category>
 		<tags>
 			<tag>Switch</tag>

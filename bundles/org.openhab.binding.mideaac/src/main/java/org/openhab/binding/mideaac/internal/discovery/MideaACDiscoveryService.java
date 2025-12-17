@@ -31,8 +31,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.Utils;
 import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
-import org.openhab.binding.mideaac.internal.commands.CommandBase;
-import org.openhab.binding.mideaac.internal.responses.capabilities.CapabilityParser;
+import org.openhab.binding.mideaac.internal.devices.CommandBase;
+import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilityParser;
 import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
@@ -57,8 +57,10 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     private static int discoveryTimeoutSeconds = 10;
     private final int receiveJobTimeout = 20000;
     private final int udpPacketTimeout = receiveJobTimeout - 50;
-    private final String mideaACNamePrefix = "MideaAC";
-    private final String mideaDHNamePrefix = "Dehumidifier";
+    private final String acNamePrefix = "Air_Conditioner";
+    private final String a1NamePrefix = "Dehumidifier";
+    private final String ccNamePrefix = "Commercial_Air_Conditioner";
+
     /**
      * UDP port1 to send command.
      */
@@ -94,13 +96,13 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startScan() {
-        logger.debug("Start scan for Midea AC devices.");
+        logger.debug("Start scan for Midea devices.");
         discoverThings();
     }
 
     @Override
     protected void stopScan() {
-        logger.debug("Stop scan for Midea AC devices.");
+        logger.debug("Stop scan for Midea devices.");
         closeDiscoverSocket();
         super.stopScan();
     }
@@ -316,14 +318,20 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             mSmartType = mSmartSSID.split("_")[1];
             logger.debug("Type: '{}'", mSmartType);
 
-            String thingName = createThingName(packet.getAddress().getAddress(), mSmartId,
-                    "a1".equalsIgnoreCase(mSmartType) ? mideaDHNamePrefix : mideaACNamePrefix);
-            // choose thing type based on discovered device type/version
+            String thingName = createThingName(packet.getAddress().getAddress(),
+                    "ac".equalsIgnoreCase(mSmartType) ? acNamePrefix
+                            : "a1".equalsIgnoreCase(mSmartType) ? a1NamePrefix
+                                    : "cc".equalsIgnoreCase(mSmartType) ? ccNamePrefix : "Midea_Device");
+            // choose thing type based on discovered device type/version or default to AC
             ThingUID thingUID;
             if ("ac".equalsIgnoreCase(mSmartType)) {
                 thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
-            } else {
+            } else if ("a1".equalsIgnoreCase(mSmartType)) {
                 thingUID = new ThingUID(THING_TYPE_DEHUMIDIFIER, thingName.toLowerCase());
+            } else if ("cc".equalsIgnoreCase(mSmartType)) {
+                thingUID = new ThingUID(THING_TYPE_COMMERCIAL_AC, thingName.toLowerCase());
+            } else {
+                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
             }
 
             return DiscoveryResultBuilder.create(thingUID).withLabel(thingName)
@@ -337,7 +345,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             return null;
         } else {
             logger.debug(
-                    "Mideaac device was detected, but the retrieved data is incomplete or not supported. Device not registered");
+                    "Midea device was detected, but the retrieved data is incomplete or not supported. Device not registered");
             return null;
         }
     }
@@ -347,8 +355,8 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
      * 
      * @return the name for the device
      */
-    private String createThingName(final byte[] byteIP, String id, String mideaNamePrefix) {
-        return mideaNamePrefix + "-" + Byte.toUnsignedInt(byteIP[3]) + "-" + id;
+    private String createThingName(final byte[] byteIP, String mideaNamePrefix) {
+        return mideaNamePrefix + "-" + Byte.toUnsignedInt(byteIP[3]);
     }
 
     /**

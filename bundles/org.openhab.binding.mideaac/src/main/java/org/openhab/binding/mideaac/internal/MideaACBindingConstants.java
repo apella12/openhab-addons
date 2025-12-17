@@ -39,6 +39,7 @@ public class MideaACBindingConstants {
      */
     public static final ThingTypeUID THING_TYPE_AC = new ThingTypeUID(BINDING_ID, "ac");
     public static final ThingTypeUID THING_TYPE_DEHUMIDIFIER = new ThingTypeUID(BINDING_ID, "a1");
+    public static final ThingTypeUID THING_TYPE_COMMERCIAL_AC = new ThingTypeUID(BINDING_ID, "cc");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
             .unmodifiableSet(Set.of(THING_TYPE_AC, THING_TYPE_DEHUMIDIFIER));
@@ -52,14 +53,19 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_OPERATIONAL_MODE = "operational-mode";
     public static final String CHANNEL_DEHUMIDIFIER_MODE = "dehumidifier-mode";
     public static final String CHANNEL_FAN_SPEED = "fan-speed";
+    public static final String CHANNEL_CC_FAN_SPEED = "cc-fan-speed";
     public static final String CHANNEL_DH_FAN_SPEED = "dh-fan-speed";
     public static final String CHANNEL_ON_TIMER = "on-timer";
     public static final String CHANNEL_OFF_TIMER = "off-timer";
     public static final String CHANNEL_SWING_MODE = "swing-mode";
+    public static final String CHANNEL_SWING_ANGLE_HORIZONAL = "swing-angle-horizontal";
+    public static final String CHANNEL_SWING_ANGLE_VERTICAL = "swing-angle-vertical";
     public static final String CHANNEL_DEHUMIDIFIER_SWING = "dehumidifier-swing";
     public static final String CHANNEL_AUXILIARY_HEAT = "auxiliary-heat";
-    public static final String CHANNEL_DEHUMIDIFIER_CHILD_LOCK = "dh-child-lock";
-    public static final String CHANNEL_DEHUMIDIFIER_ANION = "dh-anion";
+    public static final String CHANNEL_CC_AUXILIARY_HEAT = "cc-auxiliary-heat";
+    public static final String CHANNEL_PURIFIER_MODE = "purifier-mode";
+    public static final String CHANNEL_CHILD_LOCK = "child-lock";
+    public static final String CHANNEL_ANION = "anion";
     public static final String CHANNEL_DEHUMIDIFIER_TANK = "dehumidifier-tank";
     public static final String CHANNEL_DEHUMIDIFIER_TANK_SETPOINT = "dh-tank-setpoint";
     public static final String CHANNEL_ECO_MODE = "eco-mode";
@@ -110,10 +116,14 @@ public class MideaACBindingConstants {
     // Capabilities properties discoverable
     public static final String PROPERTY_ANION = "anion";
     public static final String PROPERTY_AUX_ELECTRIC_HEAT = "auxElectricHeat";
+    public static final String PROPERTY_AUX_MODE_AUTO = "auxModeAuto";
+    public static final String PROPERTY_AUX_MODE_ON = "auxModeOn";
+    public static final String PROPERTY_AUX_MODE_OFF = "auxModeOff";
     public static final String PROPERTY_BREEZE_AWAY = "breezeAway";
     public static final String PROPERTY_BREEZE_CONTROL = "breezeControl";
     public static final String PROPERTY_BREEZELESS = "breezeless";
     public static final String PROPERTY_BUZZER = "buzzer";
+    public static final String PROPERTY_CHILD_LOCK = "childLock";
     public static final String PROPERTY_DISPLAY_CONTROL = "displayControl";
     public static final String PROPERTY_ENERGY_STATS = "energyStats";
     public static final String PROPERTY_ENERGY_SETTING = "energySetting";
@@ -141,8 +151,10 @@ public class MideaACBindingConstants {
     public static final String PROPERTY_PRESET_IECO = "ieco";
     public static final String PROPERTY_PRESET_TURBO_COOL = "turboCool";
     public static final String PROPERTY_PRESET_TURBO_HEAT = "turboHeat";
+    public static final String PROPERTY_PURIFIER = "purifier";
     public static final String PROPERTY_RATE_SELECT = "rateSelect5Level";
     public static final String PROPERTY_SELF_CLEAN = "selfClean";
+    public static final String PROPERTY_SLEEP_MODE = "sleepMode";
     public static final String PROPERTY_SMART_EYE = "smartEye";
     public static final String PROPERTY_SWING_LR_ANGLE = "swingHorizontalAngle";
     public static final String PROPERTY_SWING_UD_ANGLE = "swingVerticalAngle";

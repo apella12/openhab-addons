@@ -17,6 +17,7 @@ import static org.openhab.binding.mideaac.internal.MideaACBindingConstants.SUPPO
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mideaac.internal.handler.MideaACHandler;
+import org.openhab.binding.mideaac.internal.handler.MideaCCHandler;
 import org.openhab.binding.mideaac.internal.handler.MideaDehumidifierHandler;
 import org.openhab.core.i18n.UnitProvider;
 import org.openhab.core.io.net.http.HttpClientFactory;
@@ -44,7 +45,7 @@ public class MideaACHandlerFactory extends BaseThingHandlerFactory {
     private final UnitProvider unitProvider;
     private static final ThingTypeUID THING_TYPE_AC = new ThingTypeUID("mideaac", "ac");
     private static final ThingTypeUID THING_TYPE_DEHUMIDIFIER = new ThingTypeUID("mideaac", "a1");
-    // private static final ThingTypeUID CC_UID = new ThingTypeUID("mideaac", "cc"); //Future use
+    private static final ThingTypeUID THING_TYPE_COMMERCIAL_AC = new ThingTypeUID("mideaac", "cc");
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -71,6 +72,8 @@ public class MideaACHandlerFactory extends BaseThingHandlerFactory {
             return new MideaACHandler(thing, unitProvider, httpClientFactory.getCommonHttpClient());
         } else if (typeUID.equals(THING_TYPE_DEHUMIDIFIER)) {
             return new MideaDehumidifierHandler(thing, unitProvider, httpClientFactory.getCommonHttpClient());
+        } else if (typeUID.equals(THING_TYPE_COMMERCIAL_AC)) {
+            return new MideaCCHandler(thing, unitProvider, httpClientFactory.getCommonHttpClient());
         }
 
         return null;

@@ -26,41 +26,41 @@ import org.openhab.binding.mideaac.internal.devices.cc.CCResponse;
  * @author Bob Eckhoff - Initial contribution
  */
 @NonNullByDefault
-public interface HumidifierCallback extends Callback {
-    /**
-     * Updates dehumidifier channels with (0xC8) response.
-     *
-     * @param a1Response The humidifier (0xC8) response from the device used to update properties.
-     */
-    void updateChannels(A1Response a1Response);
+public interface CCCallback extends Callback {
 
-    default void updateChannels(Response response) {
-        // No implementation needed for humidifier
+    /**
+     * Updates channels with a commercial AC (0x01) response.
+     *
+     * @param response The a commercial AC (0x01) response from the device used to update properties.
+     */
+    @Override
+    void updateChannels(CCResponse ccResponse);
+
+    default void updateChannels(A1Response a1Response) {
+        // No implementation needed for Commercial AC
     }
 
-    /**
-     * Updates dehumidifier channels with a capabilities response (0xB5).
-     * 
-     */
-    void updateChannels(CapabilitiesResponse capabilitiesResponse);
+    default void updateChannels(Response response) {
+        // No implementation needed for Commercial AC
+    }
+
+    default void updateChannels(CapabilitiesResponse capabilitiesResponse) {
+        // No implementation needed for Commercial AC
+    }
 
     default void updateChannels(EnergyResponse energyResponse) {
-        // No implementation needed for humidifier
+        // No implementation needed for Commercial AC
     }
 
     default void updateHumidityFromEnergy(EnergyResponse energyResponse) {
-        // No implementation needed for humidifier
+        // No implementation needed for Commercial AC
     }
 
     default void updateChannels(HumidityResponse humidityResponse) {
-        // No implementation needed for humidifier
+        // No implementation needed for Commercial AC
     }
 
     default void updateChannels(TemperatureResponse temperatureResponse) {
-        // No implementation needed for humidifier
-    }
-
-    default void updateChannels(CCResponse ccResponse) {
-        // No implementation needed for humidifier
+        // No implementation needed for Commercial AC
     }
 }

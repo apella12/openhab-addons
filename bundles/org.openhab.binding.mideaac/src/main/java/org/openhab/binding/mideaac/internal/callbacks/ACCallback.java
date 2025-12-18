@@ -19,7 +19,6 @@ import org.openhab.binding.mideaac.internal.devices.ac.HumidityResponse;
 import org.openhab.binding.mideaac.internal.devices.ac.Response;
 import org.openhab.binding.mideaac.internal.devices.ac.TemperatureResponse;
 import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilitiesResponse;
-import org.openhab.binding.mideaac.internal.devices.cc.CCResponse;
 
 /**
  * The {@link Response} performs the polling byte data stream decoding
@@ -81,10 +80,6 @@ public interface ACCallback extends Callback {
     void updateChannels(TemperatureResponse temperatureResponse);
 
     default void updateChannels(A1Response a1Response) {
-        // No implementation needed for AC
-    }
-
-    default void updateChannels(CCResponse ccResponse) {
         // No implementation needed for AC
     }
 }

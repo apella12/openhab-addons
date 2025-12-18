@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The {@link EnergyResponse} handles the energy messages
- * from the device
+ * from the AC device
  *
  * @author Bob Eckhoff - Initial contribution
  */

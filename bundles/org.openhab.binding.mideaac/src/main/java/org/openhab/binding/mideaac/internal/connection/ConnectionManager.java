@@ -41,8 +41,6 @@ import org.openhab.binding.mideaac.internal.devices.ac.HumidityResponse;
 import org.openhab.binding.mideaac.internal.devices.ac.Response;
 import org.openhab.binding.mideaac.internal.devices.ac.TemperatureResponse;
 import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilitiesResponse;
-import org.openhab.binding.mideaac.internal.devices.cc.CCQueryCommand;
-import org.openhab.binding.mideaac.internal.devices.cc.CCResponse;
 import org.openhab.binding.mideaac.internal.security.Decryption8370Result;
 import org.openhab.binding.mideaac.internal.security.Security;
 import org.openhab.binding.mideaac.internal.security.Security.MsgType;
@@ -74,7 +72,6 @@ public class ConnectionManager {
     private final String deviceId;
     private Response lastResponse;
     private A1Response lastA1Response;
-    private CCResponse lastCCResponse;
     private CloudProvider cloudProvider;
     private Security security;
     private final int version;
@@ -118,8 +115,6 @@ public class ConnectionManager {
                 version);
         this.lastA1Response = new A1Response(
                 HexFormat.of().parseHex("C80104507F7F003700000000000000001E64000000003A67C2"));
-        this.lastCCResponse = new CCResponse(HexFormat.of().parseHex(
-                "01fe00000043005001728c7800cf00728c728c787800010141ff010203000603010008000000000001010103010000000000000000000001000100010000000000000000000000000001000200000100000101000102ff02ff"));
         this.cloudProvider = CloudProvider.getCloudProvider(cloud);
         this.security = new Security(cloudProvider);
     }
@@ -295,21 +290,6 @@ public class ConnectionManager {
     public void getStatus(Callback callback)
             throws MideaConnectionException, MideaAuthenticationException, MideaException, IOException {
         CommandBase requestStatusCommand = new CommandBase();
-        sendCommand(requestStatusCommand, callback);
-    }
-
-    /**
-     * Sends the routine polling command for the CC device
-     * It is different than for the AC or A1 devices
-     * 
-     * @param callback
-     * @throws MideaConnectionException
-     * @throws MideaAuthenticationException
-     * @throws MideaException
-     */
-    public void getCCStatus(Callback callback)
-            throws MideaConnectionException, MideaAuthenticationException, MideaException, IOException {
-        CommandBase requestStatusCommand = new CCQueryCommand();
         sendCommand(requestStatusCommand, callback);
     }
 
@@ -560,19 +540,6 @@ public class ConnectionManager {
                 }
                 return;
 
-            case (byte) 0x01:
-                lastCCResponse = new CCResponse(data);
-                try {
-                    logger.trace("Data length is {}, commercial AC, IP address is {}", data.length, ipAddress);
-                    if (callback != null) {
-                        callback.updateChannels(lastCCResponse);
-                    }
-                } catch (Exception ex) {
-                    logger.debug("Commercial Poll response exception: {}", ex.getMessage());
-                    throw new MideaException(ex);
-                }
-                return;
-
             default:
                 logger.warn("Unexpected response bodyType {}", bodyType);
         }
@@ -646,10 +613,6 @@ public class ConnectionManager {
 
     public A1Response getLastA1Response() {
         return lastA1Response;
-    }
-
-    public CCResponse getLastCCResponse() {
-        return lastCCResponse;
     }
 
     /**

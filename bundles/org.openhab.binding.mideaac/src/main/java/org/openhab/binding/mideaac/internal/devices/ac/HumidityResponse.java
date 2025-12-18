@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The {@link HumidityResponse} handles the unsolicited 0xA0 humidity report messages
- * from the device
+ * from the AC device
  *
  * @author Bob Eckhoff - Initial contribution
  */

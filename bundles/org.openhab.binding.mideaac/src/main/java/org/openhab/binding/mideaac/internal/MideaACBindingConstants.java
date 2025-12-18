@@ -53,7 +53,6 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_OPERATIONAL_MODE = "operational-mode";
     public static final String CHANNEL_DEHUMIDIFIER_MODE = "dehumidifier-mode";
     public static final String CHANNEL_FAN_SPEED = "fan-speed";
-    public static final String CHANNEL_CC_FAN_SPEED = "cc-fan-speed";
     public static final String CHANNEL_DH_FAN_SPEED = "dh-fan-speed";
     public static final String CHANNEL_ON_TIMER = "on-timer";
     public static final String CHANNEL_OFF_TIMER = "off-timer";
@@ -62,7 +61,6 @@ public class MideaACBindingConstants {
     public static final String CHANNEL_SWING_ANGLE_VERTICAL = "swing-angle-vertical";
     public static final String CHANNEL_DEHUMIDIFIER_SWING = "dehumidifier-swing";
     public static final String CHANNEL_AUXILIARY_HEAT = "auxiliary-heat";
-    public static final String CHANNEL_CC_AUXILIARY_HEAT = "cc-auxiliary-heat";
     public static final String CHANNEL_PURIFIER_MODE = "purifier-mode";
     public static final String CHANNEL_CHILD_LOCK = "child-lock";
     public static final String CHANNEL_ANION = "anion";

@@ -19,7 +19,6 @@ import org.openhab.binding.mideaac.internal.devices.ac.HumidityResponse;
 import org.openhab.binding.mideaac.internal.devices.ac.Response;
 import org.openhab.binding.mideaac.internal.devices.ac.TemperatureResponse;
 import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilitiesResponse;
-import org.openhab.binding.mideaac.internal.devices.cc.CCResponse;
 
 /**
  * 
@@ -57,10 +56,6 @@ public interface HumidifierCallback extends Callback {
     }
 
     default void updateChannels(TemperatureResponse temperatureResponse) {
-        // No implementation needed for humidifier
-    }
-
-    default void updateChannels(CCResponse ccResponse) {
         // No implementation needed for humidifier
     }
 }

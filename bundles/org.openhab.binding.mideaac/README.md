@@ -1,6 +1,6 @@
 # Midea AC Binding
 
-This binding integrates Air Conditioners and Dehumidifiers that use the Midea protocol. Midea is an OEM for many brands.
+This binding integrates Air Conditioners (type AC) and Dehumidifiers that use the Midea protocol. Midea is an OEM for many brands.
 
 A Midea device is likely supported if it uses one of the following Android apps or it's iOS equivalent.
 
@@ -96,23 +96,23 @@ Thing mideaac:ac:mideaac "myAC" @ "Room" [ ipAddress="192.168.1.200", ipPort=644
 Minimal IP Address Option to use the built-in defaults.
 
 ```java
-Thing mideaac:ac:mideaac "myAC" @ "myRoom" [ ipAddress="192.168.0.200"] or
-Thing mideaac:a1:dehmidifier "myDehumidifier" @ "myRoom" [ ipAddress="192.168.0.200"]
+Thing mideaac:ac:air_conditioner "myAC" @ "myRoom" [ ipAddress="192.168.0.200"] or
+Thing mideaac:a1:dehumidifier "myDehumidifier" @ "myRoom" [ ipAddress="192.168.0.200"]
 ```
 
 ### `demo.items` AC Example
 
 ```java
-Switch power "Power"                                                        { channel="mideaac:ac:mideaac:power" }
-Number:Temperature target_temperature "Target Temperature [%.1f °F]"        { channel="mideaac:ac:mideaac:target-temperature" }
-String operational_mode "Operational Mode"                                  { channel="mideaac:ac:mideaac:operational-mode" }
-String fan_speed "Fan Speed"                                                { channel="mideaac:ac:mideaac:fan-speed" }
-String swing_mode "Swing Mode"                                              { channel="mideaac:ac:mideaac:dehumidifier-swing" }
-Number:Temperature indoor_temperature "Indoor Temperature [%.1f °F]"        { channel="mideaac:ac:mideaac:indoor-temperature" }
-Switch eco_mode "Eco Mode"                                                  { channel="mideaac:ac:mideaac:eco-mode" }
-Switch turbo_mode "Turbo Mode"                                              { channel="mideaac:ac:mideaac:turbo-mode" }
-Switch sleep_function "Sleep function"                                      { channel="mideaac:ac:mideaac:sleep-function" }
-Switch temperature_unit "Fahrenheit or Celsius"                             { channel="mideaac:ac:mideaac:temperature-unit" }
+Switch power "Power"                                                        { channel="mideaac:ac:air_conditioner:power" }
+Number:Temperature target_temperature "Target Temperature [%.1f °F]"        { channel="mideaac:ac:air_conditioner:target-temperature" }
+String operational_mode "Operational Mode"                                  { channel="mideaac:ac:air_conditioner:operational-mode" }
+String fan_speed "Fan Speed"                                                { channel="mideaac:ac:air_conditioner:fan-speed" }
+String swing_mode "Swing Mode"                                              { channel="mideaac:ac:air_conditioner:dehumidifier-swing" }
+Number:Temperature indoor_temperature "Indoor Temperature [%.1f °F]"        { channel="mideaac:ac:air_conditioner:indoor-temperature" }
+Switch eco_mode "Eco Mode"                                                  { channel="mideaac:ac:air_conditioner:eco-mode" }
+Switch turbo_mode "Turbo Mode"                                              { channel="mideaac:ac:air_conditioner:turbo-mode" }
+Switch sleep_function "Sleep function"                                      { channel="mideaac:ac:air_conditioner:sleep-function" }
+Switch temperature_unit "Fahrenheit or Celsius"                             { channel="mideaac:ac:air_conditioner:temperature-unit" }
 ```
 
 ### `demo.items` Dehumidifier Example

@@ -80,27 +80,6 @@
 			</options>
 		</state>
 	</channel-type>
-	<channel-type id="cc-fan-speed">
-		<item-type>String</item-type>
-		<label>Fan Speed</label>
-		<description>Fan speeds: ONE through SEVEN plus AUTO.</description>
-		<tags>
-			<tag>Control</tag>
-			<tag>Airflow</tag>
-		</tags>
-		<state>
-			<options>
-				<option value="ONE">ONE</option>
-				<option value="TWO">TWO</option>
-				<option value="THREE">THREE</option>
-				<option value="FOUR">FOUR</option>
-				<option value="FIVE">FIVE</option>
-				<option value="SIX">SIX</option>
-				<option value="SEVEN">SEVEN</option>
-				<option value="AUTO">AUTO</option>
-			</options>
-		</state>
-	</channel-type>
 	<channel-type id="swing-angle-horizontal">
 		<item-type>String</item-type>
 		<label>Swing Angle Horizontal</label>
@@ -290,22 +269,6 @@
 			<tag>Heating</tag>
 		</tags>
 		<state readOnly="true"/>
-	</channel-type>
-	<channel-type id="cc-auxiliary-heat" advanced="true">
-		<item-type>String</item-type>
-		<label>Auxiliary Heat</label>
-		<description>Auxiliary Heat settings (ON, OFF or AUTO)</description>
-		<tags>
-			<tag>Control</tag>
-			<tag>Heating</tag>
-		</tags>
-		<state>
-			<options>
-				<option value="OFF">OFF</option>
-				<option value="ON">ON</option>
-				<option value="AUTO">AUTO</option>
-			</options>
-		</state>
 	</channel-type>
 	<channel-type id="purifier-mode" advanced="true">
 		<item-type>String</item-type>

@@ -328,8 +328,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
                 thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
             } else if ("a1".equalsIgnoreCase(mSmartType)) {
                 thingUID = new ThingUID(THING_TYPE_DEHUMIDIFIER, thingName.toLowerCase());
-            } else if ("cc".equalsIgnoreCase(mSmartType)) {
-                thingUID = new ThingUID(THING_TYPE_COMMERCIAL_AC, thingName.toLowerCase());
             } else {
                 thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
             }

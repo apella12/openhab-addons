@@ -39,7 +39,6 @@ public class MideaACBindingConstants {
      */
     public static final ThingTypeUID THING_TYPE_AC = new ThingTypeUID(BINDING_ID, "ac");
     public static final ThingTypeUID THING_TYPE_DEHUMIDIFIER = new ThingTypeUID(BINDING_ID, "a1");
-    public static final ThingTypeUID THING_TYPE_COMMERCIAL_AC = new ThingTypeUID(BINDING_ID, "cc");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
             .unmodifiableSet(Set.of(THING_TYPE_AC, THING_TYPE_DEHUMIDIFIER));

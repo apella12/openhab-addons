@@ -59,7 +59,6 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
     private final int udpPacketTimeout = receiveJobTimeout - 50;
     private final String acNamePrefix = "Air_Conditioner";
     private final String a1NamePrefix = "Dehumidifier";
-    private final String ccNamePrefix = "Commercial_Air_Conditioner";
 
     /**
      * UDP port1 to send command.
@@ -320,8 +319,7 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
 
             String thingName = createThingName(packet.getAddress().getAddress(),
                     "ac".equalsIgnoreCase(mSmartType) ? acNamePrefix
-                            : "a1".equalsIgnoreCase(mSmartType) ? a1NamePrefix
-                                    : "cc".equalsIgnoreCase(mSmartType) ? ccNamePrefix : "Midea_Device");
+                            : "a1".equalsIgnoreCase(mSmartType) ? a1NamePrefix : "Midea_Device");
             // choose thing type based on discovered device type/version or default to AC
             ThingUID thingUID;
             if ("ac".equalsIgnoreCase(mSmartType)) {

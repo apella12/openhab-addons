@@ -292,7 +292,6 @@ public class ConnectionManager {
      */
     public void getStatus(Callback callback)
             throws MideaConnectionException, MideaAuthenticationException, MideaException, IOException {
-
         CommandBase requestStatusCommand;
         if ("a1".equals(deviceType)) {
             requestStatusCommand = new A1CommandBase();

@@ -79,4 +79,17 @@ public class A1CommandSetTest {
         // Getter should return the same value
         assertEquals(80, frame[0x0d]);
     }
+
+    @Test
+    public void testA1Capabilities() {
+        A1CommandSet commandSet = new A1CommandSet();
+        commandSet.getCapabilities();
+        byte[] frame = commandSet.getData();
+
+        // Device type byte
+        assertEquals((byte) 0xA1, frame[0x02]);
+
+        // Check the length of the data array
+        assertEquals(13, frame.length);
+    }
 }

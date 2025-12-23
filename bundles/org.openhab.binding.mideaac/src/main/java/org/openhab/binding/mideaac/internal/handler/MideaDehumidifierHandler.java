@@ -27,8 +27,8 @@ import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthentica
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
 import org.openhab.binding.mideaac.internal.devices.a1.A1CommandHelper;
+import org.openhab.binding.mideaac.internal.devices.a1.A1CommandSet;
 import org.openhab.binding.mideaac.internal.devices.a1.A1Response;
-import org.openhab.binding.mideaac.internal.devices.ac.ACCommandSet;
 import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilitiesResponse;
 import org.openhab.binding.mideaac.internal.devices.capabilities.CapabilityParser;
 import org.openhab.core.i18n.UnitProvider;
@@ -71,7 +71,7 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
 
         scheduler.execute(() -> {
             try {
-                ACCommandSet initializationCommand = new ACCommandSet();
+                A1CommandSet initializationCommand = new A1CommandSet();
                 initializationCommand.getCapabilities();
                 this.connectionManager.sendCommand(initializationCommand, this);
 
@@ -81,7 +81,7 @@ public class MideaDehumidifierHandler extends AbstractMideaHandler implements Hu
                 if (parser.hasAdditionalCapabilities()) {
                     scheduler.schedule(() -> {
                         try {
-                            ACCommandSet additionalCommand = new ACCommandSet();
+                            A1CommandSet additionalCommand = new A1CommandSet();
                             additionalCommand.getAdditionalCapabilities();
                             this.connectionManager.sendCommand(additionalCommand, this);
                         } catch (Exception ex) {

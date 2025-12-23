@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.MideaACConfiguration;
 import org.openhab.binding.mideaac.internal.security.Crc8;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -44,7 +43,16 @@ public class CommandBase {
             (byte) 0x42, (byte) 0xa5, (byte) 0x0f, (byte) 0x1f, (byte) 0x56, (byte) 0x9e, (byte) 0xb8, (byte) 0xec,
             (byte) 0x91, (byte) 0x8e, (byte) 0x92, (byte) 0xe5 };
 
-    public byte[] data;
+    protected byte[] data = new byte[1];
+
+    /**
+     * Returns the command data for testing.
+     *
+     * @return command data
+     */
+    public byte[] getData() {
+        return data;
+    }
 
     /**
      * Returns the command to discover devices.
@@ -88,18 +96,13 @@ public class CommandBase {
                 0x00 };
         LocalDateTime now = LocalDateTime.now();
         data[data.length - 1] = (byte) now.getSecond();
-        // Set device type from configuration- for other than default Midea AC
-        MideaACConfiguration config = new MideaACConfiguration();
-        String deviceType = config.deviceType;
-        byte[] parsed = HexUtils.hexToBytes(deviceType);
-        data[0x02] = parsed[0];
     }
 
     /**
      * Pulls the elements of the Base command together
      */
     public void compose() {
-        logger.trace("Base Bytes before crypt {}", HexUtils.bytesToHex(data));
+        logger.debug("Base Bytes before crypt {}", HexUtils.bytesToHex(data));
         byte crc8 = (byte) Crc8.calculate(Arrays.copyOfRange(data, 10, data.length));
         byte[] newData1 = new byte[data.length + 1];
         System.arraycopy(data, 0, newData1, 0, data.length);

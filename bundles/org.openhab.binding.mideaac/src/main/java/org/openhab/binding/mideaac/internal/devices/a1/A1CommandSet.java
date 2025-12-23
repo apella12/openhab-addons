@@ -13,28 +13,27 @@
 package org.openhab.binding.mideaac.internal.devices.a1;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.mideaac.internal.devices.CommandBase;
+import org.openhab.binding.mideaac.internal.devices.A1CommandBase;
 import org.openhab.binding.mideaac.internal.devices.Timer.TimerData;
 import org.openhab.binding.mideaac.internal.devices.a1.A1StringCommands.A1FanSpeed;
 import org.openhab.binding.mideaac.internal.devices.a1.A1StringCommands.A1OperationalMode;
 
 /**
  * This {@link A1CommandSet} class handles the allowed changes originating from
- * the items linked to the Midea device channels. Not all devices
+ * the items linked to the Midea dehumidifer channels. Not all devices
  * support all commands. The general process is to clear the
  * bit(s) the set them to the command value and change message type to command.
  *
- * @author Jacek Dobrowolski - Initial contribution
- * @author Bob Eckhoff - Add Java Docs, Timer Display LED and capabilities
- * @author Bob Eckhoff - Separated Dehumidifier commands
+ * @author Bob Eckhoff - - Initial contribution
  */
 @NonNullByDefault
-public class A1CommandSet extends CommandBase {
+public class A1CommandSet extends A1CommandBase {
 
     /**
      * Byte array structure for Command set
      */
     public A1CommandSet() {
+        super();
         data[0x01] = (byte) 0x23;
         data[0x09] = (byte) 0x02; // Setting Mode
         data[0x0a] = (byte) 0x40; // Command Message
@@ -121,7 +120,7 @@ public class A1CommandSet extends CommandBase {
      * @return operational mode
      */
     public int getA1OperationalMode() {
-        return data[0x0c] &= (byte) 0x0f;
+        return data[0x0c] & (byte) 0x0f;
     }
 
     /**

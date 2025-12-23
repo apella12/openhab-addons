@@ -61,8 +61,8 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
     protected MideaACConfiguration config = new MideaACConfiguration();
     protected Map<String, String> properties = new HashMap<>();
     // Default parameters are the same as in the MideaACConfiguration class
-    protected ConnectionManager connectionManager = new ConnectionManager("", 6444, 4, "", "", "", "", "", "", 0,
-            false);
+    protected ConnectionManager connectionManager = new ConnectionManager("", 6444, 4, "", "", "", "", "", "", 0, false,
+            "");
     protected ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
     private @Nullable ScheduledFuture<?> scheduledTask;
     private @Nullable ScheduledFuture<?> scheduledKeyTokenUpdate;
@@ -182,7 +182,7 @@ public abstract class AbstractMideaHandler extends BaseThingHandler implements D
     private void initConnectionManagerFromConfig() {
         connectionManager = new org.openhab.binding.mideaac.internal.connection.ConnectionManager(config.ipAddress,
                 config.ipPort, config.timeout, config.key, config.token, config.cloud, config.email, config.password,
-                config.deviceId, config.version, config.promptTone);
+                config.deviceId, config.version, config.promptTone, config.deviceType);
     }
 
     /** Subclasses decide what to do */

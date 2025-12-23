@@ -34,10 +34,15 @@ public class A1CommandSetTest {
      */
     @Test
     public void testHandleA1SwingMode() {
-        boolean mode1 = true;
         A1CommandSet commandSet = new A1CommandSet();
-        commandSet.setA1SwingMode(mode1);
-        assertEquals(mode1, commandSet.getA1SwingMode());
+        commandSet.setA1SwingMode(true);
+        byte[] frame = commandSet.getData();
+
+        // Device type byte
+        assertEquals((byte) 0xA1, frame[0x02]);
+
+        // Swing mode bit should be ON (bit 5 = 0x20)
+        assertEquals((byte) 0x20, frame[0x1D] & 0x20);
     }
 
     /**
@@ -45,11 +50,18 @@ public class A1CommandSetTest {
      */
     @Test
     public void testHandleA1OperationalMode() {
-        A1OperationalMode mode = A1OperationalMode.AUTO;
-        int mode1 = 3;
         A1CommandSet commandSet = new A1CommandSet();
-        commandSet.setA1OperationalMode(mode);
-        assertEquals(mode1, commandSet.getA1OperationalMode());
+
+        commandSet.setA1OperationalMode(A1OperationalMode.AUTO);
+        byte[] frame = commandSet.getData();
+        // Device type byte
+        assertEquals((byte) 0xA1, frame[0x02]);
+
+        // Low nibble should equal mode ID
+        assertEquals(3, frame[0x0C] & 0x0F);
+
+        // Getter should return the same value
+        assertEquals(3, commandSet.getA1OperationalMode());
     }
 
     /**
@@ -57,10 +69,14 @@ public class A1CommandSetTest {
      */
     @Test
     public void testHandleA1FanSpeed() {
-        A1FanSpeed speed = A1FanSpeed.HIGH;
-        int speed1 = 80;
         A1CommandSet commandSet = new A1CommandSet();
-        commandSet.setA1FanSpeed(speed);
-        assertEquals(speed1, commandSet.getA1FanSpeed());
+        commandSet.setA1FanSpeed(A1FanSpeed.HIGH);
+        byte[] frame = commandSet.getData();
+
+        // Device type byte
+        assertEquals((byte) 0xA1, frame[0x02]);
+
+        // Getter should return the same value
+        assertEquals(80, frame[0x0d]);
     }
 }

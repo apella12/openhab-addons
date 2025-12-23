@@ -218,24 +218,25 @@ public class ACCommandSetTest {
     public void testSetScreenDisplayOff() {
         ACCommandSet commandSet = new ACCommandSet();
         commandSet.setScreenDisplay(true);
+        byte[] frame = commandSet.getData();
 
         // Check the modified bytes
-        assertEquals((byte) 0x20, commandSet.data[0x01]);
-        assertEquals((byte) 0x03, commandSet.data[0x09]);
-        assertEquals((byte) 0x41, commandSet.data[0x0a]);
-        assertEquals((byte) 0x61, commandSet.data[0x0b]);
-        assertEquals((byte) 0x00, commandSet.data[0x0c]);
-        assertEquals((byte) 0xff, commandSet.data[0x0d]);
-        assertEquals((byte) 0x02, commandSet.data[0x0e]);
-        assertEquals((byte) 0x00, commandSet.data[0x0f]);
-        assertEquals((byte) 0x02, commandSet.data[0x10]);
-        assertEquals((byte) 0x00, commandSet.data[0x11]);
-        assertEquals((byte) 0x00, commandSet.data[0x12]);
-        assertEquals((byte) 0x00, commandSet.data[0x13]);
-        assertEquals((byte) 0x00, commandSet.data[0x14]);
+        assertEquals((byte) 0x20, frame[0x01]);
+        assertEquals((byte) 0x03, frame[0x09]);
+        assertEquals((byte) 0x41, frame[0x0a]);
+        assertEquals((byte) 0x61, frame[0x0b]);
+        assertEquals((byte) 0x00, frame[0x0c]);
+        assertEquals((byte) 0xff, frame[0x0d]);
+        assertEquals((byte) 0x02, frame[0x0e]);
+        assertEquals((byte) 0x00, frame[0x0f]);
+        assertEquals((byte) 0x02, frame[0x10]);
+        assertEquals((byte) 0x00, frame[0x11]);
+        assertEquals((byte) 0x00, frame[0x12]);
+        assertEquals((byte) 0x00, frame[0x13]);
+        assertEquals((byte) 0x00, frame[0x14]);
 
         // Check the length of the data array
-        assertEquals(31, commandSet.data.length);
+        assertEquals(31, frame.length);
     }
 
     /**
@@ -246,24 +247,25 @@ public class ACCommandSetTest {
     public void testEnergyPoll() {
         ACCommandSet commandSet = new ACCommandSet();
         commandSet.energyPoll();
+        byte[] frame = commandSet.getData();
 
         // Check the modified bytes
-        assertEquals((byte) 0x20, commandSet.data[0x01]);
-        assertEquals((byte) 0x03, commandSet.data[0x09]);
-        assertEquals((byte) 0x41, commandSet.data[0x0a]);
-        assertEquals((byte) 0x21, commandSet.data[0x0b]);
-        assertEquals((byte) 0x01, commandSet.data[0x0c]);
-        assertEquals((byte) 0x44, commandSet.data[0x0d]);
-        assertEquals((byte) 0x00, commandSet.data[0x0e]);
-        assertEquals((byte) 0x00, commandSet.data[0x0f]);
-        assertEquals((byte) 0x00, commandSet.data[0x10]);
-        assertEquals((byte) 0x00, commandSet.data[0x11]);
-        assertEquals((byte) 0x00, commandSet.data[0x12]);
-        assertEquals((byte) 0x00, commandSet.data[0x13]);
-        assertEquals((byte) 0x00, commandSet.data[0x14]);
+        assertEquals((byte) 0x20, frame[0x01]);
+        assertEquals((byte) 0x03, frame[0x09]);
+        assertEquals((byte) 0x41, frame[0x0a]);
+        assertEquals((byte) 0x21, frame[0x0b]);
+        assertEquals((byte) 0x01, frame[0x0c]);
+        assertEquals((byte) 0x44, frame[0x0d]);
+        assertEquals((byte) 0x00, frame[0x0e]);
+        assertEquals((byte) 0x00, frame[0x0f]);
+        assertEquals((byte) 0x00, frame[0x10]);
+        assertEquals((byte) 0x00, frame[0x11]);
+        assertEquals((byte) 0x00, frame[0x12]);
+        assertEquals((byte) 0x00, frame[0x13]);
+        assertEquals((byte) 0x00, frame[0x14]);
 
         // Check the length of the data array
-        assertEquals(31, commandSet.data.length);
+        assertEquals(31, frame.length);
     }
 
     /**
@@ -274,16 +276,17 @@ public class ACCommandSetTest {
     public void testCapabilities() {
         ACCommandSet commandSet = new ACCommandSet();
         commandSet.getCapabilities();
+        byte[] frame = commandSet.getData();
 
         // Check the modified bytes
-        assertEquals((byte) 0x0e, commandSet.data[0x01]);
-        assertEquals((byte) 0x03, commandSet.data[0x09]);
-        assertEquals((byte) 0xB5, commandSet.data[0x0a]);
-        assertEquals((byte) 0x01, commandSet.data[0x0b]);
-        assertEquals((byte) 0x00, commandSet.data[0x0c]);
+        assertEquals((byte) 0x0e, frame[0x01]);
+        assertEquals((byte) 0x03, frame[0x09]);
+        assertEquals((byte) 0xB5, frame[0x0a]);
+        assertEquals((byte) 0x01, frame[0x0b]);
+        assertEquals((byte) 0x00, frame[0x0c]);
 
         // Check the length of the data array
-        assertEquals(13, commandSet.data.length);
+        assertEquals(13, frame.length);
     }
 
     /**
@@ -294,16 +297,17 @@ public class ACCommandSetTest {
     public void testAdditionalCapabilities() {
         ACCommandSet commandSet = new ACCommandSet();
         commandSet.getAdditionalCapabilities();
+        byte[] frame = commandSet.getData();
 
         // Check the modified bytes
-        assertEquals((byte) 0x0f, commandSet.data[0x01]);
-        assertEquals((byte) 0x03, commandSet.data[0x09]);
-        assertEquals((byte) 0xB5, commandSet.data[0x0a]);
-        assertEquals((byte) 0x01, commandSet.data[0x0b]);
-        assertEquals((byte) 0x01, commandSet.data[0x0c]);
-        assertEquals((byte) 0x01, commandSet.data[0x0d]);
+        assertEquals((byte) 0x0f, frame[0x01]);
+        assertEquals((byte) 0x03, frame[0x09]);
+        assertEquals((byte) 0xB5, frame[0x0a]);
+        assertEquals((byte) 0x01, frame[0x0b]);
+        assertEquals((byte) 0x01, frame[0x0c]);
+        assertEquals((byte) 0x01, frame[0x0d]);
 
         // Check the length of the data array
-        assertEquals(14, commandSet.data.length);
+        assertEquals(14, frame.length);
     }
 }

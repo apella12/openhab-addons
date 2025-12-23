@@ -31,6 +31,7 @@ import org.openhab.binding.mideaac.internal.cloud.CloudProvider;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaAuthenticationException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaConnectionException;
 import org.openhab.binding.mideaac.internal.connection.exception.MideaException;
+import org.openhab.binding.mideaac.internal.devices.A1CommandBase;
 import org.openhab.binding.mideaac.internal.devices.CommandBase;
 import org.openhab.binding.mideaac.internal.devices.Packet;
 import org.openhab.binding.mideaac.internal.devices.a1.A1CommandSet;
@@ -70,6 +71,7 @@ public class ConnectionManager {
     private String token;
     private final String cloud;
     private final String deviceId;
+    private String deviceType;
     private Response lastResponse;
     private A1Response lastA1Response;
     private CloudProvider cloudProvider;
@@ -100,7 +102,7 @@ public class ConnectionManager {
      * @param promptTone Tone after command true or false
      */
     public ConnectionManager(String ipAddress, int ipPort, int timeout, String key, String token, String cloud,
-            String email, String password, String deviceId, int version, boolean promptTone) {
+            String email, String password, String deviceId, int version, boolean promptTone, String deviceType) {
         this.deviceIsConnected = false;
         this.ipAddress = ipAddress;
         this.ipPort = ipPort;
@@ -109,6 +111,7 @@ public class ConnectionManager {
         this.token = token;
         this.cloud = cloud;
         this.deviceId = deviceId;
+        this.deviceType = deviceType;
         this.version = version;
         this.promptTone = promptTone;
         this.lastResponse = new Response(HexFormat.of().parseHex("C00042667F7F003C0000046066000000000000000000F9ECDB"),
@@ -289,13 +292,23 @@ public class ConnectionManager {
      */
     public void getStatus(Callback callback)
             throws MideaConnectionException, MideaAuthenticationException, MideaException, IOException {
-        CommandBase requestStatusCommand = new CommandBase();
+
+        CommandBase requestStatusCommand;
+        if ("a1".equals(deviceType)) {
+            requestStatusCommand = new A1CommandBase();
+        } else {
+            requestStatusCommand = new CommandBase();
+        }
         sendCommand(requestStatusCommand, callback);
     }
 
     private void ensureConnected() throws MideaConnectionException, MideaAuthenticationException, IOException {
         disconnect();
         connect();
+    }
+
+    void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
     }
 
     /**

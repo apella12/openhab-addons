@@ -29,61 +29,61 @@ No binding configuration is required.
 
 ## Thing Configuration
 
-| Parameter     | Required ?  | Comment                                                           | Default                   | Advanced |
-|---------------|-------------|-------------------------------------------------------------------|---------------------------|----------|
-| ipAddress     | Yes         | IP Address of the device.                                         |                           |          |
-| ipPort        | Yes         | IP port of the device                                             | 6444                      | Yes      |
-| deviceId      | Yes         | ID of the device. Leave 0 to do ID discovery.                     | 0                         | Yes      |
-| cloud         | Yes for V.3 | Your Cloud Provider name (or default).                            | NetHome Plus              |          |
-| email         | No          | Email for your cloud account (or default).                        | nethome+us@mailinator.com |          |
-| password      | No          | Password for your cloud account (or default).                     | password1                 |          |
-| token         | Yes for V.3 | Secret Token - Retrieved from cloud                               |                           | Yes      |
-| key           | Yes for V.3 | Secret Key - Retrieved from cloud                                 |                           | Yes      |
-| pollingTime   | Yes         | Frequency to Poll AC Status in seconds. Minimum is 30.            | 60 seconds                |          |
-| keyTokenUpdate| No          | Frequency to update key-token from cloud in hours.  Minimum is 24 | 0 hours (disabled)        | Yes      |
-| energyPoll    | Yes         | Frequency to poll energy data (if supported)                      | 0 minutes (disabled)      |          |
-| timeout       | Yes         | Socket connection timeout in seconds. Min. is 2, max. 10.         | 4 seconds                 | Yes      |
-| promptTone    | Yes         | "Ding" tone when command is received and executed.                | false                     |          |
-| version       | Yes         | Version 3 has token, key and cloud requirements.                  | 3                         | Yes      |
-| energyDecode  | Yes         | Binary Coded Decimal (BCD) = true. Big-endian = false.            | true                      | Yes      |
-| deviceType    | Yes         | (Air Conditioner) `ac`  and (Dehumidifier) `a1`                   | ac                        | Yes      |
+| Parameter      | Required ?  | Comment                                                           | Default                   | Advanced |
+|----------------|-------------|-------------------------------------------------------------------|---------------------------|----------|
+| ipAddress      | Yes         | IP Address of the device.                                         |                           |          |
+| ipPort         | Yes         | IP port of the device                                             | 6444                      | Yes      |
+| deviceId       | Yes         | ID of the device. Leave 0 to do ID discovery.                     | 0                         | Yes      |
+| cloud          | Yes for V.3 | Your Cloud Provider name (or default).                            | NetHome Plus              |          |
+| email          | No          | Email for your cloud account (or default).                        | nethome+us@mailinator.com |          |
+| password       | No          | Password for your cloud account (or default).                     | password1                 |          |
+| token          | Yes for V.3 | Secret Token - Retrieved from cloud                               |                           | Yes      |
+| key            | Yes for V.3 | Secret Key - Retrieved from cloud                                 |                           | Yes      |
+| pollingTime    | Yes         | Frequency to Poll AC Status in seconds. Minimum is 30.            | 60 seconds                |          |
+| keyTokenUpdate | No          | Frequency to update key-token from cloud in hours.  Minimum is 24 | 0 hours (disabled)        | Yes      |
+| energyPoll     | Yes         | Frequency to poll energy data (if supported)                      | 0 minutes (disabled)      |          |
+| timeout        | Yes         | Socket connection timeout in seconds. Min. is 2, max. 10.         | 4 seconds                 | Yes      |
+| promptTone     | Yes         | "Ding" tone when command is received and executed.                | false                     |          |
+| version        | Yes         | Version 3 has token, key and cloud requirements.                  | 3                         | Yes      |
+| energyDecode   | Yes         | Binary Coded Decimal (BCD) = true. Big-endian = false.            | true                      | Yes      |
+| deviceType     | Yes         | (Air Conditioner) `ac`  and (Dehumidifier) `a1`                   | ac                        | Yes      |
 
 ## Channels
 
 Following channels are available:
 Note:  After discovery, the thing properties dropdown on the Thing UI page will show what channels and modes your device supports.
 
-| Channel              | Type               | Description                                                                                            | Read only | Advanced | AC | DH |
-|----------------------|--------------------|--------------------------------------------------------------------------------------------------------|-----------|----------|----|----|
-| power                | Switch             | Turn the Thing on or off.                                                                              |           |          |  X |  X |
-| target-temperature   | Number:Temperature | Target temperature for AC.                                                                             |           |          |  X |    |
-| operational-mode     | String             | AC Operational modes: AUTO, COOL, DRY, HEAT, FAN ONLY                                                  |           |          |  X |    |
-| dehumidifier-mode    | String             | Dehumidifier Operational modes: AUTO, MANUAL, CONTINUOUS, CLOTHES DRY, SHOE DRY                        |           |          |    |  X |
-| fan-speed            | String             | Fan speeds: SILENT, LOW, MEDIUM, HIGH, FULL, AUTO. Not all modes supported by all units.               |           |          |  X |    |
-| dh-fan-speed         | String             | Fan speeds: OFF (turns off), LOWEST, LOW, MEDIUM, HIGH, AUTO.                                          |           |          |    |  X |
-| swing-mode           | String             | Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH. Not all modes supported by all units.                     |           |          |  X |    |
-| dehumidifier-swing   | Switch             | Turns Dehumidifier Swing mode On or Off                                                                |           |          |    |  X |
-| dh-tank-setpoint     | Number             | Dehumidifier Tank Setpoint 25%, 50%, 75%, 100%                                                         |           |          |    |  X |
-| dehumidifier-tank    | Number             | Dehumidifier Tank Level                                                                                | Yes       |          |    |  X |
-| eco-mode             | Switch             | Eco mode - Cool only (Temperature is set to 24 C (75 F) and fan on AUTO)                               |           |          |  X |    |
-| turbo-mode           | Switch             | Turbo mode, "Boost" in Midea Air app, long press "+" on IR Remote Controller. COOL and HEAT only.      |           |          |  X |    |
-| sleep-function       | Switch             | Sleep function ("Moon with a star" icon on IR Remote Controller).                                      |           |          |  X |    |
-| indoor-temperature   | Number:Temperature | Indoor temperature measured in the room, where internal unit is installed.                             | Yes       |          |  X |  X |
-| outdoor-temperature  | Number:Temperature | Outdoor temperature by external unit. Some units do not report reading when off.                       | Yes       |          |  X |    |
-| temperature-unit     | Switch             | Sets the LED display on the evaporator to Fahrenheit (true) or Celsius (false).                        |           | Yes      |  X |    |
-| on-timer             | String             | Sets the future time to turn on the Device.                                                            |           | Yes      |  X |  X |
-| off-timer            | String             | Sets the future time to turn off the Device.                                                           |           | Yes      |  X |  X |
-| screen-display       | Switch             | If device supports across LAN, turns off the LED display.                                              |           | Yes      |  X |    |
-| maximum-humidity     | Number             | Dehumidifier control point, AC If device supports in DRY mode                                          |           |          |  X |  X |
-| humidity             | Number             | If device supports, the indoor room humidity.                                                          | Yes       | Yes      |  X |  X |
-| energy-consumption   | Number             | If device supports, cumulative Kilowatt-Hours usage                                                    | Yes       | Yes      |  X |    |
-| current-draw         | Number             | If device supports, instantaneous amperage usage                                                       | Yes       | Yes      |  X |    |
-| power-consumption    | Number             | If device supports, instantaneous wattage reading                                                      | Yes       | Yes      |  X |    |
-| appliance-error      | Switch             | If device supports, appliance error notification                                                       | Yes       | Yes      |  X |    |
-| filter-status        | Switch             | If device supports, notification that filter needs cleaning                                            | Yes       | Yes      |  X |    |
-| auxiliary-heat       | Switch             | If device supports, auxiliary heat (On or Off)                                                         | Yes       | Yes      |  X |    |
-| dh-child-lock        | Switch             | If device supports, Child Lock (On or Off)                                                             | Yes       | Yes      |    |  X |
-| dh-anion             | Switch             | If device supports, Anion (On or Off)                                                                  | Yes       | Yes      |    |  X |
+| Channel             | Type               | Description                                                                                            | Read only | Advanced | AC | DH |
+|---------------------|--------------------|--------------------------------------------------------------------------------------------------------|-----------|----------|----|----|
+| power               | Switch             | Turn the Thing on or off.                                                                              |           |          |  X |  X |
+| target-temperature  | Number:Temperature | Target temperature for AC.                                                                             |           |          |  X |    |
+| operational-mode    | String             | AC Operational modes: AUTO, COOL, DRY, HEAT, FAN ONLY                                                  |           |          |  X |    |
+| dehumidifier-mode   | String             | Dehumidifier Operational modes: AUTO, MANUAL, CONTINUOUS, CLOTHES DRY, SHOE DRY                        |           |          |    |  X |
+| fan-speed           | String             | Fan speeds: SILENT, LOW, MEDIUM, HIGH, FULL, AUTO. Not all modes supported by all units.               |           |          |  X |    |
+| dh-fan-speed        | String             | Fan speeds: OFF (turns off), LOWEST, LOW, MEDIUM, HIGH, AUTO.                                          |           |          |    |  X |
+| swing-mode          | String             | Swing mode: OFF, VERTICAL, HORIZONTAL, BOTH. Not all modes supported by all units.                     |           |          |  X |    |
+| dehumidifier-swing  | Switch             | Turns Dehumidifier Swing mode On or Off                                                                |           |          |    |  X |
+| dh-tank-setpoint    | Number             | Dehumidifier Tank Setpoint 25%, 50%, 75%, 100%                                                         |           |          |    |  X |
+| dehumidifier-tank   | Number             | Dehumidifier Tank Level                                                                                | Yes       |          |    |  X |
+| eco-mode            | Switch             | Eco mode - Cool only (Temperature is set to 24 C (75 F) and fan on AUTO)                               |           |          |  X |    |
+| turbo-mode          | Switch             | Turbo mode, "Boost" in Midea Air app, long press "+" on IR Remote Controller. COOL and HEAT only.      |           |          |  X |    |
+| sleep-function      | Switch             | Sleep function ("Moon with a star" icon on IR Remote Controller).                                      |           |          |  X |    |
+| indoor-temperature  | Number:Temperature | Indoor temperature measured in the room, where internal unit is installed.                             | Yes       |          |  X |  X |
+| outdoor-temperature | Number:Temperature | Outdoor temperature by external unit. Some units do not report reading when off.                       | Yes       |          |  X |    |
+| temperature-unit    | Switch             | Sets the LED display on the evaporator to Fahrenheit (true) or Celsius (false).                        |           | Yes      |  X |    |
+| on-timer            | String             | Sets the future time to turn on the Device.                                                            |           | Yes      |  X |  X |
+| off-timer           | String             | Sets the future time to turn off the Device.                                                           |           | Yes      |  X |  X |
+| screen-display      | Switch             | If device supports across LAN, turns off the LED display.                                              |           | Yes      |  X |    |
+| maximum-humidity    | Number             | Dehumidifier control point, AC If device supports in DRY mode                                          |           |          |  X |  X |
+| humidity            | Number             | If device supports, the indoor room humidity.                                                          | Yes       | Yes      |  X |  X |
+| energy-consumption  | Number             | If device supports, cumulative Kilowatt-Hours usage                                                    | Yes       | Yes      |  X |    |
+| current-draw        | Number             | If device supports, instantaneous amperage usage                                                       | Yes       | Yes      |  X |    |
+| power-consumption   | Number             | If device supports, instantaneous wattage reading                                                      | Yes       | Yes      |  X |    |
+| appliance-error     | Switch             | If device supports, appliance error notification                                                       | Yes       | Yes      |  X |    |
+| filter-status       | Switch             | If device supports, notification that filter needs cleaning                                            | Yes       | Yes      |  X |    |
+| auxiliary-heat      | Switch             | If device supports, auxiliary heat (On or Off)                                                         | Yes       | Yes      |  X |    |
+| dh-child-lock       | Switch             | If device supports, Child Lock (On or Off)                                                             | Yes       | Yes      |    |  X |
+| dh-anion            | Switch             | If device supports, Anion (On or Off)                                                                  | Yes       | Yes      |    |  X |
 
 ## Examples
 

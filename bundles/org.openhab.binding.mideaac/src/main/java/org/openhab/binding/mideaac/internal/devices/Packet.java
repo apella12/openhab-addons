@@ -14,6 +14,7 @@ package org.openhab.binding.mideaac.internal.devices;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mideaac.internal.Utils;
@@ -60,7 +61,7 @@ public class Packet {
                 // 14 bytes
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         byte[] datetimeBytes = { (byte) (now.getYear() / 100), (byte) (now.getYear() % 100), (byte) now.getMonthValue(),
                 (byte) now.getDayOfMonth(), (byte) now.getHour(), (byte) now.getMinute(), (byte) now.getSecond(),
                 (byte) System.currentTimeMillis() };

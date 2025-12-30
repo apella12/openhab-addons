@@ -24,6 +24,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -323,11 +324,11 @@ public class MideaACDiscoveryService extends AbstractDiscoveryService {
             // choose thing type based on discovered device type/version or default to AC
             ThingUID thingUID;
             if ("ac".equalsIgnoreCase(mSmartType)) {
-                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
+                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase(Locale.ROOT));
             } else if ("a1".equalsIgnoreCase(mSmartType)) {
-                thingUID = new ThingUID(THING_TYPE_DEHUMIDIFIER, thingName.toLowerCase());
+                thingUID = new ThingUID(THING_TYPE_DEHUMIDIFIER, thingName.toLowerCase(Locale.ROOT));
             } else {
-                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase());
+                thingUID = new ThingUID(THING_TYPE_AC, thingName.toLowerCase(Locale.ROOT));
             }
 
             return DiscoveryResultBuilder.create(thingUID).withLabel(thingName)

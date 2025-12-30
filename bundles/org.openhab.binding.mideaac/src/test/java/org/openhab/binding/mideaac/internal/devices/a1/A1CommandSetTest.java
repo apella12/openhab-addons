@@ -42,7 +42,7 @@ public class A1CommandSetTest {
         assertEquals((byte) 0xA1, frame[0x02]);
 
         // Swing mode bit should be ON (bit 5 = 0x20)
-        assertEquals((byte) 0x20, frame[0x1D] & 0x20);
+        assertEquals((byte) 0x20, frame[0x14] & 0x20);
     }
 
     /**

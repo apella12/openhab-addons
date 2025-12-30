@@ -13,6 +13,7 @@
 package org.openhab.binding.mideaac.internal.devices;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -94,7 +95,11 @@ public class CommandBase {
                 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 // Message ID
                 0x00 };
-        LocalDateTime now = LocalDateTime.now();
+        applyTimestamp();
+    }
+
+    protected void applyTimestamp() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         data[data.length - 1] = (byte) now.getSecond();
     }
 

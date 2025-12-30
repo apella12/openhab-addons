@@ -40,7 +40,7 @@ public class A1CommandSet extends A1CommandBase {
         super();
         data[0x01] = (byte) 0x23;
         data[0x09] = (byte) 0x02; // Setting Mode
-        data[0x0a] = (byte) 0x40; // Command Message
+        data[0x0a] = (byte) 0x48; // Command Message for Dehumidifier
 
         byte[] extra = { 0x00, 0x00, 0x00 };
         byte[] newData = new byte[data.length + 3];
@@ -49,6 +49,13 @@ public class A1CommandSet extends A1CommandBase {
         newData[data.length + 1] = extra[1];
         newData[data.length + 2] = extra[2];
         data = newData;
+
+        // Zap the old timestamp
+        int oldTimestampIndex = data.length - 4;
+        data[oldTimestampIndex] = 0x00;
+
+        // Add the new timestamp
+        applyTimestamp();
     }
 
     // Controllable items for Dehumidifier
@@ -87,7 +94,7 @@ public class A1CommandSet extends A1CommandBase {
     }
 
     /**
-     * Turns device On or Off
+     * Turns device On or Off (Use whole byte?)
      * 
      * @param state on or off
      */
@@ -143,64 +150,6 @@ public class A1CommandSet extends A1CommandBase {
      */
     public int getA1FanSpeed() {
         return data[0x0d];
-    }
-
-    /**
-     * Sets the Humidifier Water tank level setpoint
-     * 
-     * @param humidity Water tank level setpoint
-     */
-    public void setTankSetpoint(int tankSetpoint) {
-        data[0x19] &= ~(byte) 0xff;
-        data[0x19] |= tankSetpoint;
-    }
-
-    /**
-     * Swing mode setter for Dehumidifier
-     * 
-     * @param mode sets swing mode
-     */
-    public void setA1SwingMode(boolean swingModeEnabled) {
-        if (!swingModeEnabled) {
-            data[0x1d] &= ~0x20;
-        } else {
-            data[0x1d] |= 0x20;
-        }
-    }
-
-    /**
-     * For Testing assertion get Dehumidifier Swing result
-     * 
-     * @return swing mode
-     */
-    public boolean getA1SwingMode() {
-        return (data[0x1d] & 0x20) > 0;
-    }
-
-    /**
-     * Child Lock setter for Dehumidifier
-     * 
-     * @param childLockEnabled sets child lock true or false
-     */
-    public void setA1ChildLock(boolean childLockEnabled) {
-        if (!childLockEnabled) {
-            data[0x12] &= ~0x80;
-        } else {
-            data[0x12] |= 0x80;
-        }
-    }
-
-    /**
-     * Anion setter for Dehumidifier
-     * 
-     * @param anoinEnabled sets anion true or false
-     */
-    public void setA1Anion(boolean anionEnabled) {
-        if (!anionEnabled) {
-            data[0x13] &= ~0x40;
-        } else {
-            data[0x13] |= 0x40;
-        }
     }
 
     /**
@@ -322,6 +271,64 @@ public class A1CommandSet extends A1CommandBase {
     public void setA1MaximumHumidity(int humidity) {
         data[0x11] &= ~(byte) 0xff;
         data[0x11] |= humidity;
+    }
+
+    /**
+     * Child Lock setter for Dehumidifier
+     * 
+     * @param childLockEnabled sets child lock true or false
+     */
+    public void setA1ChildLock(boolean childLockEnabled) {
+        if (!childLockEnabled) {
+            data[0x12] &= ~0x80;
+        } else {
+            data[0x12] |= 0x80;
+        }
+    }
+
+    /**
+     * Anion setter for Dehumidifier
+     * 
+     * @param anionEnabled sets anion true or false
+     */
+    public void setA1Anion(boolean anionEnabled) {
+        if (!anionEnabled) {
+            data[0x13] &= ~0x40;
+        } else {
+            data[0x13] |= 0x40;
+        }
+    }
+
+    /**
+     * Swing mode setter for Dehumidifier
+     * 
+     * @param mode sets swing mode
+     */
+    public void setA1SwingMode(boolean swingModeEnabled) {
+        if (!swingModeEnabled) {
+            data[0x14] &= ~0x20;
+        } else {
+            data[0x14] |= 0x20;
+        }
+    }
+
+    /**
+     * For Testing assertion get Dehumidifier Swing result
+     * 
+     * @return swing mode
+     */
+    public boolean getA1SwingMode() {
+        return (data[0x14] & 0x20) > 0;
+    }
+
+    /**
+     * Sets the Humidifier Water tank level setpoint
+     * 
+     * @param humidity Water tank level setpoint
+     */
+    public void setTankSetpoint(int tankSetpoint) {
+        data[0x17] &= ~(byte) 0xff;
+        data[0x17] |= tankSetpoint;
     }
 
     /**

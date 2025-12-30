@@ -25,7 +25,10 @@ public class A1CommandBase extends CommandBase {
      * Base class for A1-style commands
      */
     public A1CommandBase() {
-        super(); // build the AC-style base frame
+        super(); // build the AC-style base frame then modify for A1
         data[2] = (byte) 0xa1; // override device type byte
+        data[14] = (byte) 0x00; // override 0x03 byte for poll
+        data[15] = (byte) 0x00; // override 0xff byte for poll
+        data[17] = (byte) 0x00; // override 0x02 byte for poll
     }
 }

@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HexFormat;
 
@@ -269,7 +270,7 @@ public class ConnectionManager {
                     } else {
                         throw new MideaAuthenticationException("Invalid Key. Correct Key in configuration.");
                     }
-                } else if (Arrays.equals(new String("ERROR").getBytes(), response)) {
+                } else if (Arrays.equals(new String("ERROR").getBytes(StandardCharsets.US_ASCII), response)) {
                     throw new MideaAuthenticationException("Authentication failed!");
                 } else {
                     logger.debug("Authentication reponse unexpected data length ({} instead of 72)!", response.length);
@@ -459,7 +460,7 @@ public class ConnectionManager {
                 logger.warn("Error response 0x1E received {} from IP Address:{}", bodyType, ipAddress);
                 return;
 
-            case (byte) 0xB5:
+            case (byte) 0xB5: // Possible same for 0xB1 ?
                 try {
                     logger.debug("Capabilities response detected with bodyType 0xB5.");
                     CapabilitiesResponse capabilitiesResponse = new CapabilitiesResponse(data);

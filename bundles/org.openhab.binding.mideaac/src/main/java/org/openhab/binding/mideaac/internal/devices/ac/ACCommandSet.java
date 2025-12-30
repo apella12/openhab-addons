@@ -39,6 +39,7 @@ public class ACCommandSet extends CommandBase {
      * Byte array structure for Command set
      */
     public ACCommandSet() {
+        super();
         data[0x01] = (byte) 0x23;
         data[0x09] = (byte) 0x02; // Setting Mode
         data[0x0a] = (byte) 0x40; // Command Message
@@ -50,6 +51,13 @@ public class ACCommandSet extends CommandBase {
         newData[data.length + 1] = extra[1];
         newData[data.length + 2] = extra[2];
         data = newData;
+
+        // Zap the old timestamp
+        int oldTimestampIndex = data.length - 4;
+        data[oldTimestampIndex] = 0x00;
+
+        // Add the new timestamp
+        applyTimestamp();
     }
 
     /**
@@ -265,13 +273,13 @@ public class ACCommandSet extends CommandBase {
         data[0x01] = (byte) 0x20;
         data[0x09] = (byte) 0x03;
         data[0x0a] = (byte) 0x41;
-        data[0x0b] = (byte) 0x61; // Includes beep 0x40
+        data[0x0b] = (byte) 0x61; // Includes beep 0x40 0x81 ZH? or 0x02-local
         data[0x0c] = (byte) 0x00;
         data[0x0d] = (byte) 0xff;
         data[0x0e] = (byte) 0x02;
-        data[0x0f] = (byte) 0x00;
+        data[0x0f] = (byte) 0x00; // 0xff ZH -OK with local
         data[0x10] = (byte) 0x02;
-        data[0x11] = (byte) 0x00;
+        data[0x11] = (byte) 0x00; // 0x02 ZH -OK with local
         data[0x12] = (byte) 0x00;
         data[0x13] = (byte) 0x00;
         data[0x14] = (byte) 0x00;
@@ -281,6 +289,7 @@ public class ACCommandSet extends CommandBase {
         byte[] newData = new byte[data.length - 3];
         System.arraycopy(data, 0, newData, 0, newData.length);
         data = newData;
+        applyTimestamp();
     }
 
     /**
@@ -476,7 +485,7 @@ public class ACCommandSet extends CommandBase {
         data[0x0c] = (byte) 0x01;
         data[0x0d] = (byte) 0x44;
         data[0x0e] = (byte) 0x00;
-        data[0x0f] = (byte) 0x00;
+        data[0x0f] = (byte) 0x00; // maybe 0x01 for total energy ZH
         data[0x10] = (byte) 0x00;
         data[0x11] = (byte) 0x00;
         data[0x12] = (byte) 0x00;
@@ -488,6 +497,7 @@ public class ACCommandSet extends CommandBase {
         byte[] newData = new byte[data.length - 3];
         System.arraycopy(data, 0, newData, 0, newData.length);
         data = newData;
+        applyTimestamp();
     }
 
     /**
@@ -509,7 +519,7 @@ public class ACCommandSet extends CommandBase {
         data[0x0c] = (byte) 0x01;
         data[0x0d] = (byte) 0x45;
         data[0x0e] = (byte) 0x00;
-        data[0x0f] = (byte) 0x00;
+        data[0x0f] = (byte) 0x00; // maybe 0x01 for humidity ZH
         data[0x10] = (byte) 0x00;
         data[0x11] = (byte) 0x00;
         data[0x12] = (byte) 0x00;
@@ -521,6 +531,7 @@ public class ACCommandSet extends CommandBase {
         byte[] newData = new byte[data.length - 3];
         System.arraycopy(data, 0, newData, 0, newData.length);
         data = newData;
+        applyTimestamp();
     }
 
     /**
